@@ -751,15 +751,38 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         // TODO impment me
     }
 
+    function tokenToUsdMin(address _token, uint256 _tokenAmount) public view returns (uint256) {
+        if (_tokenAmount == 0) { return 0; }
+        uint256 price = getMinPrice(_token);
+        uint256 decimals = tokenConfigurations[_token].tokenDecimals;
+        return _tokenAmount.mul(price).div(10 ** decimals);
+    }
+
+    function usdToTokenMax(address _token, uint256 _usdAmount) public view returns (uint256) {
+        if (_usdAmount == 0) { return 0; }
+        return usdToToken(_token, _usdAmount, getMinPrice(_token));
+    }
+
+    function usdToTokenMin(address _token, uint256 _usdAmount) public view returns (uint256) {
+        if (_usdAmount == 0) { return 0; }
+        return usdToToken(_token, _usdAmount, getMaxPrice(_token));
+    }
+
+    function usdToToken(address _token, uint256 _usdAmount, uint256 _price) public view returns (uint256) {
+        if (_usdAmount == 0) { return 0; }
+        uint256 decimals = tokenConfigurations[_token].tokenDecimals;
+        return _usdAmount.mul(10 ** decimals).div(_price);
+    }
+
     function getMaxPrice(
         address _token
-    ) external view override returns (uint256) {
+    ) public view override returns (uint256) {
         return IVaultPriceFeed(_priceFeed).getPrice(_token, true);
     }
 
     function getMinPrice(
         address _token
-    ) external view override returns (uint256) {
+    ) public view override returns (uint256) {
         return IVaultPriceFeed(_priceFeed).getPrice(_token, false);
     }
 

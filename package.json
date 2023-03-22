@@ -18,6 +18,7 @@
     "url": "https://gitlab.com/technixo/smart-contract/futures-trading-protocol-cross-chain"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@typechain/truffle-v5": "^8.0.1",

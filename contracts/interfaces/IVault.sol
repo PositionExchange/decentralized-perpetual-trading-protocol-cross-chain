@@ -181,4 +181,7 @@ interface IVault {
         uint256 _taxBasisPoints,
         bool _increment
     ) external view returns (uint256);
+
+    function usdToTokenMin(address _token, uint256 _usdAmount) external view returns (uint256);
+    function tokenToUsdMin(address _token, uint256 _tokenAmount) external view returns (uint256);
 }
