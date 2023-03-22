@@ -1,0 +1,67 @@
+{
+  "name": "futures-trading-protocol-cross-chain",
+  "description": "Futures trading protocol crosschain smart contract",
+  "license": "agpl-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "1.0.0",
+  "homepage": "https://position.exchange/",
+  "keywords": [
+    "position",
+    "position-exchange",
+    "POSI",
+    "posi-chain"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/technixo/smart-contract/futures-trading-protocol-cross-chain"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@typechain/truffle-v5": "^8.0.1",
+    "@types/nedb": "^1.8.12",
+    "@types/shelljs": "^0.8.11",
+    "dotenv": "^16.0.1",
+    "hardhat-deploy": "^0.11.12"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^0.6.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
+    "@nomiclabs/hardhat-ethers": "^2.2.2",
+    "@nomiclabs/hardhat-etherscan": "^3.1.5",
+    "@openzeppelin/contracts": "^4.8.2",
+    "@openzeppelin/contracts-ethereum-package": "^3.0.0",
+    "@openzeppelin/contracts-upgradeable": "^4.7.3",
+    "@openzeppelin/hardhat-defender": "^1.7.1",
+    "@openzeppelin/hardhat-upgrades": "^1.20.0",
+    "@remix-project/remixd": "^0.6.9",
+    "@typechain/ethers-v5": "^10.2.0",
+    "@typechain/hardhat": "^6.1.5",
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.1",
+    "chai": "^4.3.7",
+    "ethereum-waffle": "^4.0.9",
+    "hardhat": "^2.12.6",
+    "hardhat-contract-sizer": "^2.6.1",
+    "hardhat-gas-reporter": "^1.0.9",
+    "it-each": "^0.4.0",
+    "mocha": "^10.2.0",
+    "nedb": "^1.8.0",
+    "nedb-promises": "^6.1.0",
+    "prettier-plugin-solidity": "^1.0.0-beta.24",
+    "solidity-coverage": "^0.8.2",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.1.1",
+    "typescript": "^4.9.4"
+  },
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy_testnet": "npx hardhat --network bsc_testnet deploy --stage test",
+    "deploy_production": "yarn compile && npx hardhat --network bsc_mainnet deploy --stage production",
+    "check-sizes": "npx hardhat compile && yarn hardhat size-contracts",
+    "prettier": "npx prettier --write 'contracts/**/*.sol'"
+  }
+}

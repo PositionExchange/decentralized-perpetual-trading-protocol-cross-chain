@@ -1,0 +1,97 @@
+@startuml
+
+skinparam ParticipantPadding 20
+skinparam BoxPadding 30
+skinparam sequenceMessageAlign center
+
+autoactivate off
+
+actor User
+
+box "Source Chain (eg. BNB Chain)" #LightYellow
+    participant "DPTP Futures Gateway" as FGW
+    participant "Futures Adapter" as FA
+    participant Vault
+end box
+
+participant Relayer
+
+box "Process Chain (POSI Chain)" #LightGreen
+    participant "Crosschain Gateway" as CGW
+end box
+
+User -> FGW: createIncreasePosition
+activate FGW
+
+FGW -> FGW: Validate executionFee, path, order quantity
+alt Invalid request
+    FGW ->x User: revert
+end
+
+FGW -> FGW: transfer ETH from user to FGW
+FGW -> FGW: transfer ERC20 from user to FGW
+FGW -> FGW: calculate position fee (open/close position fee)
+FGW -> FGW: calculate funding fee (borrow fee)
+FGW -> FGW: calculate swap fee if needed
+FGW -> FGW: save request
+FGW -> FA: crossBlockchainCall
+activate FA
+
+FA ->> Relayer: emit CrossCall event
+activate Relayer
+
+FA --> FGW: return
+deactivate FA
+
+FGW -->x User: transaction hash
+deactivate FGW
+
+Relayer -> CGW: relay message
+activate CGW
+
+'TODO: Implement logic from process chain
+return transaction
+
+alt Transaction failed
+    Relayer -> FA: refund
+    activate FA
+
+    FA -> FA: validate refund request
+    FA -> FGW: refund
+    activate FGW
+
+    FGW -> FGW: get request by key
+    FGW ->x User: transfer back amountIn
+    FGW -> FGW: delete request by key
+    return return
+    return transaction
+
+    Relayer -> Relayer: save transaction
+
+else Transaction success
+    Relayer -> FA: relay message
+    activate FA
+
+    FA -> FA: decode & validate relay request
+    FA -> FGW: execute increase position
+    deactivate FA
+    activate FGW
+
+    FGW -> Vault: transfer fee to vault's fee reserves and transfer collateral to vault's liquidity pool
+    deactivate FGW
+    activate Vault
+
+    Vault -> Vault: update pool
+    Vault -> Vault: update reserved amount
+    Vault -> Vault: update fee reserve
+    Vault -> Vault: update total PnL
+    Vault -> Vault: update average entry price
+    Vault -> Vault: update total position sizes
+    Vault --> Relayer: transaction
+    deactivate Vault
+
+    Relayer ->x Relayer: save transaction
+    deactivate Relayer
+end
+
+@enduml
