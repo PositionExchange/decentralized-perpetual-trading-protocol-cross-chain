@@ -158,6 +158,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         require(tokenAmount > 0, "Vault: transferIn token amount must be greater than 0");
 
         // updateCumulativeFundingRate(_token, _token);
+        console.log("BUY >>> tokenAmount", tokenAmount);
         uint256 price = getAskPrice(_token);
         console.log("price", price);
 
@@ -170,6 +171,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _token,
             usdpAmount
         );
+        console.log("feeBasisPoints", feeBasisPoints);
+
         uint256 amountAfterFees = _collectSwapFees(
             _token,
             tokenAmount,
@@ -268,6 +271,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     function getAskPrice(
         address _token
     ) public view override returns (uint256) {
+      console.log("getAskPrice, token", _token);
         return _priceFeed.getPrice(_token, false);
     }
 
@@ -328,10 +332,13 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amount,
         uint256 _feeBasisPoints
     ) private returns (uint256) {
+      console.log("_collectSwapFees, _token, _amount, _feeBasisPoints", _token, _amount, _feeBasisPoints);
         uint256 afterFeeAmount = _amount
             .mul(BASIS_POINTS_DIVISOR.sub(_feeBasisPoints))
             .div(BASIS_POINTS_DIVISOR);
+
         uint256 feeAmount = _amount.sub(afterFeeAmount);
+        console.log("feeAmount, afterFeeAmount", feeAmount, afterFeeAmount);
         // cr_increaseUsdpAmount
         vaultInfo[_token].addFees(feeAmount);
         // emit CollectSwapFees(_token, tokenToUsdMin(_token, feeAmount), feeAmount);

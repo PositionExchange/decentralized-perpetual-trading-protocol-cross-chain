@@ -31,31 +31,55 @@ interface IPoolData{
 
 export class VaultTracker {
   usdpBefore: ethersE.BigNumber;
+  underlyingToken: MockToken;
+  underlyingBalanceBefore: ethersE.BigNumber;
   poolDataBefore: IPoolData;
+  cacheAddress2Name: {}
+  isFirstTime = true
   constructor(protected vault: Vault, protected usdp: USDP, protected underlyingTokenAddress: string, protected user: string, protected config: {
     verbose?: boolean
   } = {
     verbose: true
   }) {
   }
+
+  // @deprecated call init instead
   async beforePurchase(newUnderlyingTokenAddress?: string){
+    return this.init({newUnderlyingTokenAddress, resetState: false})
+  }
+
+  async init({newUnderlyingTokenAddress, resetState}: {newUnderlyingTokenAddress?: string; resetState?: boolean}) {
     if(newUnderlyingTokenAddress){
       this.underlyingTokenAddress = newUnderlyingTokenAddress
     }
-    const {usdp} = await loadMockTokenFixtures()
-    const {vault} = await loadContractFixtures()
-    this.vault = vault
-    this.usdp = usdp
-    this.usdpBefore = await usdp.balanceOf(this.user)
+    if(this.isFirstTime || resetState){
+      const tokenFixtures = await loadMockTokenFixtures()
+      const {usdp, address2Name} = tokenFixtures
+      const {vault} = await loadContractFixtures()
+      this.cacheAddress2Name = address2Name
+      this.vault = vault
+      this.usdp = usdp
+      this.isFirstTime = false
+      const tokenSymbol = this.cacheAddress2Name[this.underlyingTokenAddress]
+      const tokenContract = tokenFixtures[tokenSymbol] || tokenFixtures[tokenSymbol.toLowerCase()]
+      this.underlyingToken = tokenContract
+      
+    }
+    this.usdpBefore = await this.usdp.balanceOf(this.user)
     this.poolDataBefore = await this.getPoolData()
+    if(this.underlyingToken){
+        this.underlyingBalanceBefore = await this.underlyingToken.balanceOf(this.user)
+      }
     this.printPoolData(this.poolDataBefore, 'before')
   }
 
   async expectAfter({
     usdpBalanceDiff,
-    poolDataDiff
+    poolDataDiff,
+    underlyingBalanceDiff: expectUnderlyingBalanceDiff,
   }: {
     usdpBalanceDiff: string | number;
+    underlyingBalanceDiff?: string | number;
     poolDataDiff: {
       feeReserve?: string | number;
       usdpAmount?: string | number;
@@ -68,6 +92,17 @@ export class VaultTracker {
     const usdpAfter = await this.usdp.balanceOf(this.user)
     const actualUSDPDiff = ethers.utils.formatEther(usdpAfter.sub(this.usdpBefore));
     const poolDataAfter = await this.getPoolData()
+    let underlyingBalanceDiff = 0;
+    if(this.underlyingToken){
+      const balanceNow = (await this.underlyingToken.balanceOf(this.user))
+      underlyingBalanceDiff = Number(ethers.utils.formatEther(balanceNow.sub(
+              this.underlyingBalanceBefore
+            ).toString()))
+      if(expectUnderlyingBalanceDiff){
+        expect(underlyingBalanceDiff).to.eq(Number(expectUnderlyingBalanceDiff), `underlying balance don't meet, balance before: ${ethers.utils.formatEther(this.underlyingBalanceBefore)}, now: ${ethers.utils.formatEther(balanceNow)}`)
+      }
+    }
+
     this.printPoolData(poolDataAfter, 'after')
     expect(Number(actualUSDPDiff)).to.eq(Number(usdpBalanceDiff), `USDP balance don't meet`)
     if(poolDataDiff.feeReserve){
@@ -95,7 +130,7 @@ export class VaultTracker {
     if(!this.config.verbose){
       return
     }
-    console.log(`----Pool Data ${mark} ----`)
+    console.log(`----Pool Data ${mark}, tokenSymbol: ${this.cacheAddress2Name[this.underlyingTokenAddress]} ----`)
     console.table({
       feeReserve: autoFormatEther(poolData.feeReserve),
       usdpAmount: autoFormatEther(poolData.usdpAmount.toString()),
@@ -113,3 +148,13 @@ function autoFormatEther(value: string | number | ethersE.BigNumber) {
     formated: ethers.utils.formatEther(value)
   }
 }
+
+// function return value => key
+// AC. given {a: 'b', c: 'd'}, return {b: 'a', d: 'c'}
+function reverseObject(obj: any) {
+  return Object.keys(obj).reduce((acc, key) => {
+    acc[obj[key]] = key;
+    return acc;
+  }, {});
+}
+

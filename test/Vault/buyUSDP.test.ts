@@ -2,7 +2,7 @@ import { expect, use } from "chai"
 import { solidity } from "ethereum-waffle"
 import { ethers } from "hardhat"
 import { loadContractFixtures, loadMockTokenFixtures } from "../shared/fixtures"
-import { VaultTracker } from "../shared/utilities"
+import { toChainlinkPrice, VaultTracker } from "../shared/utilities"
 
 use(solidity)
 
@@ -18,13 +18,13 @@ describe.only("Vault.buyUSDP", function() {
   })
 
   it("should buy USDP success", async function() {
-    const {busd, usdp, WETH} = await loadMockTokenFixtures()
-    const { vault, deployer, setPrice} = await loadContractFixtures()
+    const {busd, usdp, busdPriceFeed} = await loadMockTokenFixtures()
+    const { vault, deployer} = await loadContractFixtures()
     const tracker = new VaultTracker(vault, usdp, busd.address, deployer.address)
     await tracker.beforePurchase()
     // transfer to vault
     await busd.transfer(vault.address, ethers.utils.parseEther("100"))
-    await setPrice(busd.address, 1)
+    await busdPriceFeed.setLatestAnswer(toChainlinkPrice(1))
     await vault.buyUSDP(busd.address, deployer.address)
     await tracker.expectAfter(
       {
@@ -37,37 +37,42 @@ describe.only("Vault.buyUSDP", function() {
       }
     )
 
-    // buy with ETH
-    await setPrice(WETH.address, 1500)
 
+
+  })
+  it("Should buy USDP with not stable token", async function() {
+    const {WETH, usdp, wethPriceFeed} = await loadMockTokenFixtures()
+    const { vault, deployer} = await loadContractFixtures()
+    await loadContractFixtures()
+    const tracker = new VaultTracker(vault, usdp, WETH.address, deployer.address)
+    // buy with ETH
+    console.log("set eth price")
     await tracker.beforePurchase(WETH.address)
+    wethPriceFeed.setLatestAnswer(toChainlinkPrice("1500"))
     await WETH.transfer(vault.address, ethers.utils.parseEther("1"))
+    console.log("after weth transfer", WETH.address)
     await vault.buyUSDP(WETH.address, deployer.address)
     await tracker.expectAfter(
       {
         usdpBalanceDiff: 1485,
         poolDataDiff: {
-          feeReserve: 15,
-          poolAmount: 1485,
+          feeReserve: 0.01,
+          poolAmount: 0.99,
           usdpAmount: 1485
         }
       }
     )
-
-    
-
   })
 
   it("Should buy USDP with token decimals < 18", async function() {
     // usdt has 9 decimals
-    const {usdt, usdp} = await loadMockTokenFixtures()
-    const { vault, deployer, setPrice} = await loadContractFixtures()
+    const {usdt, usdp, usdtPriceFeed} = await loadMockTokenFixtures()
+    const { vault, deployer} = await loadContractFixtures()
     const tracker = new VaultTracker(vault, usdp, usdt.address, deployer.address)
     await tracker.beforePurchase()
+    usdtPriceFeed.setLatestAnswer(toChainlinkPrice(1))
     // transfer to vault
     await usdt.transfer(vault.address, ethers.utils.parseEther("100"))
-
-    await setPrice(usdt.address, 1)
     await vault.buyUSDP(usdt.address, deployer.address)
     await tracker.expectAfter(
       {
