@@ -41,6 +41,5 @@ library VaultInfo {
     }
   }
 
-
 }
 

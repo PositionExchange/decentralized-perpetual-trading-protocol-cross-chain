@@ -22,6 +22,13 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     using TokenConfiguration for TokenConfiguration.Data;
     using VaultInfo for VaultInfo.Data;
 
+    uint256 public constant FUNDING_RATE_PRECISION = 1000000;
+    uint256 public constant MIN_LEVERAGE = 10000; // 1x
+    uint256 public constant USDG_DECIMALS = 18;
+    uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
+    uint256 public constant MAX_LIQUIDATION_FEE_USD = 100 * PRICE_PRECISION; // 100 USD
+    uint256 public constant MIN_FUNDING_RATE_INTERVAL = 1 hours;
+    uint256 public constant MAX_FUNDING_RATE_FACTOR = 10000; // 1%
     uint256 public constant BASIS_POINTS_DIVISOR = 10000;
     uint256 public constant PRICE_PRECISION = 10 ** 30;
     uint256 public constant DEAFULT_DECIMALS = 18;
@@ -31,6 +38,15 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     address public usdp;
     uint256 public totalTokenWeight;
+    uint256 public override mintBurnFeeBasisPoints = 100; // 1%
+    uint256 public override swapFeeBasisPoints = 30; // 0.3%
+    uint256 public override stableSwapFeeBasisPoints = 4; // 0.04%
+    uint256 public override marginFeeBasisPoints = 10; // 0.1%
+    uint256 public override taxBasisPoints = 50; // 0.5%
+    uint256 public override stableTaxBasisPoints = 20; // 0.2%
+
+    bool public override hasDynamicFees = false;
+    uint256 public override liquidationFeeUsd;
 
     // mapping(address => bool) public whitelistTokens;
     mapping(address => bool) public whitelistCaller;
@@ -133,6 +149,35 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         require(address(_priceFeed) != address(0), "Need priceFeed");
     }
 
+    function setFees(
+        uint256 _taxBasisPoints,
+        uint256 _stableTaxBasisPoints,
+        uint256 _mintBurnFeeBasisPoints,
+        uint256 _swapFeeBasisPoints,
+        uint256 _stableSwapFeeBasisPoints,
+        uint256 _marginFeeBasisPoints,
+        uint256 _liquidationFeeUsd,
+        uint256 _minProfitTime,
+        bool _hasDynamicFees
+    ) external onlyOwner {
+        require(_taxBasisPoints <= MAX_FEE_BASIS_POINTS, "M1");
+        require(_stableTaxBasisPoints <= MAX_FEE_BASIS_POINTS, "M2");
+        require(_mintBurnFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M3");
+        require(_swapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M4");
+        require(_stableSwapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M5");
+        require(_marginFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M6");
+        require(_liquidationFeeUsd <= MAX_LIQUIDATION_FEE_USD, "M7");
+        taxBasisPoints = _taxBasisPoints;
+        stableTaxBasisPoints = _stableTaxBasisPoints;
+        mintBurnFeeBasisPoints = _mintBurnFeeBasisPoints;
+        swapFeeBasisPoints = _swapFeeBasisPoints;
+        stableSwapFeeBasisPoints = _stableSwapFeeBasisPoints;
+        marginFeeBasisPoints = _marginFeeBasisPoints;
+        liquidationFeeUsd = _liquidationFeeUsd;
+        /* minProfitTime = _minProfitTime; */
+        hasDynamicFees = _hasDynamicFees;
+    }
+
     function setWhitelistCaller(address caller, bool val) public onlyOwner {
         emit WhitelistCallerChanged(caller, whitelistCaller[caller], val);
         whitelistCaller[caller] = val;
@@ -155,7 +200,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         returns (uint256)
     {
         uint256 tokenAmount = _transferIn(_token);
-        require(tokenAmount > 0, "Vault: transferIn token amount must be greater than 0");
+        require(
+            tokenAmount > 0,
+            "Vault: transferIn token amount must be greater than 0"
+        );
 
         // updateCumulativeFundingRate(_token, _token);
         console.log("BUY >>> tokenAmount", tokenAmount);
@@ -180,6 +228,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
         uint256 mintAmount = amountAfterFees.mul(price).div(PRICE_PRECISION);
         mintAmount = adjustForDecimals(mintAmount, _token, usdp);
+        console.log("mintAmount", mintAmount);
 
         _increaseUsdpAmount(_token, mintAmount);
         _increasePoolAmount(_token, amountAfterFees);
@@ -263,6 +312,33 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return address(_vaultUtils);
     }
 
+    function isStableToken(
+        address _token
+    ) external view override returns (bool) {
+        return tokenConfigurations[_token].isStableToken;
+    }
+
+    /// @notice get total usdpAmount by token
+    /// @param _token the token address
+    function usdpAmount(
+        address _token
+    ) external view override returns (uint256) {
+        return vaultInfo[_token].usdpAmounts;
+    }
+
+    /// @notice get the target usdp amount weighted for a token
+    /// @param _token the address of the token
+    function getTargetUsdpAmount(
+        address _token
+    ) external view override returns (uint256) {
+        uint256 supply = IERC20(usdp).totalSupply();
+        if (supply == 0) {
+            return 0;
+        }
+        uint256 weight = tokenConfigurations[_token].tokenWeight;
+        return weight.mul(supply).div(totalTokenWeight);
+    }
+
     function getBidPrice(
         address _token
     ) public view override returns (uint256) {
@@ -272,7 +348,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     function getAskPrice(
         address _token
     ) public view override returns (uint256) {
-      console.log("getAskPrice, token", _token);
+        console.log("getAskPrice, token", _token);
         return _priceFeed.getPrice(_token, false);
     }
 
@@ -333,7 +409,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amount,
         uint256 _feeBasisPoints
     ) private returns (uint256) {
-      console.log("_collectSwapFees, _token, _amount, _feeBasisPoints", _token, _amount, _feeBasisPoints);
+        console.log(
+            "_collectSwapFees, _token, _amount, _feeBasisPoints",
+            _token,
+            _amount,
+            _feeBasisPoints
+        );
         uint256 afterFeeAmount = _amount
             .mul(BASIS_POINTS_DIVISOR.sub(_feeBasisPoints))
             .div(BASIS_POINTS_DIVISOR);
@@ -389,7 +470,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function _decreasePoolAmount(address _token, uint256 _amount) private {
-      console.log("_decreasePoolAmount, _token, _amount", _amount);
+        console.log("_decreasePoolAmount, _token, _amount", _amount);
         vaultInfo[_token].subPoolAmount(_amount);
         emit DecreasePoolAmount(_token, _amount);
     }
@@ -397,6 +478,19 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     function _updateTokenBalance(address _token) private {
         uint256 nextBalance = IERC20(_token).balanceOf(address(this));
         tokenBalances[_token] = nextBalance;
+    }
+
+    function getFeeBasisPoints(
+        address _token,
+        uint256 _usdpDelta,
+        uint256 _feeBasisPoints,
+        uint256 _taxBasisPoints,
+        bool _increment
+    ) external view override returns (uint256) {
+      console.log("Vault.getFeeBasisPoints, _usdpDelta, _feeBasisPoints", _usdpDelta, _feeBasisPoints);
+      uint feesBasisPoints = _vaultUtils.getFeeBasisPoints(_token, _usdpDelta, _feeBasisPoints, _taxBasisPoints, _increment);
+      console.log("Vault.getFeeBasisPoints, feesBasisPoints after", feesBasisPoints);
+      return feesBasisPoints;
     }
 
 }

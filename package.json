@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@chainlink/contracts": "^0.6.0",
+    "@defi-wonderland/smock": "^2.3.4",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomiclabs/hardhat-ethers": "^2.2.2",
     "@nomiclabs/hardhat-etherscan": "^3.1.5",

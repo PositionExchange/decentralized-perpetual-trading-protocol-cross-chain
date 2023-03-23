@@ -50,7 +50,7 @@ export class VaultTracker {
     return this.init({newUnderlyingTokenAddress, resetState: false})
   }
 
-  async init({newUnderlyingTokenAddress, resetState}: {newUnderlyingTokenAddress?: string; resetState?: boolean}) {
+  async init({newUnderlyingTokenAddress, resetState}: {newUnderlyingTokenAddress?: string; resetState?: boolean} = {}) {
     if(this.isFirstTime || resetState){
       const tokenFixtures = await loadMockTokenFixtures()
       this.tokenFixtures = tokenFixtures
@@ -63,7 +63,6 @@ export class VaultTracker {
       const tokenSymbol = this.cacheAddress2Name[this.underlyingTokenAddress]
       const tokenContract = tokenFixtures[tokenSymbol] || tokenFixtures[tokenSymbol.toLowerCase()]
       this.underlyingToken = tokenContract
-      
     }
     if(newUnderlyingTokenAddress){
       this.underlyingTokenAddress = newUnderlyingTokenAddress
@@ -84,9 +83,9 @@ export class VaultTracker {
     poolDataDiff,
     underlyingBalanceDiff: expectUnderlyingBalanceDiff,
   }: {
-    usdpBalanceDiff: string | number;
+    usdpBalanceDiff?: string | number;
     underlyingBalanceDiff?: string | number;
-    poolDataDiff: {
+    poolDataDiff?: {
       feeReserve?: string | number;
       usdpAmount?: string | number;
       poolAmount?: string | number;

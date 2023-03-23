@@ -6,7 +6,7 @@ import { toChainlinkPrice, VaultTracker } from "../shared/utilities"
 
 use(solidity)
 
-describe.only("Vault.buyUSDP", function() {
+describe("Vault.buyUSDP", function() {
   it("should buy USDP failed", async function() {
     const {dummyToken, busd} = await loadMockTokenFixtures()
     const { vault, deployer, user1 } = await loadContractFixtures()

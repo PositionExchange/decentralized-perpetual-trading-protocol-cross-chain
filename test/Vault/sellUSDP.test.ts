@@ -7,7 +7,7 @@ import { toChainlinkPrice, VaultTracker } from "../shared/utilities"
 use(solidity)
 
 
-describe.only("Vault.sellUSDP", function() {
+describe("Vault.sellUSDP", function() {
   it("should sell USDP failed", async function() {
     const {dummyToken, busd} = await loadMockTokenFixtures()
     const { vault, deployer, user1 } = await loadContractFixtures()
@@ -50,7 +50,6 @@ describe.only("Vault.sellUSDP", function() {
 
   it("should sell USDP sucessfully", async function() {
     const {tracker, usdp, vault, deployer, busd} = await purchaseUSDP()
-    
     // then sell
     await tracker.beforePurchase()
     // transfer usdp to vault
