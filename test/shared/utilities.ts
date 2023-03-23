@@ -162,3 +162,11 @@ function reverseObject(obj: any) {
   }, {});
 }
 
+export function bigNumberify(n: string | number) {
+  return ethers.BigNumber.from(`${n}`)
+}
+
+export function expandDecimals(n: string | number, decimals: number) {
+  return bigNumberify(n).mul(bigNumberify(10).pow(decimals))
+}
+

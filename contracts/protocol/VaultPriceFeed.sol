@@ -84,28 +84,24 @@ contract VaultPriceFeed is IVaultPriceFeed, Ownable {
         priceSampleSpace = _priceSampleSpace;
     }
 
-    function setTokenConfig(
-        address _token,
-        address _priceFeed,
-        uint256 _priceDecimals,
-        bool _isStrictStable
-    ) external override onlyOwner {
-        priceFeeds[_token] = _priceFeed;
-        priceDecimals[_token] = _priceDecimals;
-        strictStableTokens[_token] = _isStrictStable;
-    }
-    /* END OWNABLE Functions */
-
     function setPriceFeedConfig(
         address _token,
         address _priceFeed,
         uint256 _priceDecimals,
-        uint256 _spreadBasisPoints
+        uint256 _spreadBasisPoints,
+        bool _isStrictStable
     ) external onlyOwner {
         priceFeeds[_token] = _priceFeed;
         priceDecimals[_token] = _priceDecimals;
         spreadBasisPoints[_token] = _spreadBasisPoints;
+        strictStableTokens[_token] = _isStrictStable;
     }
+    function setMaxStrictPriceDeviation(uint256 _maxStrictPriceDeviation) external onlyOwner {
+        maxStrictPriceDeviation = _maxStrictPriceDeviation;
+    }
+    /* END OWNABLE Functions */
+
+    
 
     function getPrice(
         address _token,

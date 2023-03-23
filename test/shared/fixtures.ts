@@ -14,7 +14,8 @@ export async function mockTokenFixtures() {
   const dummyToken = await MockTokenFactory.deploy(initialAmount, "DummyToken", "DUMMY", 18);
   const busd = await MockTokenFactory.deploy(initialAmount, "Mock BUSD", "BUSD", 18);
   const usdt = await MockTokenFactory.deploy(initialAmount, "Mock USDT", "USDT", 9);
-  const dai = await MockTokenFactory.deploy(initialAmount, "Mock DAI", "DAI", 8);
+  const dai = await MockTokenFactory.deploy(initialAmount, "Mock DAI", "DAI", 18);
+  const btc = await MockTokenFactory.deploy(initialAmount, "Mock Bitcoin", "BTC", 18);
   const WBNB = await MockTokenFactory.deploy(initialAmount, "Mock WBNB", "BNB", 18);
   const WETH = await MockTokenFactory.deploy(initialAmount, "Mock WETH", "WETH", 18);
 
@@ -25,6 +26,7 @@ export async function mockTokenFixtures() {
   const wethPriceFeed = await PriceFeedFactory.deploy()
   const bnbPriceFeed = await PriceFeedFactory.deploy()
   const daiPriceFeed = await PriceFeedFactory.deploy()
+  const btcPriceFeed = await PriceFeedFactory.deploy()
 
   const USDPFactory = await ethers.getContractFactory("USDP");
   const usdp = await USDPFactory.deploy();
@@ -35,31 +37,32 @@ export async function mockTokenFixtures() {
   address2Name[WETH.address] = "WETH";
   address2Name[WBNB.address] = "WBNB";
   address2Name[dai.address] = "DAI";
-  
+  address2Name[btc.address] = "BTC";
 
-  return { dummyToken, address2Name, busdPriceFeed, daiPriceFeed, bnbPriceFeed, usdtPriceFeed, wethPriceFeed, busd, usdt, WETH, weth: WETH, usdp, WBNB, bnb: WBNB, eth: WETH, dai, createToken: (name: string, symbol: string, decimals = 18) => {
+  return { dummyToken, address2Name, busdPriceFeed, daiPriceFeed, bnbPriceFeed, usdtPriceFeed, wethPriceFeed, busd, usdt, WETH, weth: WETH, usdp, WBNB, bnb: WBNB, eth: WETH, dai, btc, btcPriceFeed, createToken: (name: string, symbol: string, decimals = 18) => {
     return MockTokenFactory.deploy(initialAmount,name, symbol, decimals);
   }};
 }
 
 export async function deployVaultPureFixtures() {
   const [deployer, user1, user2, user3 ] = await ethers.getSigners();
-  const {busd, usdt, dai, bnb, WETH, usdp, busdPriceFeed, usdtPriceFeed, wethPriceFeed, bnbPriceFeed, daiPriceFeed} = await loadFixture(mockTokenFixtures)
+  const {busd, usdt, dai, bnb, WETH, btc, usdp, busdPriceFeed, usdtPriceFeed, wethPriceFeed, bnbPriceFeed, daiPriceFeed, btcPriceFeed} = await loadFixture(mockTokenFixtures)
   // const mockVaultUtils = await deployMockContract(deployer, JSON.stringify(VaultUtils__factory.abi))
   const mockVaultUtilsFactory = await ethers.getContractFactory("VaultUtils") //smock.mock<VaultUtils__factory>('VaultUtils');
   const mockVaultUtils = await mockVaultUtilsFactory.deploy();
   const vaultPriceFeedFactory = await ethers.getContractFactory("VaultPriceFeed");
-  const mockVaultPriceFeed = (await vaultPriceFeedFactory.deploy()) as VaultPriceFeed
+  const vaultPriceFeed = (await vaultPriceFeedFactory.deploy()) as VaultPriceFeed
 
-  mockVaultPriceFeed.setPriceFeedConfig(busd.address, busdPriceFeed.address, 8, 0)
-  mockVaultPriceFeed.setPriceFeedConfig(usdt.address, usdtPriceFeed.address, 8, 0)
-  mockVaultPriceFeed.setPriceFeedConfig(WETH.address, wethPriceFeed.address, 8, 0)
-  mockVaultPriceFeed.setPriceFeedConfig(dai.address, daiPriceFeed.address, 8, 0)
-  mockVaultPriceFeed.setPriceFeedConfig(bnb.address, bnbPriceFeed.address, 8, 0)
+  await vaultPriceFeed.setPriceFeedConfig(busd.address, busdPriceFeed.address, 8, 0, true)
+  await vaultPriceFeed.setPriceFeedConfig(usdt.address, usdtPriceFeed.address, 8, 0, false)
+  await vaultPriceFeed.setPriceFeedConfig(WETH.address, wethPriceFeed.address, 8, 0, false)
+  await vaultPriceFeed.setPriceFeedConfig(dai.address, daiPriceFeed.address, 8, 0, false)
+  await vaultPriceFeed.setPriceFeedConfig(bnb.address, bnbPriceFeed.address, 8, 0, false)
+  await vaultPriceFeed.setPriceFeedConfig(btc.address, btcPriceFeed.address, 8, 0, false)
 
   const vault = await deployContract<Vault>("Vault", [
     mockVaultUtils.address,
-    mockVaultPriceFeed.address,
+    vaultPriceFeed.address,
     usdp.address,
   ]);
 
@@ -73,7 +76,8 @@ export async function deployVaultPureFixtures() {
   // await mockVaultUtils.getBuyUsdgFeeBasisPoints.returns(100) // 1%
   // await mockVaultUtils.getSellUsdgFeeBasisPoints.returns(100) // 1%
 
-  return {vault, mockVaultPriceFeed, mockVaultUtils}
+  // mockVaultPriceFeed is deprecated, however keep it export to avoid breaking change other tests
+  return {vault, mockVaultPriceFeed: vaultPriceFeed, vaultPriceFeed, mockVaultUtils}
 }
 
 export async function deployContractFixtures() {
