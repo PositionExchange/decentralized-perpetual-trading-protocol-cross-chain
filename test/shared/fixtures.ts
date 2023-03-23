@@ -51,11 +51,11 @@ export async function deployVaultPureFixtures() {
   const vaultPriceFeedFactory = await ethers.getContractFactory("VaultPriceFeed");
   const mockVaultPriceFeed = (await vaultPriceFeedFactory.deploy()) as VaultPriceFeed
 
-  mockVaultPriceFeed.setPriceFeedConfig(busd.address, busdPriceFeed.address, 8, 100)
-  mockVaultPriceFeed.setPriceFeedConfig(usdt.address, usdtPriceFeed.address, 8, 100)
-  mockVaultPriceFeed.setPriceFeedConfig(WETH.address, wethPriceFeed.address, 8, 100)
-  mockVaultPriceFeed.setPriceFeedConfig(dai.address, daiPriceFeed.address, 8, 100)
-  mockVaultPriceFeed.setPriceFeedConfig(bnb.address, bnbPriceFeed.address, 8, 100)
+  mockVaultPriceFeed.setPriceFeedConfig(busd.address, busdPriceFeed.address, 8, 0)
+  mockVaultPriceFeed.setPriceFeedConfig(usdt.address, usdtPriceFeed.address, 8, 0)
+  mockVaultPriceFeed.setPriceFeedConfig(WETH.address, wethPriceFeed.address, 8, 0)
+  mockVaultPriceFeed.setPriceFeedConfig(dai.address, daiPriceFeed.address, 8, 0)
+  mockVaultPriceFeed.setPriceFeedConfig(bnb.address, bnbPriceFeed.address, 8, 0)
 
   const vault = await deployContract<Vault>("Vault", [
     mockVaultUtils.address,
