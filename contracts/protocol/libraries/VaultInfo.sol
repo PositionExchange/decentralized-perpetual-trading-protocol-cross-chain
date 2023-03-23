@@ -26,7 +26,7 @@ library VaultInfo {
   }
 
   function subPoolAmount(Data storage self, uint256 poolAmounts) internal {
-    require(poolAmounts >= self.poolAmounts, "Vault: poolAmount exceeded");
+    require(poolAmounts <= self.poolAmounts, "Vault: poolAmount exceeded");
     self.poolAmounts = self.poolAmounts - uint128(poolAmounts);
     require(self.reservedAmounts <= self.poolAmounts, "Vault: reserved poolAmount");
   }

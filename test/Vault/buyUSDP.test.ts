@@ -43,7 +43,6 @@ describe.only("Vault.buyUSDP", function() {
   it("Should buy USDP with not stable token", async function() {
     const {WETH, usdp, wethPriceFeed} = await loadMockTokenFixtures()
     const { vault, deployer} = await loadContractFixtures()
-    await loadContractFixtures()
     const tracker = new VaultTracker(vault, usdp, WETH.address, deployer.address)
     // buy with ETH
     console.log("set eth price")

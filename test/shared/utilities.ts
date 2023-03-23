@@ -36,6 +36,8 @@ export class VaultTracker {
   poolDataBefore: IPoolData;
   cacheAddress2Name: {}
   isFirstTime = true
+  tokenFixtures: {}
+
   constructor(protected vault: Vault, protected usdp: USDP, protected underlyingTokenAddress: string, protected user: string, protected config: {
     verbose?: boolean
   } = {
@@ -49,11 +51,9 @@ export class VaultTracker {
   }
 
   async init({newUnderlyingTokenAddress, resetState}: {newUnderlyingTokenAddress?: string; resetState?: boolean}) {
-    if(newUnderlyingTokenAddress){
-      this.underlyingTokenAddress = newUnderlyingTokenAddress
-    }
     if(this.isFirstTime || resetState){
       const tokenFixtures = await loadMockTokenFixtures()
+      this.tokenFixtures = tokenFixtures
       const {usdp, address2Name} = tokenFixtures
       const {vault} = await loadContractFixtures()
       this.cacheAddress2Name = address2Name
@@ -64,6 +64,12 @@ export class VaultTracker {
       const tokenContract = tokenFixtures[tokenSymbol] || tokenFixtures[tokenSymbol.toLowerCase()]
       this.underlyingToken = tokenContract
       
+    }
+    if(newUnderlyingTokenAddress){
+      this.underlyingTokenAddress = newUnderlyingTokenAddress
+      const tokenSymbol = this.cacheAddress2Name[this.underlyingTokenAddress]
+      const tokenContract = this.tokenFixtures[tokenSymbol] || this.tokenFixtures[tokenSymbol.toLowerCase()]
+      this.underlyingToken = tokenContract
     }
     this.usdpBefore = await this.usdp.balanceOf(this.user)
     this.poolDataBefore = await this.getPoolData()
@@ -93,16 +99,6 @@ export class VaultTracker {
     const actualUSDPDiff = ethers.utils.formatEther(usdpAfter.sub(this.usdpBefore));
     const poolDataAfter = await this.getPoolData()
     let underlyingBalanceDiff = 0;
-    if(this.underlyingToken){
-      const balanceNow = (await this.underlyingToken.balanceOf(this.user))
-      underlyingBalanceDiff = Number(ethers.utils.formatEther(balanceNow.sub(
-              this.underlyingBalanceBefore
-            ).toString()))
-      if(expectUnderlyingBalanceDiff){
-        expect(underlyingBalanceDiff).to.eq(Number(expectUnderlyingBalanceDiff), `underlying balance don't meet, balance before: ${ethers.utils.formatEther(this.underlyingBalanceBefore)}, now: ${ethers.utils.formatEther(balanceNow)}`)
-      }
-    }
-
     this.printPoolData(poolDataAfter, 'after')
     expect(Number(actualUSDPDiff)).to.eq(Number(usdpBalanceDiff), `USDP balance don't meet`)
     if(poolDataDiff.feeReserve){
@@ -113,6 +109,15 @@ export class VaultTracker {
     }
     if(poolDataDiff.poolAmount){
       expect(Number(ethers.utils.formatEther(poolDataAfter.poolAmount.sub(this.poolDataBefore.poolAmount)))).to.eq(Number(poolDataDiff.poolAmount), `poolAmount don't meet`)
+    }
+    if(this.underlyingToken){
+      const balanceNow = (await this.underlyingToken.balanceOf(this.user))
+      underlyingBalanceDiff = Number(ethers.utils.formatEther(balanceNow.sub(
+              this.underlyingBalanceBefore
+            ).toString()))
+      if(expectUnderlyingBalanceDiff){
+        expect(underlyingBalanceDiff).to.eq(Number(expectUnderlyingBalanceDiff), `underlying balance don't meet, balance before: ${ethers.utils.formatEther(this.underlyingBalanceBefore)}, now: ${ethers.utils.formatEther(balanceNow)}`)
+      }
     }
   }
 

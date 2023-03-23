@@ -7,7 +7,7 @@ import { deployContract, toChainlinkPrice, toPriceFeedPrice } from "./utilities"
 export async function mockTokenFixtures() {
   const address2Name = {}
   const MockTokenFactory = await ethers.getContractFactory("MockToken");
-  const initialAmount = ethers.utils.parseEther("1000000");
+  const initialAmount = ethers.utils.parseEther("100000000");
 
   const dummyToken = await MockTokenFactory.deploy(initialAmount, "DummyToken", "DUMMY", 18);
   const busd = await MockTokenFactory.deploy(initialAmount, "Mock BUSD", "BUSD", 18);
@@ -28,7 +28,7 @@ export async function mockTokenFixtures() {
   address2Name[usdt.address] = "USDT";
   address2Name[WETH.address] = "WETH";
 
-  return { dummyToken, address2Name, busdPriceFeed, usdtPriceFeed, wethPriceFeed, busd, usdt, WETH, usdp, createToken: (name: string, symbol: string, decimals = 18) => {
+  return { dummyToken, address2Name, busdPriceFeed, usdtPriceFeed, wethPriceFeed, busd, usdt, WETH, weth: WETH, usdp, createToken: (name: string, symbol: string, decimals = 18) => {
     return MockTokenFactory.deploy(initialAmount,name, symbol, decimals);
   }};
 }

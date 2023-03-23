@@ -210,18 +210,18 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         nonReentrant
         returns (uint256)
     {
-        uint256 usdgAmount = _transferIn(usdp);
-        require(usdgAmount > 0, "Vault: invalid usdp amount");
+        uint256 usdpAmount = _transferIn(usdp);
+        require(usdpAmount > 0, "Vault: invalid usdp amount");
 
         // updateCumulativeFundingRate(_token, _token);
 
-        uint256 redemptionAmount = getRedemptionAmount(_token, usdgAmount);
+        uint256 redemptionAmount = getRedemptionAmount(_token, usdpAmount);
         require(redemptionAmount > 0, "Vault: Invalid redemption amount");
 
-        _decreaseUsdpAmount(_token, usdgAmount);
+        _decreaseUsdpAmount(_token, usdpAmount);
         _decreasePoolAmount(_token, redemptionAmount);
 
-        IUSDP(usdp).burn(address(this), usdgAmount);
+        IUSDP(usdp).burn(address(this), usdpAmount);
 
         // the _transferIn call increased the value of tokenBalances[usdg]
         // usually decreases in token balances are synced by calling _transferOut
@@ -231,8 +231,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         uint256 feeBasisPoints = _vaultUtils.getSellUsdgFeeBasisPoints(
             _token,
-            usdgAmount
+            usdpAmount
         );
+        console.log("feeBasisPoints", feeBasisPoints);
         uint256 amountOut = _collectSwapFees(
             _token,
             redemptionAmount,
@@ -242,7 +243,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         _transferOut(_token, amountOut, _receiver);
 
-        emit SellUSDP(_receiver, _token, usdgAmount, amountOut, feeBasisPoints);
+        emit SellUSDP(_receiver, _token, usdpAmount, amountOut, feeBasisPoints);
         return amountOut;
     }
 
@@ -388,6 +389,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function _decreasePoolAmount(address _token, uint256 _amount) private {
+      console.log("_decreasePoolAmount, _token, _amount", _amount);
         vaultInfo[_token].subPoolAmount(_amount);
         emit DecreasePoolAmount(_token, _amount);
     }
