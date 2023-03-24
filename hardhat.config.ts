@@ -20,7 +20,8 @@ import {
     // VOLTA_RPC_URL
 } from "./constants";
 import "./scripts/deploy";
-import "hardhat-gas-reporter";
+// TODO enable gas reporter once development done
+// import "hardhat-gas-reporter";
 import "solidity-coverage";
 // const BSC_TESTNET_URL =
 //     `${process.env["BSC_TESTNET_ENDPOINT"]}` || "https://data-seed-prebsc-1-s1.binance.org:8545/"
