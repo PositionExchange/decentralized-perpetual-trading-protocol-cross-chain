@@ -30,9 +30,7 @@ describe("Vault.getPrice", function() {
       true // _isShortable
     )
 
-    console.log("before busd")
     expect(await vaultPriceFeed.getPrice(busd.address, true)).eq(expandDecimals(1, 30))
-    console.log("busd ok")
     await busdPriceFeed.setLatestAnswer(toChainlinkPrice(1.1))
     expect(await vaultPriceFeed.getPrice(busd.address, true)).eq(expandDecimals(11, 29))
 

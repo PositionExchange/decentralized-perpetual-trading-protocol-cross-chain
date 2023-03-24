@@ -65,6 +65,12 @@ contract MockToken is Token {
         emit Transfer(address(0), _to, _value); //solhint-disable-line indent, no-unused-vars
     }
 
+    function burn(uint256 _value) public {
+      balances[msg.sender] -= _value;
+      totalSupply -= _value;
+      emit Transfer(msg.sender, address(0), _value); //solhint-disable-line indent, no-unused-vars
+    }
+
     function transfer(address _to, uint256 _value) public override returns (bool success) {
         require(balances[msg.sender] >= _value, "token balance is lower than the value requested");
         balances[msg.sender] -= _value;

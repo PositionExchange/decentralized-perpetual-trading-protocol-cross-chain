@@ -304,6 +304,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         // TODO implement me
     }
 
+    function poolAmounts(
+        address token
+    ) external view override returns (uint256) {
+        return uint256(vaultInfo[token].poolAmounts);
+    }
+
     function priceFeed() external view override returns (address) {
         return address(_priceFeed);
     }
@@ -369,7 +375,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 decimalsMul = _tokenMul == usdp
             ? DEAFULT_DECIMALS
             : tokenConfigurations[_tokenMul].tokenDecimals;
-        return _amount.mul(10 ** (decimalsMul - decimalsDiv));
+        return _amount.mul(10 ** decimalsMul).div(10 ** decimalsDiv);
     }
 
     function getRedemptionAmount(
@@ -470,7 +476,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function _decreasePoolAmount(address _token, uint256 _amount) private {
-        console.log("_decreasePoolAmount, _token, _amount", _amount);
+        console.log("_decreasePoolAmount, current vs _amount", uint(vaultInfo[_token].poolAmounts), _amount);
         vaultInfo[_token].subPoolAmount(_amount);
         emit DecreasePoolAmount(_token, _amount);
     }
@@ -487,10 +493,145 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _taxBasisPoints,
         bool _increment
     ) external view override returns (uint256) {
-      console.log("Vault.getFeeBasisPoints, _usdpDelta, _feeBasisPoints", _usdpDelta, _feeBasisPoints);
-      uint feesBasisPoints = _vaultUtils.getFeeBasisPoints(_token, _usdpDelta, _feeBasisPoints, _taxBasisPoints, _increment);
-      console.log("Vault.getFeeBasisPoints, feesBasisPoints after", feesBasisPoints);
-      return feesBasisPoints;
+        console.log(
+            "Vault.getFeeBasisPoints, _usdpDelta, _feeBasisPoints",
+            _usdpDelta,
+            _feeBasisPoints
+        );
+        uint feesBasisPoints = _vaultUtils.getFeeBasisPoints(
+            _token,
+            _usdpDelta,
+            _feeBasisPoints,
+            _taxBasisPoints,
+            _increment
+        );
+        console.log(
+            "Vault.getFeeBasisPoints, feesBasisPoints after",
+            feesBasisPoints
+        );
+        return feesBasisPoints;
+    }
+
+    function allWhitelistedTokensLength()
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return whitelistedTokens.length;
+    }
+
+    function allWhitelistedTokens(
+        uint256 i
+    ) external view override returns (address) {
+        return whitelistedTokens[i];
+    }
+
+    function stableTokens(
+        address _token
+    ) external view override returns (bool) {
+      return tokenConfigurations[_token].isStableToken;
+    }
+
+    function shortableTokens(
+        address _token
+    ) external view override returns (bool) {
+      return tokenConfigurations[_token].isShortableToken;
+    }
+
+    function feeReserves(
+        address _token
+    ) external view override returns (uint256) {
+      return uint(vaultInfo[_token].feeReserves);
+    }
+
+    function globalShortSizes(
+        address _token
+    ) external view override returns (uint256) {
+      // TODO implement
+    }
+
+    function globalShortAveragePrices(
+        address _token
+    ) external view override returns (uint256) {
+      //TODO implement
+    }
+
+    function maxGlobalShortSizes(
+        address _token
+    ) external view override returns (uint256) {
+      // TODO implement
+    }
+
+    function tokenDecimals(
+        address _token
+    ) external view override returns (uint256) {
+      return uint(tokenConfigurations[_token].tokenDecimals);
+    }
+
+    function tokenWeights(
+        address _token
+    ) external view override returns (uint256) {
+      return uint(tokenConfigurations[_token].tokenWeight); 
+    }
+
+    function guaranteedUsd(
+        address _token
+    ) external view override returns (uint256) {
+      // TODO implement
+    }
+
+    function bufferAmounts(
+        address _token
+    ) external view override returns (uint256) {
+      // TODO impment meee
+    }
+
+    function reservedAmounts(
+        address _token
+    ) external view override returns (uint256) {
+      return uint(vaultInfo[_token].reservedAmounts);
+    }
+
+    // @deprecated use usdpAmount
+    function usdgAmounts(
+        address _token
+    ) external view override returns (uint256) {
+      return uint(vaultInfo[_token].usdpAmounts);
+    }
+
+    function usdpAmounts(
+        address _token
+    ) external view returns (uint256) {
+      return uint(vaultInfo[_token].usdpAmounts);
+    }
+
+    function maxUsdgAmounts(
+        address _token
+    ) external view override returns (uint256) {
+      // TODO impment me
+    }
+
+    function getMaxPrice(
+        address _token
+    ) external view override returns (uint256) {
+        return IVaultPriceFeed(_priceFeed).getPrice(_token, true);
+    }
+
+    function getMinPrice(
+        address _token
+    ) external view override returns (uint256) {
+        return IVaultPriceFeed(_priceFeed).getPrice(_token, false);
+    }
+
+    function whitelistedTokenCount() external view override returns (uint256) {
+      revert("not implemented");
+    }
+
+    function isWhitelistedTokens(
+        address _token
+    ) external view override returns (bool) {
+      return tokenConfigurations[_token].isWhitelisted;
     }
 
 }

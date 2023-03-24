@@ -70,17 +70,29 @@ contract VaultPriceFeed is IVaultPriceFeed, Ownable {
         adjustmentBasisPoints[_token] = _adjustmentBps;
         lastAdjustmentTimings[_token] = block.timestamp;
     }
-    function setSpreadBasisPoints(address _token, uint256 _spreadBasisPoints) external onlyOwner {
-        require(_spreadBasisPoints <= MAX_SPREAD_BASIS_POINTS, "VaultPriceFeed: invalid _spreadBasisPoints");
+
+    function setSpreadBasisPoints(
+        address _token,
+        uint256 _spreadBasisPoints
+    ) external onlyOwner {
+        require(
+            _spreadBasisPoints <= MAX_SPREAD_BASIS_POINTS,
+            "VaultPriceFeed: invalid _spreadBasisPoints"
+        );
         spreadBasisPoints[_token] = _spreadBasisPoints;
     }
 
-    function setSpreadThresholdBasisPoints(uint256 _spreadThresholdBasisPoints) external onlyOwner {
+    function setSpreadThresholdBasisPoints(
+        uint256 _spreadThresholdBasisPoints
+    ) external onlyOwner {
         spreadThresholdBasisPoints = _spreadThresholdBasisPoints;
     }
 
     function setPriceSampleSpace(uint256 _priceSampleSpace) external onlyOwner {
-        require(_priceSampleSpace > 0, "VaultPriceFeed: invalid _priceSampleSpace");
+        require(
+            _priceSampleSpace > 0,
+            "VaultPriceFeed: invalid _priceSampleSpace"
+        );
         priceSampleSpace = _priceSampleSpace;
     }
 
@@ -90,18 +102,20 @@ contract VaultPriceFeed is IVaultPriceFeed, Ownable {
         uint256 _priceDecimals,
         uint256 _spreadBasisPoints,
         bool _isStrictStable
-    ) external onlyOwner {
+    ) external override onlyOwner {
         priceFeeds[_token] = _priceFeed;
         priceDecimals[_token] = _priceDecimals;
         spreadBasisPoints[_token] = _spreadBasisPoints;
         strictStableTokens[_token] = _isStrictStable;
     }
-    function setMaxStrictPriceDeviation(uint256 _maxStrictPriceDeviation) external onlyOwner {
+
+    function setMaxStrictPriceDeviation(
+        uint256 _maxStrictPriceDeviation
+    ) external onlyOwner {
         maxStrictPriceDeviation = _maxStrictPriceDeviation;
     }
-    /* END OWNABLE Functions */
 
-    
+    /* END OWNABLE Functions */
 
     function getPrice(
         address _token,
@@ -244,6 +258,5 @@ contract VaultPriceFeed is IVaultPriceFeed, Ownable {
                 BASIS_POINTS_DIVISOR
             );
     }
-
 
 }

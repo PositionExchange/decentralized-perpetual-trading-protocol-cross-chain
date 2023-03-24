@@ -2,7 +2,7 @@ import { smock } from "@defi-wonderland/smock";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { deployMockContract } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import { Vault, VaultPriceFeed, VaultPriceFeed__factory, VaultUtils__factory } from "../../typeChain";
+import { LpManager, Vault, VaultPriceFeed, VaultPriceFeed__factory, VaultUtils__factory } from "../../typeChain";
 import { getBnbConfig } from "./config";
 import { deployContract, toChainlinkPrice, toPriceFeedPrice } from "./utilities";
 
@@ -18,6 +18,9 @@ export async function mockTokenFixtures() {
   const btc = await MockTokenFactory.deploy(initialAmount, "Mock Bitcoin", "BTC", 18);
   const WBNB = await MockTokenFactory.deploy(initialAmount, "Mock WBNB", "BNB", 18);
   const WETH = await MockTokenFactory.deploy(initialAmount, "Mock WETH", "WETH", 18);
+
+  const PLPFactory = await ethers.getContractFactory("PLP");
+  const plp = await PLPFactory.deploy();
 
   const PriceFeedFactory = await ethers.getContractFactory("PriceFeed");
 
@@ -38,15 +41,16 @@ export async function mockTokenFixtures() {
   address2Name[WBNB.address] = "WBNB";
   address2Name[dai.address] = "DAI";
   address2Name[btc.address] = "BTC";
+  address2Name[plp.address] = "PLP";
 
-  return { dummyToken, address2Name, busdPriceFeed, daiPriceFeed, bnbPriceFeed, usdtPriceFeed, wethPriceFeed, busd, usdt, WETH, weth: WETH, usdp, WBNB, bnb: WBNB, eth: WETH, dai, btc, btcPriceFeed, createToken: (name: string, symbol: string, decimals = 18) => {
+  return { dummyToken, address2Name, busdPriceFeed, daiPriceFeed, bnbPriceFeed, usdtPriceFeed, wethPriceFeed, busd, usdt, WETH, weth: WETH, usdp, WBNB, bnb: WBNB, eth: WETH, dai, btc, plp, btcPriceFeed, createToken: (name: string, symbol: string, decimals = 18) => {
     return MockTokenFactory.deploy(initialAmount,name, symbol, decimals);
   }};
 }
 
 export async function deployVaultPureFixtures() {
   const [deployer, user1, user2, user3 ] = await ethers.getSigners();
-  const {busd, usdt, dai, bnb, WETH, btc, usdp, busdPriceFeed, usdtPriceFeed, wethPriceFeed, bnbPriceFeed, daiPriceFeed, btcPriceFeed} = await loadFixture(mockTokenFixtures)
+  const {busd, usdt, dai, bnb, WETH, btc, usdp, plp, busdPriceFeed, usdtPriceFeed, wethPriceFeed, bnbPriceFeed, daiPriceFeed, btcPriceFeed} = await loadFixture(mockTokenFixtures)
   // const mockVaultUtils = await deployMockContract(deployer, JSON.stringify(VaultUtils__factory.abi))
   const mockVaultUtilsFactory = await ethers.getContractFactory("VaultUtils") //smock.mock<VaultUtils__factory>('VaultUtils');
   const mockVaultUtils = await mockVaultUtilsFactory.deploy();
@@ -73,11 +77,16 @@ export async function deployVaultPureFixtures() {
   // set whitelist caller
   await vault.setWhitelistCaller(deployer.address, true);
 
+
+  // PLP Manager
+  const plpManagerFactory = await ethers.getContractFactory("LpManager")
+  const lpManager = (await plpManagerFactory.deploy(plp.address, usdp.address, vault.address)) as LpManager;
+  const provider = ethers.provider;
   // await mockVaultUtils.getBuyUsdgFeeBasisPoints.returns(100) // 1%
   // await mockVaultUtils.getSellUsdgFeeBasisPoints.returns(100) // 1%
 
   // mockVaultPriceFeed is deprecated, however keep it export to avoid breaking change other tests
-  return {vault, mockVaultPriceFeed: vaultPriceFeed, vaultPriceFeed, mockVaultUtils}
+  return {vault, mockVaultPriceFeed: vaultPriceFeed, vaultPriceFeed, mockVaultUtils, lpManager, user1, user2, user0: deployer, provider}
 }
 
 export async function deployContractFixtures() {

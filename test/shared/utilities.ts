@@ -6,6 +6,7 @@ import {
 import { MockToken, USDP, Vault } from "../../typeChain";
 import { loadContractFixtures, loadMockTokenFixtures } from "./fixtures";
 import { expect } from "chai";
+import * as helpers from "@nomicfoundation/hardhat-network-helpers"
 
 
 export async function deployContract<T>(name: string, args: any[] = [], options?: ethersE.Signer | FactoryOptions) {
@@ -169,4 +170,20 @@ export function bigNumberify(n: string | number) {
 export function expandDecimals(n: string | number, decimals: number) {
   return bigNumberify(n).mul(bigNumberify(10).pow(decimals))
 }
+
+export async function getBlockTime(provider?: any, blockNumber?: number) {
+  if(!provider)
+    provider = ethers.getDefaultProvider()
+  const block = await provider.getBlock(blockNumber || 'latest')
+  return block.timestamp
+}
+
+export async function mineBlock() {
+  await helpers.mine()
+}
+
+export async function increaseTime(seconds) {
+  await helpers.time.increase(seconds)
+}
+
 

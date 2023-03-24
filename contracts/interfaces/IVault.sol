@@ -5,7 +5,8 @@ interface IVault {
   function priceFeed() external view returns (address);
   function vaultUtils() external view returns (address);
   function hasDynamicFees() external view returns (bool);
-
+  function poolAmounts(address token) external view returns (uint256);
+  function whitelistedTokenCount() external view returns (uint256);
 
 
   /* Write Functions */
@@ -33,6 +34,24 @@ interface IVault {
   function marginFeeBasisPoints() external view returns (uint256);
   
   function isStableToken(address _token) external view returns (bool);
+  function allWhitelistedTokensLength() external view returns (uint256);
+  function allWhitelistedTokens(uint256 i) external view returns (address);
+  function isWhitelistedTokens(address _token) external view returns (bool);
+  function stableTokens(address _token) external view returns (bool);
+  function shortableTokens(address _token) external view returns (bool);
+  function feeReserves(address _token) external view returns (uint256);
+  function globalShortSizes(address _token) external view returns (uint256);
+  function globalShortAveragePrices(address _token) external view returns (uint256);
+  function maxGlobalShortSizes(address _token) external view returns (uint256);
+  function tokenDecimals(address _token) external view returns (uint256);
+  function tokenWeights(address _token) external view returns (uint256);
+  function guaranteedUsd(address _token) external view returns (uint256);
+  function bufferAmounts(address _token) external view returns (uint256);
+  function reservedAmounts(address _token) external view returns (uint256);
+  function usdgAmounts(address _token) external view returns (uint256);
+  function maxUsdgAmounts(address _token) external view returns (uint256);
+  function getMaxPrice(address _token) external view returns (uint256);
+  function getMinPrice(address _token) external view returns (uint256);
 
   // pool info
   function usdpAmount(address _token) external view returns (uint256);
