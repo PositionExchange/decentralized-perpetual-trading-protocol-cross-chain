@@ -29,6 +29,7 @@ contract LpManager is ILpManager, Ownable {
 
     uint256 public cooldownDuration;
     mapping (address => uint256) public override lastAddedAt;
+    mapping (address => bool) public isHandler;
 
     event AddLiquidity(
         address account,
@@ -50,6 +51,11 @@ contract LpManager is ILpManager, Ownable {
         uint256 amountOut
     );
 
+    modifier onlyHandler() {
+      require(isHandler[msg.sender], "LpManager: only handler");
+      _;
+    }
+
     constructor(
         IERC20 _plpToken,
         IERC20 _usdp,
@@ -64,9 +70,14 @@ contract LpManager is ILpManager, Ownable {
         aumAddition = _aumAddition;
         aumDeduction = _aumDeduction;
     }
+
     function setCooldownDuration(uint256 _cooldownDuration) external onlyOwner() {
         require(_cooldownDuration <= MAX_COOLDOWN_DURATION, "LpManager: invalid _cooldownDuration");
         cooldownDuration = _cooldownDuration;
+    }
+
+    function setHandler(address _handler, bool _isActive) external onlyOwner {
+        isHandler[_handler] = _isActive;
     }
 
     function getAumInUsdp(
@@ -166,7 +177,7 @@ contract LpManager is ILpManager, Ownable {
         uint256 _amount,
         uint256 _minUsdp,
         uint256 _minPlp
-    ) external override returns (uint256) {
+    ) external onlyHandler override returns (uint256) {
       return _addLiquidity(_fundingAccount, _account, _token, _amount, _minUsdp, _minPlp);
     }
 
@@ -185,13 +196,16 @@ contract LpManager is ILpManager, Ownable {
         uint256 _plpAmount,
         uint256 _minOut,
         address _receiver
-    ) external override returns (uint256) {
+    ) external onlyHandler override returns (uint256) {
       return _removeLiquidity(_account, _tokenOut, _plpAmount, _minOut, _receiver);
     }
 
     function setShortsTrackerAveragePriceWeight(
         uint256 _shortsTrackerAveragePriceWeight
-    ) external override {}
+    ) external override {
+      // TODO imp. this
+      revert("LpManager: setShortsTrackerAveragePriceWeight not implemented");
+    }
 
 
     function getTotalAssetValueInUsdp(bool maximise) public view returns (uint256) {

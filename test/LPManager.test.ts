@@ -1,22 +1,38 @@
 import { expect } from "chai"
+import { ethers } from "hardhat"
 import { getBnbConfig, getBtcConfig, getDaiConfig } from "./shared/config"
 import { loadMockTokenFixtures, loadVaultPureFixtures } from "./shared/fixtures"
 import { expandDecimals, getBlockTime, toChainlinkPrice, mineBlock, increaseTime } from "./shared/utilities"
 
 describe("LPManager", function() {
-  it("addLiquidity, removeLiquidity", async function() {
-    const {dai, bnbPriceFeed, daiPriceFeed, btc, usdp, plp, bnb, btcPriceFeed} = await loadMockTokenFixtures()
-    const {vault, lpManager, user1, user2, user0, provider} = await loadVaultPureFixtures()
+  let [dai, bnbPriceFeed, daiPriceFeed, btc, usdp, plp, bnb, btcPriceFeed, vault, lpManager, user1, user2, user0, user3, provider, rewardRouter] = [] as any[]
+  beforeEach(async () => {
+    const tokenFixtures = await loadMockTokenFixtures()
+    const contractFixtures = await loadVaultPureFixtures()
+    dai = tokenFixtures.dai
+    bnbPriceFeed = tokenFixtures.bnbPriceFeed
+    daiPriceFeed = tokenFixtures.daiPriceFeed
+    btc = tokenFixtures.btc
+    usdp = tokenFixtures.usdp
+    plp = tokenFixtures.plp
+    bnb = tokenFixtures.bnb
+    btcPriceFeed = tokenFixtures.btcPriceFeed
+    vault = contractFixtures.vault
+    lpManager = contractFixtures.lpManager
+    provider = contractFixtures.provider
+    const users = await ethers.getSigners()
+    user0 = users[0]
+    user1 = users[1]
+    user2 = users[2]
+    user3 = users[3]
+    rewardRouter = users[4]
     // reset balance
-    for(const user of [user0, user1, user2]) {
+    for(const user of [user0, user1, user2, user3, rewardRouter]) {
       await dai.connect(user).burn(await dai.balanceOf(user.address))
       await btc.connect(user).burn(await btc.balanceOf(user.address))
       await bnb.connect(user).burn(await bnb.balanceOf(user.address))
     }
 
-    await dai.mint(user0.address, expandDecimals(100, 18))
-    await dai.connect(user0).approve(lpManager.address, expandDecimals(100, 18))
-    const initialBalanceUser0 = await dai.balanceOf(user0.address)
     await vault.setFees(
       50, // _taxBasisPoints
       10, // _stableTaxBasisPoints
@@ -44,6 +60,11 @@ describe("LPManager", function() {
     await plp.setInPrivateTransferMode(true)
     await plp.setMinter(lpManager.address, true)
 
+  })
+  it("addLiquidity, removeLiquidity", async function() {
+    await dai.mint(user0.address, expandDecimals(100, 18))
+    await dai.connect(user0).approve(lpManager.address, expandDecimals(100, 18))
+    const initialBalanceUser0 = await dai.balanceOf(user0.address)
     await expect(lpManager.connect(user0).addLiquidity(
       dai.address,
       expandDecimals(100, 18),
@@ -251,6 +272,111 @@ describe("LPManager", function() {
 
     expect(await btc.balanceOf(user2.address)).eq("993137")
     expect(await plp.balanceOf(user2.address)).eq("23800000000000000000") // 23.8
+  })
+
+  it("addLiquidityForAccount, removeLiquidityForAccount", async () => {
+    await lpManager.setHandler(rewardRouter.address, true)
+    await vault.setWhitelistCaller(lpManager.address, true)
+
+    await dai.mint(user3.address, expandDecimals(100, 18))
+    await dai.connect(user3).approve(lpManager.address, expandDecimals(100, 18))
+
+    await expect(lpManager.connect(user0).addLiquidityForAccount(
+      user3.address,
+      user0.address,
+      dai.address,
+      expandDecimals(100, 18),
+      expandDecimals(101, 18),
+      expandDecimals(101, 18)
+    )).to.be.revertedWith("LpManager: only handler")
+
+    await expect(lpManager.connect(rewardRouter).addLiquidityForAccount(
+      user3.address,
+      user0.address,
+      dai.address,
+      expandDecimals(100, 18),
+      expandDecimals(101, 18),
+      expandDecimals(101, 18)
+    )).to.be.revertedWith("LpManager: insufficient USDP output")
+
+    expect(await dai.balanceOf(user3.address)).eq(expandDecimals(100, 18))
+    expect(await dai.balanceOf(user0.address)).eq(0)
+    expect(await dai.balanceOf(vault.address)).eq(0)
+    expect(await usdp.balanceOf(lpManager.address)).eq(0)
+    expect(await plp.balanceOf(user0.address)).eq(0)
+    expect(await lpManager.lastAddedAt(user0.address)).eq(0)
+    expect(await lpManager.getAumInUsdp(true)).eq(0)
+
+    await lpManager.connect(rewardRouter).addLiquidityForAccount(
+      user3.address,
+      user0.address,
+      dai.address,
+      expandDecimals(100, 18),
+      expandDecimals(99, 18),
+      expandDecimals(99, 18)
+    )
+
+    let blockTime = await getBlockTime(provider)
+
+    expect(await dai.balanceOf(user3.address)).eq(0)
+    expect(await dai.balanceOf(user0.address)).eq(0)
+    expect(await dai.balanceOf(vault.address)).eq(expandDecimals(100, 18))
+    expect(await usdp.balanceOf(lpManager.address)).eq("99700000000000000000") // 99.7
+    expect(await plp.balanceOf(user0.address)).eq("99700000000000000000")
+    expect(await plp.totalSupply()).eq("99700000000000000000")
+    expect(await lpManager.lastAddedAt(user0.address)).eq(blockTime)
+    expect(await lpManager.getAumInUsdp(true)).eq("99700000000000000000")
+
+    await bnb.mint(user1.address, expandDecimals(1, 18))
+    await bnb.connect(user1).approve(lpManager.address, expandDecimals(1, 18))
+
+    await increaseTime(24 * 60 * 60 + 1)
+    await mineBlock()
+
+    await lpManager.connect(rewardRouter).addLiquidityForAccount(
+      user1.address,
+      user1.address,
+      bnb.address,
+      expandDecimals(1, 18),
+      expandDecimals(299, 18),
+      expandDecimals(299, 18)
+    )
+    blockTime = await getBlockTime(provider)
+
+    expect(await usdp.balanceOf(lpManager.address)).eq("398800000000000000000") // 398.8
+    expect(await plp.balanceOf(user0.address)).eq("99700000000000000000")
+    expect(await plp.balanceOf(user1.address)).eq("299100000000000000000")
+    expect(await plp.totalSupply()).eq("398800000000000000000")
+    expect(await lpManager.lastAddedAt(user1.address)).eq(blockTime)
+    expect(await lpManager.getAumInUsdp(true)).eq("398800000000000000000")
+
+    await expect(lpManager.connect(user1).removeLiquidityForAccount(
+      user1.address,
+      bnb.address,
+      "99700000000000000000",
+      expandDecimals(290, 18),
+      user1.address
+    )).to.be.revertedWith("LpManager: only handler")
+
+    await expect(lpManager.connect(rewardRouter).removeLiquidityForAccount(
+      user1.address,
+      bnb.address,
+      "99700000000000000000",
+      expandDecimals(290, 18),
+      user1.address
+    )).to.be.revertedWith("LpManager: cooldown duration not yet passed")
+
+    await lpManager.connect(rewardRouter).removeLiquidityForAccount(
+      user0.address,
+      dai.address,
+      "79760000000000000000", // 79.76
+      "79000000000000000000", // 79
+      user0.address
+    )
+
+    expect(await dai.balanceOf(user0.address)).eq("79520720000000000000")
+    expect(await bnb.balanceOf(user0.address)).eq(0)
+    expect(await plp.balanceOf(user0.address)).eq("19940000000000000000") // 19.94
   })
 
 
