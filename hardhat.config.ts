@@ -13,14 +13,15 @@ import {
     POSI_CHAIN_TESTNET_URL, PRIV_GANACHE_ACCOUNT, PRIV_MAINNET_ACCOUNT,
     PRIV_POSI_CHAIN_DEVNET_ACCOUNT,
     PRIV_POSI_CHAIN_TESTNET_ACCOUNT, PRIV_TESTNET_ACCOUNT,
-    VOLTA_ACCOUNT,
-    VOLTA_CHAIN_ID,
-    VOLTA_EXPLORER_API_KEY,
-    VOLTA_EXPLORER_URL,
-    VOLTA_RPC_URL
+    // VOLTA_ACCOUNT,
+    // VOLTA_CHAIN_ID,
+    // VOLTA_EXPLORER_API_KEY,
+    // VOLTA_EXPLORER_URL,
+    // VOLTA_RPC_URL
 } from "./constants";
 import "./scripts/deploy";
-import "hardhat-gas-reporter";
+// TODO enable gas reporter once development done
+// import "hardhat-gas-reporter";
 import "solidity-coverage";
 // const BSC_TESTNET_URL =
 //     `${process.env["BSC_TESTNET_ENDPOINT"]}` || "https://data-seed-prebsc-1-s1.binance.org:8545/"
@@ -75,11 +76,11 @@ module.exports = {
             chainId: 910000,
             accounts: PRIV_POSI_CHAIN_TESTNET_ACCOUNT ? [PRIV_POSI_CHAIN_TESTNET_ACCOUNT] : [],
         },
-        volta: {
-            url: VOLTA_RPC_URL,
-            chainId: VOLTA_CHAIN_ID,
-            accounts: VOLTA_ACCOUNT ? [VOLTA_ACCOUNT] : [],
-        },
+        // volta: {
+        //     url: VOLTA_RPC_URL,
+        //     chainId: VOLTA_CHAIN_ID,
+        //     accounts: VOLTA_ACCOUNT ? [VOLTA_ACCOUNT] : [],
+        // },
         okex_testnet: {
             url: OKEX_CHAIN_TESTNET_URL,
             chainId: 65,
