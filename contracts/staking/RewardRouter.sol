@@ -102,6 +102,10 @@ contract RewardRouter is IRewardRouter, ReentrancyGuard, Governable, Initializab
       _stakePosi(msg.sender, _account, posi, _amount);
   }
 
+  function isInitialized() external view returns (bool) {
+    return _getInitializedVersion() > 0;
+  }
+
   /// @notice stake posi
   /// @param _amount the amount to stake
   function stakePosi(uint256 _amount) external nonReentrant {
