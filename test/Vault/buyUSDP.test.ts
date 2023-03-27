@@ -9,8 +9,9 @@ use(solidity)
 describe("Vault.buyUSDP", function() {
   it("should buy USDP failed", async function() {
     const {dummyToken, busd} = await loadMockTokenFixtures()
-    const { vault, deployer, user1 } = await loadContractFixtures()
-    await expect(vault.connect(user1).buyUSDP(dummyToken.address, deployer.address)).to.be.revertedWith("Vault: caller not in whitelist")
+    const { vault, deployer, user2 } = await loadContractFixtures()
+    await vault.setInManagerMode(true)
+    await expect(vault.connect(user2).buyUSDP(dummyToken.address, deployer.address)).to.be.revertedWith("Vault: caller not in whitelist")
     // white list caller
     await expect(vault.buyUSDP(dummyToken.address, deployer.address)).to.be.revertedWith("Vault: token not in whitelist")
 
@@ -47,8 +48,10 @@ describe("Vault.buyUSDP", function() {
     // buy with ETH
     console.log("set eth price")
     await tracker.beforePurchase(WETH.address)
+    await WETH.mint(deployer.address, ethers.utils.parseEther("10"));
     wethPriceFeed.setLatestAnswer(toChainlinkPrice("1500"))
-    await WETH.transfer(vault.address, ethers.utils.parseEther("1"))
+    console.log("before weth transfer", WETH.address, await WETH.balanceOf(deployer.address))
+    await WETH.connect(deployer).transfer(vault.address, ethers.utils.parseEther("1"))
     console.log("after weth transfer", WETH.address)
     await vault.buyUSDP(WETH.address, deployer.address)
     await tracker.expectAfter(

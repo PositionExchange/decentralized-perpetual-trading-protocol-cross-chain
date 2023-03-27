@@ -9,7 +9,7 @@ import { expect } from "chai";
 import * as helpers from "@nomicfoundation/hardhat-network-helpers"
 
 
-export async function deployContract<T>(name: string, args: any[] = [], options?: ethersE.Signer | FactoryOptions) {
+export async function deployContract<T extends ethersE.BaseContract>(name: string, args: any[] = [], options?: ethersE.Signer | FactoryOptions) {
   const contractFactory = await ethers.getContractFactory(name, options)
   return (await contractFactory.deploy(...args)) as unknown as T;
 }
@@ -185,5 +185,7 @@ export async function mineBlock() {
 export async function increaseTime(seconds) {
   await helpers.time.increase(seconds)
 }
-
+export function newWallet() {
+  return ethers.Wallet.createRandom()
+}
 

@@ -2,7 +2,7 @@ import { smock } from "@defi-wonderland/smock";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { deployMockContract } from "ethereum-waffle";
 import { ethers } from "hardhat";
-import { LpManager, Vault, VaultPriceFeed, VaultPriceFeed__factory, VaultUtils__factory } from "../../typeChain";
+import { LpManager, WETH as IWETH, Vault, VaultPriceFeed, VaultPriceFeed__factory, VaultUtils__factory } from "../../typeChain";
 import { getBnbConfig } from "./config";
 import { deployContract, toChainlinkPrice, toPriceFeedPrice } from "./utilities";
 
@@ -16,8 +16,8 @@ export async function mockTokenFixtures() {
   const usdt = await MockTokenFactory.deploy(initialAmount, "Mock USDT", "USDT", 9);
   const dai = await MockTokenFactory.deploy(initialAmount, "Mock DAI", "DAI", 18);
   const btc = await MockTokenFactory.deploy(initialAmount, "Mock Bitcoin", "BTC", 18);
-  const WBNB = await MockTokenFactory.deploy(initialAmount, "Mock WBNB", "BNB", 18);
-  const WETH = await MockTokenFactory.deploy(initialAmount, "Mock WETH", "WETH", 18);
+  const WBNB = await deployContract<IWETH>("WETH", ["WBNB", "WBNB", 18]);
+  const WETH = await deployContract<IWETH>("WETH", ["WETH", "WETH", 18]);
 
   const PLPFactory = await ethers.getContractFactory("PLP");
   const plp = await PLPFactory.deploy();
@@ -42,6 +42,7 @@ export async function mockTokenFixtures() {
   address2Name[dai.address] = "DAI";
   address2Name[btc.address] = "BTC";
   address2Name[plp.address] = "PLP";
+  console.log("Map address to symbol", address2Name);
 
   return { dummyToken, address2Name, busdPriceFeed, daiPriceFeed, bnbPriceFeed, usdtPriceFeed, wethPriceFeed, busd, usdt, WETH, weth: WETH, usdp, WBNB, bnb: WBNB, eth: WETH, dai, btc, plp, btcPriceFeed, createToken: (name: string, symbol: string, decimals = 18) => {
     return MockTokenFactory.deploy(initialAmount,name, symbol, decimals);
@@ -80,7 +81,7 @@ export async function deployVaultPureFixtures() {
 
   // PLP Manager
   const plpManagerFactory = await ethers.getContractFactory("LpManager")
-  const lpManager = (await plpManagerFactory.deploy(plp.address, usdp.address, vault.address)) as LpManager;
+  const lpManager = (await plpManagerFactory.deploy(plp.address, usdp.address, vault.address, ethers.constants.AddressZero, 0)) as LpManager;
   const provider = ethers.provider;
   // await mockVaultUtils.getBuyUsdgFeeBasisPoints.returns(100) // 1%
   // await mockVaultUtils.getSellUsdgFeeBasisPoints.returns(100) // 1%
@@ -92,7 +93,7 @@ export async function deployVaultPureFixtures() {
 export async function deployContractFixtures() {
   const [deployer, user1, user2, user3 ] = await ethers.getSigners();
   const {busd, usdt, dai, bnb, WETH} = await loadFixture(mockTokenFixtures)
-  const {vault, mockVaultPriceFeed, mockVaultUtils} = await loadFixture(deployVaultPureFixtures)
+  const {vault, mockVaultPriceFeed, mockVaultUtils, ...others} = await loadFixture(deployVaultPureFixtures)
   // init default for busd, usd and weth
   await vault.setConfigToken(
     busd.address,
@@ -138,6 +139,7 @@ export async function deployContractFixtures() {
     user2,
     user3,
     vault,
+    ...others
   }
 }
 
