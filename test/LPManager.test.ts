@@ -1,5 +1,6 @@
 import { expect } from "chai"
 import { ethers } from "hardhat"
+import { Vault } from "../typeChain"
 import { getBnbConfig, getBtcConfig, getDaiConfig } from "./shared/config"
 import { loadMockTokenFixtures, loadVaultPureFixtures } from "./shared/fixtures"
 import { expandDecimals, getBlockTime, toChainlinkPrice, mineBlock, increaseTime } from "./shared/utilities"
@@ -60,6 +61,8 @@ describe("LPManager", function() {
     await plp.setInPrivateTransferMode(true)
     await plp.setMinter(lpManager.address, true)
 
+    await (vault as Vault).setInManagerMode(true)
+
   })
   it("addLiquidity, removeLiquidity", async function() {
     await dai.mint(user0.address, expandDecimals(100, 18))
@@ -79,7 +82,7 @@ describe("LPManager", function() {
       expandDecimals(100, 18),
       expandDecimals(101, 18),
       expandDecimals(101, 18)
-    )).to.be.revertedWith("LpManager: insufficient USDP output")
+    )).to.be.revertedWith("LpManager: insufficient _usdp output")
 
     await bnbPriceFeed.setLatestAnswer(toChainlinkPrice(300))
     await bnbPriceFeed.setLatestAnswer(toChainlinkPrice(300))
@@ -151,7 +154,7 @@ describe("LPManager", function() {
       "1000000",
       expandDecimals(599, 18),
       expandDecimals(399, 18)
-    )).to.be.revertedWith("LpManager: insufficient USDP output")
+    )).to.be.revertedWith("LpManager: insufficient _usdp output")
 
     console.log("127")
 
@@ -297,7 +300,7 @@ describe("LPManager", function() {
       expandDecimals(100, 18),
       expandDecimals(101, 18),
       expandDecimals(101, 18)
-    )).to.be.revertedWith("LpManager: insufficient USDP output")
+    )).to.be.revertedWith("LpManager: insufficient _usdp output")
 
     expect(await dai.balanceOf(user3.address)).eq(expandDecimals(100, 18))
     expect(await dai.balanceOf(user0.address)).eq(0)

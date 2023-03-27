@@ -68,6 +68,10 @@ contract WETH is IERC20 {
       _mint(account, amount);
     }
 
+    function burn(uint256 amount) public {
+      _burn(msg.sender, amount);
+    }
+
     function withdraw(uint256 amount) public {
         require(_balances[msg.sender] >= amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
