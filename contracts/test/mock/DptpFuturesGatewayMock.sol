@@ -11,13 +11,12 @@ contract DptpFuturesGatewayMock is DptpFuturesGateway {
         uint256 _sizeDelta,
         uint256 _amountIn,
         uint256 _leverage
-    ) public returns (uint256, uint256) {
+    ) public returns (uint256) {
         return
             _calculateMarginFees(
                 _collateralToken,
                 _indexToken,
                 _isLong,
-                _sizeDelta,
                 _amountIn,
                 _leverage
             );

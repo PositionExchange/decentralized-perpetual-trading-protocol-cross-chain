@@ -60,6 +60,7 @@ contract DptpFuturesGateway is
         address indexToken;
         uint256 amountInToken;
         uint256 amountInUsd;
+        uint256 feeInUsd;
         uint256 sizeDelta;
         uint256 leverage;
         bool isLong;
@@ -83,8 +84,33 @@ contract DptpFuturesGateway is
         OPEN_MARKET_BY_QUOTE
     }
 
-    uint256 public posiChainId;
-    address public posiChainCrosschainGatewayContract;
+    event CreateIncreasePosition(
+        address indexed account,
+        address[] path,
+        address indexToken,
+        uint256 amountInToken,
+        uint256 sizeDelta,
+        bool isLong,
+        uint256 executionFee,
+        bytes32 key,
+        uint256 blockNumber,
+        uint256 blockTime
+    );
+
+    event ExecuteIncreasePosition(
+        address indexed account,
+        address[] path,
+        address indexToken,
+        uint256 amountInToken,
+        uint256 sizeDelta,
+        bool isLong,
+        uint256 executionFee,
+        uint256 blockGap,
+        uint256 timeGap
+    );
+
+    uint256 public pcsId;
+    address public pscCrossChainGateway;
 
     address public futuresAdapter;
     address public vault;
@@ -107,21 +133,33 @@ contract DptpFuturesGateway is
 
     uint256 public maxTimeDelay;
 
-    function initialize() public initializer {
+    function initialize(
+        uint256 _pcsId,
+        address _pscCrossChainGateway,
+        address _futuresAdapter,
+        address _vault,
+        address _weth,
+        uint256 _minExecutionFee
+    ) public initializer {
         __ReentrancyGuard_init();
         __Ownable_init();
         __Pausable_init();
 
-        //        require(
-        //            _posiChainCrosschainGatewayContract != address(0),
-        //            Errors.VL_EMPTY_ADDRESS
-        //        );
-        //        require(_futuresAdapter != address(0), Errors.VL_EMPTY_ADDRESS);
-        //        require(_insuranceFund != address(0), Errors.VL_EMPTY_ADDRESS);
-        //        futuresAdapter = CrosschainFunctionCallInterface(_futuresAdapter);
-        //        posiChainCrosschainGatewayContract = _posiChainCrosschainGatewayContract;
-        //        posiChainId = _posiChainId;
-        //        insuranceFund = IInsuranceFund(_insuranceFund);
+        pcsId = _pcsId;
+
+        require(_pscCrossChainGateway != address(0), Errors.VL_EMPTY_ADDRESS);
+        pscCrossChainGateway = _pscCrossChainGateway;
+
+        require(_futuresAdapter != address(0), Errors.VL_EMPTY_ADDRESS);
+        futuresAdapter = _futuresAdapter;
+
+        require(_vault != address(0), Errors.VL_EMPTY_ADDRESS);
+        vault = _vault;
+
+        require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
+        weth = _weth;
+
+        minExecutionFee = _minExecutionFee;
     }
 
     function createIncreasePosition(
@@ -137,8 +175,15 @@ contract DptpFuturesGateway is
         require(_path.length == 1 || _path.length == 2, "len");
 
         uint256 amountInUsd = IVault(vault).tokenToUsdMin(_path[0], _amountIn);
-        uint256 sizeDelta = amountInUsd.mul(_leverage);
-
+        uint256 feeInUsd = _calculateMarginFees(
+            _path[0],
+            _indexToken,
+            _isLong,
+            _amountIn,
+            _leverage
+        );
+        uint256 amountAfterFeeInUsd = amountInUsd.sub(feeInUsd);
+        uint256 sizeDelta = amountAfterFeeInUsd.mul(_leverage);
         _validateSize(_path[0], sizeDelta, false);
 
         _transferInETH();
@@ -157,6 +202,7 @@ contract DptpFuturesGateway is
             _indexToken,
             _amountIn,
             amountInUsd,
+            feeInUsd,
             sizeDelta,
             _leverage,
             _isLong,
@@ -177,7 +223,7 @@ contract DptpFuturesGateway is
         require(_executionFee >= minExecutionFee, "fee");
         require(msg.value >= _executionFee, "val");
         require(_path.length == 1 || _path.length == 2, "len");
-        //        require(_path[0] == weth, "path");
+        require(_path[0] == weth, "path");
 
         _transferInETH();
 
@@ -186,7 +232,15 @@ contract DptpFuturesGateway is
             _path[0],
             amountInToken
         );
-        uint256 sizeDelta = amountInUsd.mul(_leverage);
+        uint256 feeInUsd = _calculateMarginFees(
+            _path[0],
+            _indexToken,
+            _isLong,
+            amountInToken,
+            _leverage
+        );
+        uint256 amountAfterFeeInUsd = amountInUsd.sub(feeInUsd);
+        uint256 sizeDelta = amountAfterFeeInUsd.mul(_leverage);
         _validateSize(_path[0], sizeDelta, false);
 
         CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
@@ -195,6 +249,7 @@ contract DptpFuturesGateway is
             _indexToken,
             amountInToken,
             amountInUsd,
+            feeInUsd,
             sizeDelta,
             _leverage,
             _isLong,
@@ -205,10 +260,7 @@ contract DptpFuturesGateway is
         return _createIncreasePosition(params);
     }
 
-    function executeIncreasePosition(
-        bytes32 _key,
-        address payable _executionFeeReceiver
-    ) public nonReentrant {
+    function executeIncreasePosition(bytes32 _key) public nonReentrant {
         IncreasePositionRequest memory request = increasePositionRequests[_key];
 
         if (request.account == address(0)) {
@@ -224,20 +276,22 @@ contract DptpFuturesGateway is
 
         delete increasePositionRequests[_key];
 
-        // TODO: Implement swap later
-        //        if (request.amountInToken > 0) {
-        //            uint256 amountInToken = request.amountInToken;
-        //
-        //            if (request.path.length > 1) {
-        //                IERC20(request.path[0]).safeTransfer(vault, request.amountInToken);
-        //                amountInToken = _swap(request.path, address(this));
-        //            }
-        //
-        //            IERC20(request.path[request.path.length - 1]).safeTransfer(
-        //                vault,
-        //                amountInToken
-        //            );
-        //        }
+        if (request.amountInToken > 0) {
+            uint256 amountInToken = request.amountInToken;
+
+            if (request.path.length > 1) {
+                IERC20(request.path[0]).safeTransfer(
+                    vault,
+                    request.amountInToken
+                );
+                amountInToken = _swap(request.path, address(this));
+            }
+
+            IERC20(request.path[request.path.length - 1]).safeTransfer(
+                vault,
+                amountInToken
+            );
+        }
 
         _increasePosition(
             request.account,
@@ -247,7 +301,19 @@ contract DptpFuturesGateway is
             request.isLong,
             request.feeUsd
         );
-        _transferOutETH(request.executionFee, _executionFeeReceiver);
+        _transferOutETH(request.executionFee, payable(msg.sender));
+
+        emit ExecuteIncreasePosition(
+            request.account,
+            request.path,
+            request.indexToken,
+            request.amountInToken,
+            request.sizeDelta,
+            request.isLong,
+            request.executionFee,
+            block.number.sub(request.blockNumber),
+            block.timestamp.sub(request.blockTime)
+        );
     }
 
     function _increasePosition(
@@ -283,23 +349,13 @@ contract DptpFuturesGateway is
         internal
         returns (bytes32)
     {
-        // Calculate fee
-        (uint256 feeInUsd, ) = _calculateMarginFees(
-            param.path[0],
-            param.indexToken,
-            param.isLong,
-            param.sizeDelta,
-            param.amountInToken,
-            param.leverage
-        );
-
         IncreasePositionRequest memory request = IncreasePositionRequest(
             param.account,
             param.path,
             param.indexToken,
             param.amountInToken,
             param.amountInUsd,
-            feeInUsd,
+            param.feeInUsd,
             param.sizeDelta,
             param.isLong,
             param.executionFee,
@@ -311,8 +367,8 @@ contract DptpFuturesGateway is
         (, bytes32 requestKey) = _storeIncreasePositionRequest(request);
 
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
-            posiChainId,
-            posiChainCrosschainGatewayContract,
+            pcsId,
+            pscCrossChainGateway,
             uint8(Method.OPEN_MARKET),
             abi.encode(
                 requestKey,
@@ -321,8 +377,21 @@ contract DptpFuturesGateway is
                 request.sizeDelta,
                 param.leverage,
                 msg.sender,
-                request.amountInUsd.sub(feeInUsd)
+                request.amountInUsd.sub(param.feeInUsd)
             )
+        );
+
+        emit CreateIncreasePosition(
+            request.account,
+            request.path,
+            request.indexToken,
+            request.amountInToken,
+            request.sizeDelta,
+            request.isLong,
+            request.executionFee,
+            requestKey,
+            request.blockNumber,
+            request.blockTime
         );
 
         return requestKey;
@@ -360,10 +429,9 @@ contract DptpFuturesGateway is
         address _collateralToken,
         address _indexToken,
         bool _isLong,
-        uint256 _sizeDelta,
         uint256 _amountIn,
         uint256 _leverage
-    ) internal returns (uint256, uint256) {
+    ) internal returns (uint256) {
         // Fee for opening and closing position
         uint256 feeUsd = _getPositionFee(
             _collateralToken,
@@ -376,15 +444,7 @@ contract DptpFuturesGateway is
         // uint256 fundingFee = getFundingFee(_account, _collateralToken, _indexToken, _isLong, _size, _entryFundingRate);
         // feeUsd = feeUsd.add(fundingFee);
 
-        // TODO: Calculate swap fee
-        // feeUsd = feeUsd.add(swapFee);
-
-        //        uint256 feeToken = IVault(vault).usdToTokenMin(
-        //            _collateralToken,
-        //            feeUsd
-        //        );
-
-        return (feeUsd, 0);
+        return feeUsd;
     }
 
     function _getPositionFee(
@@ -441,17 +501,7 @@ contract DptpFuturesGateway is
         returns (uint256)
     {
         require(_path.length == 2, "invalid _path.length");
-        return _vaultSwap(_path[0], _path[1], _receiver);
-    }
-
-    function _vaultSwap(
-        address _tokenIn,
-        address _tokenOut,
-        address _receiver
-    ) internal returns (uint256) {
-        uint256 amountOut = IVault(vault).swap(_tokenIn, _tokenOut, _receiver);
-        //        require(amountOut >= _minOut, "insufficient amountOut");
-        return amountOut;
+        return IVault(vault).swap(_path[0], _path[1], _receiver);
     }
 
     function _validateSize(
@@ -636,14 +686,14 @@ contract DptpFuturesGateway is
     }
 
     function updatePosiChainId(uint256 _posiChainId) external onlyOwner {
-        posiChainId = _posiChainId;
+        pcsId = _posiChainId;
     }
 
     function updatePosiChainCrosschainGatewayContract(address _address)
         external
         onlyOwner
     {
-        posiChainCrosschainGatewayContract = _address;
+        pscCrossChainGateway = _address;
     }
 
     /**

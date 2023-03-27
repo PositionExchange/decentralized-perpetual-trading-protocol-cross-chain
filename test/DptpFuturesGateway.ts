@@ -65,10 +65,14 @@ describe("DPTP Futures Gateway", async function () {
     futuresGateway =
       (await futuresGatewayFactory.deploy()) as unknown as DptpFuturesGatewayMock;
 
-    await futuresGateway.initialize();
-    await futuresGateway.setWeth(weth.address);
-    await futuresGateway.setVault(vault.address);
-    await futuresGateway.setFuturesAdapter(futuresAdapter.address);
+    await futuresGateway.initialize(
+        BigNumber.from('910000'),
+        futuresAdapter.address,
+        futuresAdapter.address,
+        vault.address,
+        weth.address,
+        BigNumber.from('1000000000000000')
+    );
     await futuresGateway.setPositionManagerConfigData(
       whitelistedToken.address,
       100,
@@ -80,7 +84,17 @@ describe("DPTP Futures Gateway", async function () {
       0,
       0
     );
-    await futuresGateway.setMinExecutionFee(BigNumber.from("1000000000000000"));
+    await futuresGateway.setPositionManagerConfigData(
+      weth.address,
+      100,
+      100,
+      100,
+      10000,
+      0,
+      0,
+      0,
+      0
+    );
 
     await weth
       .connect(trader)
@@ -125,7 +139,7 @@ describe("DPTP Futures Gateway", async function () {
       );
       expect(request.feeUsd).to.be.eq(BigNumber.from("1000000000000000000000"));
       expect(request.sizeDelta).to.be.eq(
-        BigNumber.from("100000000000000000000000")
+        BigNumber.from("90000000000000000000000")
       );
       expect(request.executionFee).to.be.eq(BigNumber.from("1000000000000000"));
       expect(request.isLong).to.be.true;
@@ -138,8 +152,8 @@ describe("DPTP Futures Gateway", async function () {
       await futuresGateway
         .connect(trader)
         .createIncreasePositionETH(
-          [whitelistedToken.address],
-          whitelistedToken.address,
+          [weth.address],
+          weth.address,
           BigNumber.from("10"),
           true,
           BigNumber.from("1000000000000000"),
@@ -155,7 +169,7 @@ describe("DPTP Futures Gateway", async function () {
       const request = await futuresGateway.increasePositionRequests(requestKey);
 
       expect(request.account).to.be.eq(trader.address);
-      expect(request.indexToken).to.be.eq(whitelistedToken.address);
+      expect(request.indexToken).to.be.eq(weth.address);
       expect(request.amountInToken).to.be.eq(
         BigNumber.from("10000000000000000000")
       );
@@ -164,7 +178,7 @@ describe("DPTP Futures Gateway", async function () {
       );
       expect(request.feeUsd).to.be.eq(BigNumber.from("1000000000000000000000"));
       expect(request.sizeDelta).to.be.eq(
-        BigNumber.from("100000000000000000000000")
+        BigNumber.from("90000000000000000000000")
       );
       expect(request.executionFee).to.be.eq(BigNumber.from("1000000000000000"));
       expect(request.isLong).to.be.true;

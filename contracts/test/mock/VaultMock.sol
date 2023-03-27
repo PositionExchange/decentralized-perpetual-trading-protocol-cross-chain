@@ -5,8 +5,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract VaultMock {
     using SafeMath for uint256;
 
-    constructor() {}
-
     uint256 public tokenPriceMock = 1000;
     uint256 public tokenDecimalsMock = 1;
 

@@ -253,12 +253,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amount
     ) external override onlyOwner {
         // TODO implement me
-        revert("Vault not implement");
+        revert("setUsdpAmount not implement");
     }
 
     function setMaxLeverage(uint256 _maxLeverage) external override onlyOwner {
         // TODO implement me
-        revert("Vault not implement");
+        revert("setMaxLeverage not implement");
     }
 
     function setManager(
@@ -266,7 +266,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         bool _isManager
     ) external override onlyOwner {
         // TODO implement me
-        revert("Vault not implement");
+        revert("setManager not implement");
     }
 
     function setIsSwapEnabled(bool _isSwapEnabled) external override onlyOwner {
@@ -277,12 +277,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         bool _isLeverageEnabled
     ) external override onlyOwner {
         // TODO implement me
-        revert("Vault not implement");
+        revert("setIsLeverageEnabled not implement");
     }
 
     function setMaxGasPrice(uint256 _maxGasPrice) external override onlyOwner {
         // TODO implement me
-        revert("Vault not implement");
+        revert("setMaxGasPrice not implement");
     }
 
     function setUsdgAmount(
@@ -290,7 +290,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amount
     ) external override onlyOwner {
         // TODO implement me
-        revert("Vault not implement");
+        revert("setUsdgAmount not implement");
     }
 
     function setBufferAmount(
@@ -305,14 +305,14 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amount
     ) external override onlyOwner {
         // TODO implement me
-        revert("Vault not implement");
+        revert("setMaxGlobalShortSize not implement");
     }
 
     function setInPrivateLiquidationMode(
         bool _inPrivateLiquidationMode
     ) external override onlyOwner {
         // TODO implement me
-        revert("Vault not implement");
+        revert("setInPrivateLiquidationMode not implement");
     }
 
     function setLiquidator(
@@ -320,12 +320,11 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         bool _isActive
     ) external override onlyOwner {
         // TODO implement me
-        revert("Vault not implement");
+        revert("setLiquidator not implement");
     }
 
-    function setPriceFeed(address _priceFeed) external override onlyOwner {
-        // TODO implement me
-        revert("Vault not implement");
+    function setPriceFeed(address _feed) external override onlyOwner {
+        _priceFeed = IVaultPriceFeed(_feed);
     }
 
     function setVaultUtils(
@@ -340,7 +339,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _receiver
     ) external override onlyOwner returns (uint256) {
         // TODO implement me
-        revert("Vault not implement");
+        revert("withdrawFees not implement");
     }
 
     function setInManagerMode(bool _inManagerMode) external override onlyOwner {

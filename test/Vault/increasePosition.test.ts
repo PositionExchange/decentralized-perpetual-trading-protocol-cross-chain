@@ -10,7 +10,9 @@ import {
   PriceFeed,
   Vault,
   VaultPriceFeedMock,
+  WETH as IWETH,
 } from "../../typeChain";
+import { toChainlinkPrice } from "../shared/utilities";
 import { BigNumber } from "ethers";
 
 use(solidity);
@@ -21,10 +23,10 @@ describe("Vault.increasePosition", function () {
   let trader2: any;
 
   let vault: Vault;
-  let btcPriceFeed: PriceFeed;
-  let daiPriceFeed: PriceFeed;
-  let btc: MockToken;
-  let dai: MockToken;
+  let wethPriceFeed: PriceFeed;
+  let busdPriceFeed: PriceFeed;
+  let weth: IWETH;
+  let busd: MockToken;
 
   beforeEach(async () => {
     const priceFeedMockFactory = await ethers.getContractFactory(
@@ -39,10 +41,10 @@ describe("Vault.increasePosition", function () {
     vault = contractFixtures.vault;
     await vault.setPriceFeed(priceFeedMock.address);
 
-    btcPriceFeed = tokenFixtures.btcPriceFeed as unknown as PriceFeed;
-    daiPriceFeed = tokenFixtures.daiPriceFeed as unknown as PriceFeed;
-    btc = tokenFixtures.btc as unknown as MockToken;
-    dai = tokenFixtures.dai as unknown as MockToken;
+    wethPriceFeed = tokenFixtures.wethPriceFeed as unknown as PriceFeed;
+    busdPriceFeed = tokenFixtures.busdPriceFeed as unknown as PriceFeed;
+    weth = tokenFixtures.WETH as unknown as IWETH;
+    busd = tokenFixtures.busd as unknown as MockToken;
 
     // provider = contractFixtures.provider
     const users = await ethers.getSigners();
@@ -52,12 +54,21 @@ describe("Vault.increasePosition", function () {
   });
 
   it.skip("test", async function () {
+    await weth.connect(trader).deposit({
+      value: ethers.utils.parseEther("100"),
+    });
+    await weth
+      .connect(trader)
+      .transfer(vault.address, ethers.utils.parseEther("100"));
+    await wethPriceFeed.setLatestAnswer(toChainlinkPrice(1700));
+    await vault.connect(trader).buyUSDP(weth.address, trader.address);
+
     await vault
       .connect(trader)
       .increasePosition(
         trader.address,
-        btc.address,
-        btc.address,
+        weth.address,
+        weth.address,
         BigNumber.from("100000000000000000000000"),
         true,
         BigNumber.from("1000000000000000000000")
