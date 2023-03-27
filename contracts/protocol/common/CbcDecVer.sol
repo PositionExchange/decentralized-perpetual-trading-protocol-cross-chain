@@ -24,19 +24,19 @@ abstract contract CbcDecVer is OwnableUpgradeable {
     // Address of Crosschain Control Contract on another blockchain.
     mapping(uint256 => address) internal remoteFuturesAdapterContracts;
 
-    function addVerifier(uint256 _blockchainId, address _verifier)
-        external
-        onlyOwner
-    {
+    function addVerifier(
+        uint256 _blockchainId,
+        address _verifier
+    ) external onlyOwner {
         require(_blockchainId != 0, "Invalid blockchain id");
         require(_verifier != address(0), "Invalid verifier address");
         verifiers[_blockchainId] = ILightClient(_verifier);
     }
 
-    function addRemoteFuturesAdapter(uint256 _blockchainId, address _cbc)
-        external
-        onlyOwner
-    {
+    function addRemoteFuturesAdapter(
+        uint256 _blockchainId,
+        address _cbc
+    ) external onlyOwner {
         remoteFuturesAdapterContracts[_blockchainId] = _cbc;
     }
 

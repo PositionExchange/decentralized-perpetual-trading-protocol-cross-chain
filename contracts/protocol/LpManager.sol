@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "hardhat/console.sol";
-
 contract LpManager is ILpManager, Ownable {
     using SafeMath for uint256;
     IERC20 private _plpToken;
@@ -56,7 +54,13 @@ contract LpManager is ILpManager, Ownable {
         _;
     }
 
-    constructor(IERC20 plpToken_, IERC20 usdp_, IVault vault_, address shortsTracker_, uint256 cooldownDuration_) {
+    constructor(
+        IERC20 plpToken_,
+        IERC20 usdp_,
+        IVault vault_,
+        address shortsTracker_,
+        uint256 cooldownDuration_
+    ) {
         _plpToken = plpToken_;
         _usdp = usdp_;
         vault = vault_;
@@ -295,17 +299,13 @@ contract LpManager is ILpManager, Ownable {
 
         IERC20(_token).transferFrom(_fundingAccount, address(vault), _amount);
         uint256 usdpAmount = vault.buyUSDP(_token, address(this));
-        console.log("usdpAmount, vs min usdp", usdpAmount, _minUsdp);
         require(usdpAmount >= _minUsdp, "LpManager: insufficient _usdp output");
-        console.log("plpSupply", plpSupply);
         uint256 mintAmount = aumInUsdp == 0
             ? usdpAmount
             : usdpAmount.mul(plpSupply).div(aumInUsdp);
-        console.log("mintAmount vs minGLP", mintAmount, _minGlp, aumInUsdp);
         require(mintAmount >= _minGlp, "LpManager: insufficient PLP output");
 
         IMintable(address(_plpToken)).mint(_account, mintAmount);
-        console.log("add liquidty block", block.timestamp, block.number);
 
         lastAddedAt[_account] = block.timestamp;
         emit AddLiquidity(
@@ -366,11 +366,10 @@ contract LpManager is ILpManager, Ownable {
     }
 
     function plpToken() external view override returns (address) {
-      return address(_plpToken);
+        return address(_plpToken);
     }
 
     function usdp() external view override returns (address) {
-      return address(_usdp);
+        return address(_usdp);
     }
 }
-

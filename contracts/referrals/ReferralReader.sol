@@ -5,7 +5,10 @@ pragma solidity ^0.8.2;
 import "./interfaces/IReferralStorage.sol";
 
 contract ReferralReader {
-    function getCodeOwners(IReferralStorage _referralStorage, bytes32[] memory _codes) public view returns (address[] memory) {
+    function getCodeOwners(
+        IReferralStorage _referralStorage,
+        bytes32[] memory _codes
+    ) public view returns (address[] memory) {
         address[] memory owners = new address[](_codes.length);
 
         for (uint256 i = 0; i < _codes.length; i++) {

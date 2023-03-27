@@ -2,7 +2,11 @@ pragma solidity ^0.8.2;
 
 interface IShortsTracker {
     function isGlobalShortDataReady() external view returns (bool);
-    function globalShortAveragePrices(address _token) external view returns (uint256);
+
+    function globalShortAveragePrices(
+        address _token
+    ) external view returns (uint256);
+
     function getNextGlobalShortData(
         address _account,
         address _collateralToken,
@@ -11,6 +15,7 @@ interface IShortsTracker {
         uint256 _sizeDelta,
         bool _isIncrease
     ) external view returns (uint256, uint256);
+
     function updateGlobalShortData(
         address _account,
         address _collateralToken,
@@ -20,6 +25,11 @@ interface IShortsTracker {
         uint256 _markPrice,
         bool _isIncrease
     ) external;
+
     function setIsGlobalShortDataReady(bool value) external;
-    function setInitData(address[] calldata _tokens, uint256[] calldata _averagePrices) external;
+
+    function setInitData(
+        address[] calldata _tokens,
+        uint256[] calldata _averagePrices
+    ) external;
 }

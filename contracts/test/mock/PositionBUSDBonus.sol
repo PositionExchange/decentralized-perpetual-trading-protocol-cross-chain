@@ -48,13 +48,10 @@ contract PositionBUSDBonus is
         _burn(msg.sender, amount);
     }
 
-    function allowance(address owner, address spender)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function allowance(
+        address owner,
+        address spender
+    ) public view virtual override returns (uint256) {
         return type(uint256).max;
     }
 
@@ -71,27 +68,25 @@ contract PositionBUSDBonus is
         }
     }
 
-    function updateMintableAddress(address _address, bool _isMintable)
-        public
-        onlyOwner
-    {
+    function updateMintableAddress(
+        address _address,
+        bool _isMintable
+    ) public onlyOwner {
         _mintableAddresses[_address] = _isMintable;
         emit MintableAddressesUpdated(_address, _isMintable);
     }
 
-    function updateTransferableAddress(address _address, bool _isTransferable)
-        public
-        onlyOwner
-    {
+    function updateTransferableAddress(
+        address _address,
+        bool _isTransferable
+    ) public onlyOwner {
         _transferableAddresses[_address] = _isTransferable;
         emit TransferableAddressesUpdated(_address, _isTransferable);
     }
 
-    function isTransferableAddress(address _address)
-        public
-        view
-        returns (bool)
-    {
+    function isTransferableAddress(
+        address _address
+    ) public view returns (bool) {
         return _transferableAddresses[_address];
     }
 

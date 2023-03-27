@@ -14,8 +14,6 @@ import "../token/interface/IUSDP.sol";
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IVaultPriceFeed.sol";
 
-import "hardhat/console.sol";
-
 contract Vault is IVault, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -64,7 +62,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     /* mapping(address => uint256) public reservedAmounts; */
 
     modifier onlyWhitelistToken(address token) {
-        console.log(unicode"🌜 [Vault.sol:67] >> : token, isWhitelisted", token, tokenConfigurations[token].isWhitelisted);
         require(
             tokenConfigurations[token].isWhitelisted,
             "Vault: token not in whitelist"
@@ -73,10 +70,13 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     modifier onlyWhitelistCaller() {
-      if (inManagerMode) {
-        require(whitelistCaller[msg.sender], "Vault: caller not in whitelist");
-      }
-      _;
+        if (inManagerMode) {
+            require(
+                whitelistCaller[msg.sender],
+                "Vault: caller not in whitelist"
+            );
+        }
+        _;
     }
 
     event BuyUSDP(
@@ -130,7 +130,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         bool _isStable,
         bool _isShortable
     ) public onlyOwner {
-      console.log(unicode"🌜 [Vault.sol:133] >> setConfigToken: _token", _token);
         if (!tokenConfigurations[_token].isWhitelisted) {
             whitelistedTokens.push(_token);
         }
@@ -189,92 +188,107 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         whitelistCaller[caller] = val;
     }
 
-    function setUsdpAmount(address _token, uint256 _amount) external override onlyOwner {
-     // TODO implement me  
-     revert("Vault not implement");
-    }  
+    function setUsdpAmount(
+        address _token,
+        uint256 _amount
+    ) external override onlyOwner {
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
     function setMaxLeverage(uint256 _maxLeverage) external override onlyOwner {
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
-    function setManager(address _manager, bool _isManager) external override onlyOwner {
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+    function setManager(
+        address _manager,
+        bool _isManager
+    ) external override onlyOwner {
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
     function setIsSwapEnabled(bool _isSwapEnabled) external override onlyOwner {
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
-    function setIsLeverageEnabled(bool _isLeverageEnabled) external override onlyOwner {
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+    function setIsLeverageEnabled(
+        bool _isLeverageEnabled
+    ) external override onlyOwner {
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
     function setMaxGasPrice(uint256 _maxGasPrice) external override onlyOwner {
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
-    function setUsdgAmount(address _token, uint256 _amount) external override onlyOwner {
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+    function setUsdgAmount(
+        address _token,
+        uint256 _amount
+    ) external override onlyOwner {
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
     function setBufferAmount(
         address _token,
         uint256 _amount
-    ) external override onlyOwner {                
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+    ) external override onlyOwner {
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
     function setMaxGlobalShortSize(
         address _token,
         uint256 _amount
-    ) external override onlyOwner {                
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+    ) external override onlyOwner {
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
     function setInPrivateLiquidationMode(
         bool _inPrivateLiquidationMode
-    ) external override onlyOwner {                
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+    ) external override onlyOwner {
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
     function setLiquidator(
         address _liquidator,
         bool _isActive
-    ) external override onlyOwner {                
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+    ) external override onlyOwner {
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
     function setPriceFeed(address _priceFeed) external override onlyOwner {
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
-    function setVaultUtils(IVaultUtils _vaultUtils) external override onlyOwner {
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+    function setVaultUtils(
+        IVaultUtils _vaultUtils
+    ) external override onlyOwner {
+        // TODO implement me
+        revert("Vault not implement");
+    }
 
     function withdrawFees(
         address _token,
         address _receiver
     ) external override onlyOwner returns (uint256) {
-     // TODO implement me  
-     revert("Vault not implement");
-      }  
+        // TODO implement me
+        revert("Vault not implement");
+    }
+
     function setInManagerMode(bool _inManagerMode) external override onlyOwner {
         inManagerMode = _inManagerMode;
     }
+
     /** END OWNER FUNCTIONS **/
 
     /// @notice Pay token to purchase USDP at the ask price
@@ -298,12 +312,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
 
         // updateCumulativeFundingRate(_token, _token);
-        console.log("BUY >>> tokenAmount", tokenAmount);
         uint256 price = getAskPrice(_token);
-        console.log("price", price);
 
         uint256 usdpAmount = tokenAmount.mul(price).div(PRICE_PRECISION);
-        console.log("usdpAmount", usdpAmount);
         usdpAmount = adjustForDecimals(usdpAmount, _token, usdp);
         require(usdpAmount > 0, "Value: usdp amount must be greater than 0");
 
@@ -311,7 +322,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _token,
             usdpAmount
         );
-        console.log("feeBasisPoints", feeBasisPoints);
 
         uint256 amountAfterFees = _collectSwapFees(
             _token,
@@ -320,7 +330,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
         uint256 mintAmount = amountAfterFees.mul(price).div(PRICE_PRECISION);
         mintAmount = adjustForDecimals(mintAmount, _token, usdp);
-        console.log("mintAmount", mintAmount);
 
         _increaseUsdpAmount(_token, mintAmount);
         _increasePoolAmount(_token, amountAfterFees);
@@ -374,7 +383,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _token,
             usdpAmount
         );
-        console.log("feeBasisPoints", feeBasisPoints);
         uint256 amountOut = _collectSwapFees(
             _token,
             redemptionAmount,
@@ -434,7 +442,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             return 0;
         }
         uint256 weight = tokenConfigurations[_token].tokenWeight;
-        console.log(unicode"📗 Vault > getTargetUsdpAmount, token, weight, supply", _token, weight, supply);
         return weight.mul(supply).div(totalTokenWeight);
     }
 
@@ -447,7 +454,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     function getAskPrice(
         address _token
     ) public view override returns (uint256) {
-        console.log("getAskPrice, token", _token);
         return _priceFeed.getPrice(_token, false);
     }
 
@@ -508,18 +514,11 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amount,
         uint256 _feeBasisPoints
     ) private returns (uint256) {
-        console.log(
-            "_collectSwapFees, _token, _amount, _feeBasisPoints",
-            _token,
-            _amount,
-            _feeBasisPoints
-        );
         uint256 afterFeeAmount = _amount
             .mul(BASIS_POINTS_DIVISOR.sub(_feeBasisPoints))
             .div(BASIS_POINTS_DIVISOR);
 
         uint256 feeAmount = _amount.sub(afterFeeAmount);
-        console.log("feeAmount, afterFeeAmount", feeAmount, afterFeeAmount);
         // cr_increaseUsdpAmount
         vaultInfo[_token].addFees(feeAmount);
         // emit CollectSwapFees(_token, tokenToUsdMin(_token, feeAmount), feeAmount);
@@ -569,11 +568,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function _decreasePoolAmount(address _token, uint256 _amount) private {
-        console.log(
-            "_decreasePoolAmount, current vs _amount",
-            uint(vaultInfo[_token].poolAmounts),
-            _amount
-        );
         vaultInfo[_token].subPoolAmount(_amount);
         emit DecreasePoolAmount(_token, _amount);
     }
@@ -590,21 +584,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _taxBasisPoints,
         bool _increment
     ) external view override returns (uint256) {
-        console.log(
-            "Vault.getFeeBasisPoints, _usdpDelta, _feeBasisPoints",
-            _usdpDelta,
-            _feeBasisPoints
-        );
         uint feesBasisPoints = _vaultUtils.getFeeBasisPoints(
             _token,
             _usdpDelta,
             _feeBasisPoints,
             _taxBasisPoints,
             _increment
-        );
-        console.log(
-            "Vault.getFeeBasisPoints, feesBasisPoints after",
-            feesBasisPoints
         );
         return feesBasisPoints;
     }
@@ -729,5 +714,4 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     ) external view override returns (bool) {
         return tokenConfigurations[_token].isWhitelisted;
     }
-
 }

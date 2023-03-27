@@ -9,7 +9,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import {IChainLinkPriceFeed} from "../interfaces/IChainLinkPriceFeed.sol";
 
 contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
-    uint256 private constant TOKEN_DIGIT = 10**18;
+    uint256 private constant TOKEN_DIGIT = 10 ** 18;
 
     // key by currency symbol, eg ETH
     mapping(bytes32 => AggregatorV3Interface) public priceFeedMap;
@@ -20,10 +20,10 @@ contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
         __Ownable_init();
     }
 
-    function addAggregator(bytes32 _priceFeedKey, address _aggregator)
-        external
-        onlyOwner
-    {
+    function addAggregator(
+        bytes32 _priceFeedKey,
+        address _aggregator
+    ) external onlyOwner {
         requireNonEmptyAddress(_aggregator);
         if (address(priceFeedMap[_priceFeedKey]) == address(0)) {
             priceFeedKeys.push(_priceFeedKey);
@@ -55,28 +55,27 @@ contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
     // VIEWS FUNCTIONS
     //------------------------------------------------------------------------------------------------------------------
 
-    function getAggregator(bytes32 _priceFeedKey)
-        public
-        view
-        returns (AggregatorV3Interface)
-    {
+    function getAggregator(
+        bytes32 _priceFeedKey
+    ) public view returns (AggregatorV3Interface) {
         return priceFeedMap[_priceFeedKey];
     }
 
-    function getLatestRoundDataTest(AggregatorV3Interface _aggregator)
+    function getLatestRoundDataTest(
+        AggregatorV3Interface _aggregator
+    )
         public
         view
-        returns (
-            uint80 round,
-            int256 latestPrice,
-            uint256 latestTimestamp
-        )
+        returns (uint80 round, int256 latestPrice, uint256 latestTimestamp)
     {
         (round, latestPrice, , latestTimestamp, ) = _aggregator
             .latestRoundData();
     }
 
-    function getRoundDataTest(AggregatorV3Interface _aggregator, uint80 _round)
+    function getRoundDataTest(
+        AggregatorV3Interface _aggregator,
+        uint80 _round
+    )
         public
         view
         returns (
@@ -99,12 +98,9 @@ contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
     // INTERFACE IMPLEMENTATION
     //------------------------------------------------------------------------------------------------------------------
 
-    function getPrice(bytes32 _priceFeedKey)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getPrice(
+        bytes32 _priceFeedKey
+    ) external view override returns (uint256) {
         AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
         requireNonEmptyAddress(address(aggregator));
 
@@ -112,12 +108,9 @@ contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
         return formatDecimals(latestPrice, priceFeedDecimalMap[_priceFeedKey]);
     }
 
-    function getLatestTimestamp(bytes32 _priceFeedKey)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getLatestTimestamp(
+        bytes32 _priceFeedKey
+    ) external view override returns (uint256) {
         AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
         requireNonEmptyAddress(address(aggregator));
 
@@ -125,12 +118,10 @@ contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
         return latestTimestamp;
     }
 
-    function getTwapPrice(bytes32 _priceFeedKey, uint256 _interval)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getTwapPrice(
+        bytes32 _priceFeedKey,
+        uint256 _interval
+    ) external view override returns (uint256) {
         AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
         requireNonEmptyAddress(address(aggregator));
         require(_interval != 0, "interval can't be 0");
@@ -197,12 +188,10 @@ contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
         return formatDecimals(weightedPrice / _interval, decimal);
     }
 
-    function getPreviousPrice(bytes32 _priceFeedKey, uint256 _numOfRoundBack)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getPreviousPrice(
+        bytes32 _priceFeedKey,
+        uint256 _numOfRoundBack
+    ) external view override returns (uint256) {
         AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
         requireNonEmptyAddress(address(aggregator));
 
@@ -234,15 +223,9 @@ contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
         return previousTimestamp;
     }
 
-    function getLatestRoundData(AggregatorV3Interface _aggregator)
-        internal
-        view
-        returns (
-            uint80,
-            uint256 finalPrice,
-            uint256
-        )
-    {
+    function getLatestRoundData(
+        AggregatorV3Interface _aggregator
+    ) internal view returns (uint80, uint256 finalPrice, uint256) {
         (
             uint80 round,
             int256 latestPrice,
@@ -261,15 +244,10 @@ contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
         return (round, finalPrice, latestTimestamp);
     }
 
-    function getRoundData(AggregatorV3Interface _aggregator, uint80 _round)
-        internal
-        view
-        returns (
-            uint80,
-            uint256,
-            uint256
-        )
-    {
+    function getRoundData(
+        AggregatorV3Interface _aggregator,
+        uint80 _round
+    ) internal view returns (uint80, uint256, uint256) {
         (
             uint80 round,
             int256 latestPrice,
@@ -287,12 +265,11 @@ contract ChainLinkPriceFeed is OwnableUpgradeable, IChainLinkPriceFeed {
         return (round, uint256(latestPrice), latestTimestamp);
     }
 
-    function formatDecimals(uint256 _price, uint8 _decimals)
-        internal
-        pure
-        returns (uint256)
-    {
-        return (_price * TOKEN_DIGIT) / (10**uint256(_decimals));
+    function formatDecimals(
+        uint256 _price,
+        uint8 _decimals
+    ) internal pure returns (uint256) {
+        return (_price * TOKEN_DIGIT) / (10 ** uint256(_decimals));
     }
 
     //

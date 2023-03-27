@@ -6,9 +6,6 @@ import "../oracle/interfaces/IChainlinkFlags.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "hardhat/console.sol";
-
-
 contract VaultPriceFeed is IVaultPriceFeed, Ownable {
     using SafeMath for uint256;
     uint256 public constant PRICE_PRECISION = 10 ** 30;
@@ -178,13 +175,11 @@ contract VaultPriceFeed is IVaultPriceFeed, Ownable {
         }
 
         IPriceFeed priceFeed = IPriceFeed(priceFeedAddress);
-        console.log(unicode"🌊 [VaultPriceFeed.sol:181] >> getPrimaryPrice: priceFeedAddress, _token", priceFeedAddress, _token);
 
         uint256 price = 0;
         uint80 roundId = priceFeed.latestRound();
 
         for (uint80 i = 0; i < priceSampleSpace; i++) {
-          console.log(unicode"🌊 [VaultPriceFeed.sol:186] >> getPrimaryPrice: roundId, i", roundId, i);
             if (roundId <= i) {
                 break;
             }
@@ -192,7 +187,6 @@ contract VaultPriceFeed is IVaultPriceFeed, Ownable {
 
             if (i == 0) {
                 int256 _p = priceFeed.latestAnswer();
-                console.log(unicode"🌊 [VaultPriceFeed.sol:191] >> getPrimaryPrice: _p, latest answer", uint(_p));
                 require(_p > 0, "VaultPriceFeed: invalid price");
                 p = uint256(_p);
             } else {
@@ -263,5 +257,4 @@ contract VaultPriceFeed is IVaultPriceFeed, Ownable {
                 BASIS_POINTS_DIVISOR
             );
     }
-
 }
