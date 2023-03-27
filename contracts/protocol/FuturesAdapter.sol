@@ -78,10 +78,10 @@ contract FuturesAdapter is
      * @param _timeHorizon How old crosschain events can be before they are
      *     deemed to be invalid. Measured in seconds.
      */
-    function initialize(uint256 _myBlockchainId, uint256 _timeHorizon)
-        public
-        initializer
-    {
+    function initialize(
+        uint256 _myBlockchainId,
+        uint256 _timeHorizon
+    ) public initializer {
         __ReentrancyGuard_init();
         __Ownable_init();
         __Pausable_init();

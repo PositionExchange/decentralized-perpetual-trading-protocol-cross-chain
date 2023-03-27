@@ -41,7 +41,7 @@ contract TokenBUSDTestnet is
 
         updateMintableAddress(msg.sender, true);
         updateTransferableAddress(msg.sender, true);
-        claimableAmount = 10_000 * 10**decimals();
+        claimableAmount = 10_000 * 10 ** decimals();
     }
 
     function mint(address recipient, uint256 amount) public onlyMintable {
@@ -52,13 +52,10 @@ contract TokenBUSDTestnet is
         _burn(msg.sender, amount);
     }
 
-    function allowance(address owner, address spender)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function allowance(
+        address owner,
+        address spender
+    ) public view virtual override returns (uint256) {
         return type(uint256).max;
     }
 
@@ -75,18 +72,18 @@ contract TokenBUSDTestnet is
         }
     }
 
-    function updateMintableAddress(address _address, bool _isMintable)
-        public
-        onlyOwner
-    {
+    function updateMintableAddress(
+        address _address,
+        bool _isMintable
+    ) public onlyOwner {
         _mintableAddresses[_address] = _isMintable;
         emit MintableAddressesUpdated(_address, _isMintable);
     }
 
-    function updateTransferableAddress(address _address, bool _isTransferable)
-        public
-        onlyOwner
-    {
+    function updateTransferableAddress(
+        address _address,
+        bool _isTransferable
+    ) public onlyOwner {
         _transferableAddresses[_address] = _isTransferable;
         emit TransferableAddressesUpdated(_address, _isTransferable);
     }
@@ -95,11 +92,9 @@ contract TokenBUSDTestnet is
         claimableAmount = _amount;
     }
 
-    function isTransferableAddress(address _address)
-        public
-        view
-        returns (bool)
-    {
+    function isTransferableAddress(
+        address _address
+    ) public view returns (bool) {
         return _transferableAddresses[_address];
     }
 

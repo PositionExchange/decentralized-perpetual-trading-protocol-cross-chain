@@ -12,11 +12,10 @@ contract FuturesGatewayMock is FuturesGateway {
         return calcNotional(_manager, _price, _quantity);
     }
 
-    function pipToPriceTest(address _manager, uint128 _pip)
-        public
-        view
-        returns (uint256)
-    {
+    function pipToPriceTest(
+        address _manager,
+        uint128 _pip
+    ) public view returns (uint256) {
         return pipToPrice(_manager, _pip);
     }
 

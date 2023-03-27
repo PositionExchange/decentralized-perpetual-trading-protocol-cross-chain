@@ -283,10 +283,10 @@ contract FuturesGateway is
     }
 
     // @notice addMargin without busdBonus
-    function addMargin(address _positionManager, uint256 _amount)
-        external
-        nonReentrant
-    {
+    function addMargin(
+        address _positionManager,
+        uint256 _amount
+    ) external nonReentrant {
         uint256 _depositAmount = calcDepositMargin(_positionManager, _amount);
         uint256 _busdBonusAmount = 0;
         depositWithBonus(
@@ -305,10 +305,10 @@ contract FuturesGateway is
         );
     }
 
-    function removeMargin(address _positionManager, uint256 _amount)
-        external
-        nonReentrant
-    {
+    function removeMargin(
+        address _positionManager,
+        uint256 _amount
+    ) external nonReentrant {
         futuresAdapter.crossBlockchainCall(
             posiChainId,
             posiChainCrosschainGatewayContract,
@@ -317,10 +317,10 @@ contract FuturesGateway is
         );
     }
 
-    function closeMarketPosition(address _positionManager, uint256 _quantity)
-        public
-        nonReentrant
-    {
+    function closeMarketPosition(
+        address _positionManager,
+        uint256 _quantity
+    ) public nonReentrant {
         validateOrderQuantity(_positionManager, _quantity, true);
         futuresAdapter.crossBlockchainCall(
             posiChainId,
@@ -330,12 +330,13 @@ contract FuturesGateway is
         );
     }
 
-    // @deprecated: Merge 2 function closeMarketPosition and instantlyClosePosition, bridge to the same function on posi chain
+    // @deprecated: Merge 2 function closeMarketPosition and instantlyClosePosition,
+    // bridge to the same function on posi chain
     // no different between 2 function closeMarketPosition and instantlyClosePosition
-    function instantlyClosePosition(address _positionManager, uint256 _quantity)
-        public
-        nonReentrant
-    {
+    function instantlyClosePosition(
+        address _positionManager,
+        uint256 _quantity
+    ) public nonReentrant {
         validateOrderQuantity(_positionManager, _quantity, true);
         futuresAdapter.crossBlockchainCall(
             posiChainId,
@@ -388,10 +389,10 @@ contract FuturesGateway is
         );
     }
 
-    function unsetTPOrSL(address _pmAddress, bool _isHigherPrice)
-        external
-        nonReentrant
-    {
+    function unsetTPOrSL(
+        address _pmAddress,
+        bool _isHigherPrice
+    ) external nonReentrant {
         futuresAdapter.crossBlockchainCall(
             posiChainId,
             posiChainCrosschainGatewayContract,
@@ -455,11 +456,10 @@ contract FuturesGateway is
     }
 
     // Only use for testing
-    function calcDepositMargin(address _manager, uint256 _margin)
-        internal
-        view
-        returns (uint256)
-    {
+    function calcDepositMargin(
+        address _manager,
+        uint256 _margin
+    ) internal view returns (uint256) {
         // Calculate amount depend on RFI fee
         return
             (_margin * 100) /
@@ -467,11 +467,10 @@ contract FuturesGateway is
     }
 
     // Not used yet, only for coin-m
-    function calcQuantity(address _manager, uint256 _quantity)
-        internal
-        view
-        returns (uint256)
-    {
+    function calcQuantity(
+        address _manager,
+        uint256 _quantity
+    ) internal view returns (uint256) {
         uint256 contractPrice = positionManagerConfigData[_manager]
             .contractPrice;
         if (contractPrice > 0) {
@@ -497,11 +496,10 @@ contract FuturesGateway is
         return (_quantity * _price) / uint256(baseBasicPoint);
     }
 
-    function pipToPrice(address _manager, uint128 _pip)
-        internal
-        view
-        returns (uint256)
-    {
+    function pipToPrice(
+        address _manager,
+        uint128 _pip
+    ) internal view returns (uint256) {
         return
             (uint256(_pip) *
                 uint256(positionManagerConfigData[_manager].baseBasicPoint)) /
@@ -594,7 +592,7 @@ contract FuturesGateway is
         }
         if (managerConfigData.stepBaseSize != 0) {
             uint256 remainder = _quantity %
-                (10**18 / managerConfigData.stepBaseSize);
+                (10 ** 18 / managerConfigData.stepBaseSize);
             require(remainder == 0, Errors.VL_INVALID_QUANTITY);
         }
     }
@@ -663,10 +661,10 @@ contract FuturesGateway is
             .baseBasicPoint = _baseBasicPoint;
     }
 
-    function setManagerBasicPoint(address _positionManager, uint32 _basicPoint)
-        public
-        onlyOwner
-    {
+    function setManagerBasicPoint(
+        address _positionManager,
+        uint32 _basicPoint
+    ) public onlyOwner {
         require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
         positionManagerConfigData[_positionManager].basicPoint = _basicPoint;
     }
@@ -698,19 +696,18 @@ contract FuturesGateway is
             .minimumOrderQuantity = _minimumOrderQuantity;
     }
 
-    function setStepBaseSize(address _positionManager, uint32 _stepBaseSize)
-        public
-        onlyOwner
-    {
+    function setStepBaseSize(
+        address _positionManager,
+        uint32 _stepBaseSize
+    ) public onlyOwner {
         require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
         positionManagerConfigData[_positionManager]
             .stepBaseSize = _stepBaseSize;
     }
 
-    function updateFuturesAdapterContract(address _futuresAdapterContract)
-        external
-        onlyOwner
-    {
+    function updateFuturesAdapterContract(
+        address _futuresAdapterContract
+    ) external onlyOwner {
         require(_futuresAdapterContract != address(0), Errors.VL_EMPTY_ADDRESS);
         futuresAdapter = CrosschainFunctionCallInterface(
             _futuresAdapterContract
@@ -721,10 +718,9 @@ contract FuturesGateway is
         posiChainId = _posiChainId;
     }
 
-    function updatePosiChainCrosschainGatewayContract(address _address)
-        external
-        onlyOwner
-    {
+    function updatePosiChainCrosschainGatewayContract(
+        address _address
+    ) external onlyOwner {
         posiChainCrosschainGatewayContract = _address;
     }
 

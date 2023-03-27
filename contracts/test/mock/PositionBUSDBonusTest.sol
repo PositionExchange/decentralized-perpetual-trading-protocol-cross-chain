@@ -25,10 +25,10 @@ contract PositionBUSDBonusTest is ERC20, Ownable {
         updateMintableAddress(msg.sender, true);
     }
 
-    function mint(address recipient, uint256 amount)
-        public
-        onlyMintable(msg.sender)
-    {
+    function mint(
+        address recipient,
+        uint256 amount
+    ) public onlyMintable(msg.sender) {
         _mint(recipient, amount);
     }
 
@@ -40,13 +40,10 @@ contract PositionBUSDBonusTest is ERC20, Ownable {
         require(isTransferableAddress(spender), "Only Transferable Address");
     }
 
-    function allowance(address owner, address spender)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function allowance(
+        address owner,
+        address spender
+    ) public view virtual override returns (uint256) {
         return type(uint256).max;
     }
 
@@ -63,27 +60,25 @@ contract PositionBUSDBonusTest is ERC20, Ownable {
         }
     }
 
-    function updateMintableAddress(address _address, bool _isMintable)
-        public
-        onlyOwner
-    {
+    function updateMintableAddress(
+        address _address,
+        bool _isMintable
+    ) public onlyOwner {
         _mintableAddresses[_address] = _isMintable;
         emit MintableAddressesUpdated(_address, _isMintable);
     }
 
-    function updateTransferableAddress(address _address, bool _isTransferable)
-        public
-        onlyOwner
-    {
+    function updateTransferableAddress(
+        address _address,
+        bool _isTransferable
+    ) public onlyOwner {
         _transferableAddresses[_address] = _isTransferable;
         emit TransferableAddressesUpdated(_address, _isTransferable);
     }
 
-    function isTransferableAddress(address _address)
-        public
-        view
-        returns (bool)
-    {
+    function isTransferableAddress(
+        address _address
+    ) public view returns (bool) {
         return _transferableAddresses[_address];
     }
 

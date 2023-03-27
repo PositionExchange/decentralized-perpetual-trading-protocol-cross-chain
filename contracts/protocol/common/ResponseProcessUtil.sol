@@ -17,11 +17,9 @@ pragma solidity >=0.7.1;
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 abstract contract ResponseProcessUtil {
-    function getRevertMsg(bytes memory _returnData)
-        internal
-        pure
-        returns (string memory)
-    {
+    function getRevertMsg(
+        bytes memory _returnData
+    ) internal pure returns (string memory) {
         // A string will be 4 bytes for the function selector + 32 bytes for string length +
         // 32 bytes for first part of string. Hence, if the length is less than 68, then
         // this is a panic.
