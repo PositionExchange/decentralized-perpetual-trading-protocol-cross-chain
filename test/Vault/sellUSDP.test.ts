@@ -11,6 +11,7 @@ describe("Vault.sellUSDP", function() {
   it("should sell USDP failed", async function() {
     const {dummyToken, busd} = await loadMockTokenFixtures()
     const { vault, deployer, user1 } = await loadContractFixtures()
+    await vault.setInManagerMode(true)
     await expect(vault.connect(user1).sellUSDP(dummyToken.address, deployer.address)).to.be.revertedWith("Vault: caller not in whitelist")
     // white list caller
     await expect(vault.sellUSDP(dummyToken.address, deployer.address)).to.be.revertedWith("Vault: token not in whitelist")
@@ -30,6 +31,7 @@ describe("Vault.sellUSDP", function() {
     // buyUSDP
     await tracker.beforePurchase()
     await tokenFixtures[`${payTokenSymbol}PriceFeed`].setLatestAnswer(toChainlinkPrice(price))
+    await payToken.mint(deployer.address, ethers.utils.parseEther(amount.toString()))
     await payToken.transfer(vault.address, ethers.utils.parseEther(amount.toString()))
     await vault.buyUSDP(payToken.address, deployer.address)
     const feeForPool = amount * 100/10000;
@@ -129,6 +131,7 @@ describe("Vault.sellUSDP", function() {
   it("should sell USDP (BUSD) for unstable token (WETH) token", async function() {
     const {tracker, usdp, vault, deployer, busd, wethPriceFeed, weth} = await purchaseUSDP()
     await wethPriceFeed.setLatestAnswer(toChainlinkPrice(1500))
+    await weth.mint(deployer.address, ethers.utils.parseEther("10"))
 
     // user 1 purchase usdp using weth ensure that the pool will have ETH
     await weth.transfer(vault.address, ethers.utils.parseEther("1"))
