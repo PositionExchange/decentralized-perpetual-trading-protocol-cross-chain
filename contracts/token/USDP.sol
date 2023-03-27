@@ -3,12 +3,14 @@ pragma solidity ^0.8.2;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract USDP is ERC20, Ownable {
+import "./YieldToken.sol";
+
+contract USDP is YieldToken, Ownable {
     mapping(address => bool) public isVaults;
 
     event VaultChanged(address indexed vault, bool isVault);
 
-    constructor() ERC20("USD P", "USDP") {}
+    constructor() YieldToken("USD P", "USDP", 0) {}
 
     modifier onlyVault() {
         require(isVaults[msg.sender], "Caller is not a vault");

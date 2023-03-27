@@ -45,6 +45,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     bool public override hasDynamicFees = false;
     bool public override inManagerMode = false;
+    bool public override isSwapEnabled = true;
     uint256 public override liquidationFeeUsd;
 
     // mapping(address => bool) public whitelistTokens;
@@ -53,6 +54,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     // mapping(address => uint256) public tokenDecimals;
     mapping(address => TokenConfiguration.Data) public tokenConfigurations;
     mapping(address => VaultInfo.Data) public vaultInfo;
+
+    // bufferAmounts allows specification of an amount to exclude from swaps
+    // this can be used to ensure a certain amount of liquidity is available for leverage positions
+    mapping(address => uint256) public override bufferAmounts;
 
     address[] public whitelistedTokens;
     uint256 public minProfitTime;
@@ -210,8 +215,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function setIsSwapEnabled(bool _isSwapEnabled) external override onlyOwner {
-        // TODO implement me
-        revert("Vault not implement");
+        isSwapEnabled = _isSwapEnabled;
     }
 
     function setIsLeverageEnabled(
@@ -238,8 +242,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _token,
         uint256 _amount
     ) external override onlyOwner {
-        // TODO implement me
-        revert("Vault not implement");
+        bufferAmounts[_token] = _amount;
     }
 
     function setMaxGlobalShortSize(
@@ -400,8 +403,70 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _tokenIn,
         address _tokenOut,
         address _receiver
-    ) external override returns (uint256) {
-        // TODO implement me
+    )
+        external
+        override
+        onlyWhitelistToken(_tokenIn)
+        onlyWhitelistToken(_tokenOut)
+        returns (uint256)
+    {
+        require(isSwapEnabled, "Vault: swap is not supported");
+        require(_tokenIn != _tokenOut, "Vault: invalid tokens");
+
+        // TODO check if we need to update cumulative funding rate
+
+        /* updateCumulativeFundingRate(_tokenIn, _tokenIn); */
+        /* updateCumulativeFundingRate(_tokenOut, _tokenOut); */
+
+        uint256 amountIn = _transferIn(_tokenIn);
+        require(amountIn > 0, "Vault: invalid amountIn");
+
+        uint256 priceIn = getAskPrice(_tokenIn);
+        uint256 priceOut = getBidPrice(_tokenOut);
+
+        uint256 amountOut = amountIn.mul(priceIn).div(priceOut);
+        amountOut = adjustForDecimals(amountOut, _tokenIn, _tokenOut);
+
+        // adjust usdgAmounts by the same usdgAmount as debt is shifted between the assets
+        uint256 usdgAmount = amountIn.mul(priceIn).div(PRICE_PRECISION);
+        usdgAmount = adjustForDecimals(usdgAmount, _tokenIn, usdp);
+
+        uint256 feeBasisPoints = _vaultUtils.getSwapFeeBasisPoints(
+            _tokenIn,
+            _tokenOut,
+            usdgAmount
+        );
+        uint256 amountOutAfterFees = _collectSwapFees(
+            _tokenOut,
+            amountOut,
+            feeBasisPoints
+        );
+
+        _increaseUsdpAmount(_tokenIn, usdgAmount);
+        _decreaseUsdpAmount(_tokenOut, usdgAmount);
+
+        _increasePoolAmount(_tokenIn, amountIn);
+        _decreasePoolAmount(_tokenOut, amountOut);
+
+        // validate buffer amount
+        require(
+            vaultInfo[_tokenOut].poolAmounts >= bufferAmounts[_tokenOut],
+            "Vault: insufficient pool amount"
+        );
+
+        _transferOut(_tokenOut, amountOutAfterFees, _receiver);
+
+        emit Swap(
+            _receiver,
+            _tokenIn,
+            _tokenOut,
+            amountIn,
+            amountOut,
+            amountOutAfterFees,
+            feeBasisPoints
+        );
+
+        return amountOutAfterFees;
     }
 
     function poolAmounts(
@@ -661,12 +726,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _token
     ) external view override returns (uint256) {
         // TODO implement
-    }
-
-    function bufferAmounts(
-        address _token
-    ) external view override returns (uint256) {
-        // TODO impment meee
     }
 
     function reservedAmounts(

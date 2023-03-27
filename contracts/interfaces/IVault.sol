@@ -20,6 +20,8 @@ interface IVault {
 
     function inManagerMode() external view returns (bool);
 
+    function isSwapEnabled() external view returns (bool);
+
     /* Write Functions */
     function buyUSDP(
         address _token,
