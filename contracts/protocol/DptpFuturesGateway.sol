@@ -244,7 +244,8 @@ contract DptpFuturesGateway is
             request.path[request.path.length - 1],
             request.indexToken,
             request.sizeDelta,
-            request.isLong
+            request.isLong,
+            request.feeUsd
         );
         _transferOutETH(request.executionFee, _executionFeeReceiver);
     }
@@ -254,27 +255,28 @@ contract DptpFuturesGateway is
         address _collateralToken,
         address _indexToken,
         uint256 _sizeDelta,
-        bool _isLong
+        bool _isLong,
+        uint256 _feeUsd
     ) internal {
         // should be called strictly before position is updated in Vault
-        IShortsTracker(shortsTracker).updateGlobalShortData(
-            _account,
-            _collateralToken,
-            _indexToken,
-            _isLong,
-            _sizeDelta,
-            0,
-            //            markPrice,
-            true
-        );
-
-        //        IVault(vault).increasePosition(
+        //        IShortsTracker(shortsTracker).updateGlobalShortData(
         //            _account,
         //            _collateralToken,
         //            _indexToken,
+        //            _isLong,
         //            _sizeDelta,
-        //            _isLong
+        //            markPrice,
+        //            true
         //        );
+
+        IVault(vault).increasePosition(
+            _account,
+            _collateralToken,
+            _indexToken,
+            _sizeDelta,
+            _isLong,
+            _feeUsd
+        );
     }
 
     function _createIncreasePosition(CreateIncreasePositionParam memory param)

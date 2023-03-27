@@ -91,7 +91,7 @@ describe("DPTP Futures Gateway", async function () {
   });
 
   describe("test createIncreasePosition", async () => {
-    it("test", async () => {
+    it("given valid request, when calling createIncreasePosition, should success", async () => {
       await whitelistedToken
         .connect(trader)
         .mint(trader.address, BigNumber.from("10000000000000000000"));
@@ -134,7 +134,7 @@ describe("DPTP Futures Gateway", async function () {
   });
 
   describe("test createIncreasePositionETH", async () => {
-    it("test", async () => {
+    it("given valid request, when calling createIncreasePositionETH, should success", async () => {
       await futuresGateway
         .connect(trader)
         .createIncreasePositionETH(

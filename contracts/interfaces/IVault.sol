@@ -39,6 +39,15 @@ interface IVault {
         address _receiver
     ) external returns (uint256);
 
+    function increasePosition(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _sizeDelta,
+        bool _isLong,
+        uint256 _feeUsd
+    ) external;
+
     /* Goivernance function */
     function setWhitelistCaller(address caller, bool val) external;
 

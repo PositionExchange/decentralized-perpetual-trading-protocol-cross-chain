@@ -14,6 +14,8 @@ import "../token/interface/IUSDP.sol";
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IVaultPriceFeed.sol";
 
+import "hardhat/console.sol";
+
 contract Vault is IVault, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -112,6 +114,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     event DecreaseUsdgAmount(address token, uint256 amount);
     event IncreasePoolAmount(address token, uint256 amount);
     event DecreasePoolAmount(address token, uint256 amount);
+    event IncreaseReservedAmount(address token, uint256 amount);
+    event IncreaseGuaranteedUsd(address token, uint256 amount);
     event WhitelistCallerChanged(address account, bool oldValue, bool newValue);
 
     constructor(
@@ -122,6 +126,57 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _vaultUtils = IVaultUtils(vaultUtils_);
         _priceFeed = IVaultPriceFeed(vaultPriceFeed_);
         usdp = usdp_;
+    }
+
+    function increasePosition(address _account, address _collateralToken, address _indexToken, uint256 _sizeDelta, bool _isLong, uint256 _feeUsd) external override nonReentrant {
+        _validateCaller(_account);
+        _validateTokens(_collateralToken, _indexToken, _isLong);
+
+        // TODO: Implement in DPTP-378
+        //        updateCumulativeFundingRate(_collateralToken, _indexToken);
+
+        uint256 collateralDelta = _transferIn(_collateralToken);
+        uint256 collateralDeltaUsd = tokenToUsdMin(_collateralToken, collateralDelta);
+        _validate(collateralDeltaUsd >= _feeUsd, 29);
+
+//        position.collateral = position.collateral.sub(fee);
+
+        // TODO: Implement in DPTP-378
+        // position.lastIncreasedTime = block.timestamp;
+
+        // TODO: Validate this from process chain
+        // _validatePosition(position.size, position.collateral);
+
+        // TODO: Implement later
+        // validateLiquidation(_account, _collateralToken, _indexToken, _isLong, true);
+
+        // reserve tokens to pay profits on the position
+        uint256 reserveDelta = usdToTokenMax(_collateralToken, _sizeDelta);
+        _increaseReservedAmount(_collateralToken, reserveDelta);
+
+        if (_isLong) {
+            // guaranteedUsd stores the sum of (position.size - position.collateral) for all positions
+            // if a fee is charged on the collateral then guaranteedUsd should be increased by that fee amount
+            // since (position.size - position.collateral) would have increased by `fee`
+            _increaseGuaranteedUsd(_collateralToken, _sizeDelta.add(_feeUsd));
+            _decreaseGuaranteedUsd(_collateralToken, collateralDeltaUsd);
+            // treat the deposited collateral as part of the pool
+            _increasePoolAmount(_collateralToken, collateralDelta);
+            // fees need to be deducted from the pool since fees are deducted from position.collateral
+            // and collateral is treated as part of the pool
+            _decreasePoolAmount(_collateralToken, usdToTokenMin(_collateralToken, _feeUsd));
+        } else {
+//            if (globalShortSizes[_indexToken] == 0) {
+//                globalShortAveragePrices[_indexToken] = price;
+//            } else {
+//                globalShortAveragePrices[_indexToken] = getNextGlobalShortAveragePrice(_indexToken, price, _sizeDelta);
+//            }
+
+//            _increaseGlobalShortSize(_indexToken, _sizeDelta);
+        }
+
+//        emit IncreasePosition(key, _account, _collateralToken, _indexToken, collateralDeltaUsd, _sizeDelta, _isLong, price, fee);
+//        emit UpdatePosition(key, position.size, position.collateral, position.averagePrice, position.entryFundingRate, position.reserveAmount, position.realisedPnl, price);
     }
 
     /** OWNER FUNCTIONS **/
@@ -637,6 +692,19 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         emit DecreasePoolAmount(_token, _amount);
     }
 
+    function _increaseReservedAmount(address _token, uint256 _amount) private {
+        vaultInfo[_token].addReservedAmount(_amount);
+        emit IncreaseReservedAmount(_token, _amount);
+    }
+
+    function _increaseGuaranteedUsd(address _token, uint256 _usdAmount) private {
+        // TODO: Implement me
+    }
+
+    function _decreaseGuaranteedUsd(address _token, uint256 _usdAmount) private {
+        // TODO: Implement me
+    }
+
     function _updateTokenBalance(address _token) private {
         uint256 nextBalance = IERC20(_token).balanceOf(address(this));
         tokenBalances[_token] = nextBalance;
@@ -795,5 +863,39 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _token
     ) external view override returns (bool) {
         return tokenConfigurations[_token].isWhitelisted;
+    }
+
+    function _validateCaller(address _account) private view {
+        // TODO: Validate caller
+    }
+
+    function _validateTokens(address _collateralToken, address _indexToken, bool _isLong) private view {
+        TokenConfiguration.Data memory cTokenCfg = tokenConfigurations[_collateralToken];
+
+        if (_isLong) {
+            _validate(_collateralToken == _indexToken, 42);
+            _validate(cTokenCfg.isWhitelisted, 43);
+            _validate(!cTokenCfg.isStableToken, 44);
+            return;
+        }
+
+        _validate(cTokenCfg.isWhitelisted, 45);
+        _validate(cTokenCfg.isStableToken, 46);
+
+        TokenConfiguration.Data memory iTokenCfg = tokenConfigurations[_indexToken];
+        _validate(!iTokenCfg.isStableToken, 47);
+        _validate(iTokenCfg.isShortableToken, 48);
+    }
+
+    function _validatePosition(uint256 _size, uint256 _collateral) private view {
+        if (_size == 0) {
+            _validate(_collateral == 0, 39);
+            return;
+        }
+        _validate(_size >= _collateral, 40);
+    }
+
+    function _validate(bool _condition, uint256 _errorCode) private view {
+//        require(_condition, errors[_errorCode]);
     }
 }
