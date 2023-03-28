@@ -15,8 +15,6 @@ import "../interfaces/IShortsTracker.sol";
 import "..//token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
 
-import "hardhat/console.sol";
-
 contract DptpFuturesGateway is
     PausableUpgradeable,
     OwnableUpgradeable,
@@ -324,16 +322,18 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _feeUsd
     ) internal {
-        // should be called strictly before position is updated in Vault
-        //        IShortsTracker(shortsTracker).updateGlobalShortData(
-        //            _account,
-        //            _collateralToken,
-        //            _indexToken,
-        //            _isLong,
-        //            _sizeDelta,
-        //            markPrice,
-        //            true
-        //        );
+        if (!_isLong && _sizeDelta > 0) {
+            uint256 markPrice = _isLong
+                ? IVault(vault).getMaxPrice(_indexToken)
+                : IVault(vault).getMinPrice(_indexToken);
+            // should be called strictly before position is updated in Vault
+            IShortsTracker(shortsTracker).updateGlobalShortData(
+                _indexToken,
+                _sizeDelta,
+                markPrice,
+                true
+            );
+        }
 
         IVault(vault).increasePosition(
             _account,
@@ -441,7 +441,8 @@ contract DptpFuturesGateway is
         );
 
         // TODO: Implement in ticket DPTP-378
-        // uint256 fundingFee = getFundingFee(_account, _collateralToken, _indexToken, _isLong, _size, _entryFundingRate);
+        // uint256 fundingFee =
+        // getFundingFee(_account, _collateralToken, _indexToken, _isLong, _size, _entryFundingRate);
         // feeUsd = feeUsd.add(fundingFee);
 
         return feeUsd;

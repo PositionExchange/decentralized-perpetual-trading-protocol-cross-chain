@@ -14,8 +14,6 @@ import "../token/interface/IUSDP.sol";
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IVaultPriceFeed.sol";
 
-import "hardhat/console.sol";
-
 contract Vault is IVault, Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -67,6 +65,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     /* mapping(address => uint256) public usdpAmounts; */
     /* mapping(address => uint256) public poolAmounts; */
     /* mapping(address => uint256) public reservedAmounts; */
+
+    mapping (address => uint256) public override globalShortSizes;
+    mapping (address => uint256) public override globalShortAveragePrices;
+    mapping (address => uint256) public override maxGlobalShortSizes;
 
     modifier onlyWhitelistToken(address token) {
         require(
@@ -128,18 +130,23 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         usdp = usdp_;
     }
 
-    function increasePosition(address _account, address _collateralToken, address _indexToken, uint256 _sizeDelta, bool _isLong, uint256 _feeUsd) external override nonReentrant {
+    function increasePosition(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _sizeDelta,
+        bool _isLong,
+        uint256 _feeUsd
+    ) external override nonReentrant {
         _validateCaller(_account);
         _validateTokens(_collateralToken, _indexToken, _isLong);
 
         // TODO: Implement in DPTP-378
-        //        updateCumulativeFundingRate(_collateralToken, _indexToken);
+        // updateCumulativeFundingRate(_collateralToken, _indexToken);
 
         uint256 collateralDelta = _transferIn(_collateralToken);
         uint256 collateralDeltaUsd = tokenToUsdMin(_collateralToken, collateralDelta);
         _validate(collateralDeltaUsd >= _feeUsd, 29);
-
-//        position.collateral = position.collateral.sub(fee);
 
         // TODO: Implement in DPTP-378
         // position.lastIncreasedTime = block.timestamp;
@@ -166,17 +173,35 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             // and collateral is treated as part of the pool
             _decreasePoolAmount(_collateralToken, usdToTokenMin(_collateralToken, _feeUsd));
         } else {
-//            if (globalShortSizes[_indexToken] == 0) {
-//                globalShortAveragePrices[_indexToken] = price;
-//            } else {
-//                globalShortAveragePrices[_indexToken] = getNextGlobalShortAveragePrice(_indexToken, price, _sizeDelta);
-//            }
+            uint256 price = _isLong ? getMaxPrice(_indexToken) : getMinPrice(_indexToken);
 
-//            _increaseGlobalShortSize(_indexToken, _sizeDelta);
+            if (globalShortSizes[_indexToken] == 0) {
+                globalShortAveragePrices[_indexToken] = price;
+            } else {
+                globalShortAveragePrices[_indexToken] = getNextGlobalShortAveragePrice(_indexToken, price, _sizeDelta);
+            }
+
+            _increaseGlobalShortSize(_indexToken, _sizeDelta);
         }
+    }
 
-//        emit IncreasePosition(key, _account, _collateralToken, _indexToken, collateralDeltaUsd, _sizeDelta, _isLong, price, fee);
-//        emit UpdatePosition(key, position.size, position.collateral, position.averagePrice, position.entryFundingRate, position.reserveAmount, position.realisedPnl, price);
+    // for longs: nextAveragePrice = (nextPrice * nextSize)/ (nextSize + delta)
+    // for shorts: nextAveragePrice = (nextPrice * nextSize) / (nextSize - delta)
+    function getNextGlobalShortAveragePrice(
+        address _indexToken,
+        uint256 _nextPrice,
+        uint256 _sizeDelta
+    ) public view returns (uint256) {
+        uint256 size = globalShortSizes[_indexToken];
+        uint256 averagePrice = globalShortAveragePrices[_indexToken];
+        uint256 priceDelta = averagePrice > _nextPrice ? averagePrice.sub(_nextPrice) : _nextPrice.sub(averagePrice);
+        uint256 delta = size.mul(priceDelta).div(averagePrice);
+        bool hasProfit = averagePrice > _nextPrice;
+
+        uint256 nextSize = size.add(_sizeDelta);
+        uint256 divisor = hasProfit ? nextSize.sub(delta) : nextSize.add(delta);
+
+        return _nextPrice.mul(nextSize).div(divisor);
     }
 
     /** OWNER FUNCTIONS **/
@@ -759,24 +784,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return uint(vaultInfo[_token].feeReserves);
     }
 
-    function globalShortSizes(
-        address _token
-    ) external view override returns (uint256) {
-        // TODO implement
-    }
-
-    function globalShortAveragePrices(
-        address _token
-    ) external view override returns (uint256) {
-        //TODO implement
-    }
-
-    function maxGlobalShortSizes(
-        address _token
-    ) external view override returns (uint256) {
-        // TODO implement
-    }
-
     function tokenDecimals(
         address _token
     ) external view override returns (uint256) {
@@ -862,6 +869,15 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _token
     ) external view override returns (bool) {
         return tokenConfigurations[_token].isWhitelisted;
+    }
+
+    function _increaseGlobalShortSize(address _token, uint256 _amount) internal {
+        globalShortSizes[_token] = globalShortSizes[_token].add(_amount);
+
+        uint256 maxSize = maxGlobalShortSizes[_token];
+        if (maxSize != 0) {
+            require(globalShortSizes[_token] <= maxSize, "Vault: max shorts exceeded");
+        }
     }
 
     function _validateCaller(address _account) private view {
