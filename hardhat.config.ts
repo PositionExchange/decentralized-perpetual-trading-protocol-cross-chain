@@ -5,6 +5,7 @@ import "@openzeppelin/hardhat-upgrades"
 import "@typechain/hardhat";
 import "hardhat-contract-sizer"
 import "@openzeppelin/hardhat-defender"
+import "hardhat-docgen"
 import {task} from "hardhat/config";
 import {
     BSC_MAINNET_URL,
