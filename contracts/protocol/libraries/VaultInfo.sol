@@ -47,4 +47,14 @@ library VaultInfo {
             );
         }
     }
+
+  function addReservedAmount(Data storage _self, uint256 _amount) internal {
+    _self.reservedAmounts = _self.reservedAmounts + uint128(_amount);
+    require(_self.reservedAmounts <= _self.poolAmounts, "Vault: reservedAmount exceeded poolAmount");
+  }
+
+  function subReservedAmount(Data storage _self, uint256 _amount) internal {
+    require(_amount <= _self.reservedAmounts, "Vault: reservedAmount exceeded");
+    _self.reservedAmounts = _self.reservedAmounts - uint128(_amount);
+  }
 }

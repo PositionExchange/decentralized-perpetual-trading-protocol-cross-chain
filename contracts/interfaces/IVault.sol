@@ -39,6 +39,15 @@ interface IVault {
         address _receiver
     ) external returns (uint256);
 
+    function increasePosition(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _sizeDelta,
+        bool _isLong,
+        uint256 _feeUsd
+    ) external;
+
     /* Goivernance function */
     function setWhitelistCaller(address caller, bool val) external;
 
@@ -181,4 +190,7 @@ interface IVault {
         uint256 _taxBasisPoints,
         bool _increment
     ) external view returns (uint256);
+
+    function usdToTokenMin(address _token, uint256 _usdAmount) external view returns (uint256);
+    function tokenToUsdMin(address _token, uint256 _tokenAmount) external view returns (uint256);
 }
