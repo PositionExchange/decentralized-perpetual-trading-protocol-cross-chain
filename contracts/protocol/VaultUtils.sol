@@ -10,6 +10,8 @@ contract VaultUtils is IVaultUtils, Initializable {
 
     IVault public vault;
 
+    uint256 public constant FUNDING_RATE_PRECISION = 1000000;
+
     function initialize(IVault _vault) public initializer {
         vault = _vault;
     }
@@ -133,5 +135,26 @@ contract VaultUtils is IVaultUtils, Initializable {
         }
         uint256 taxBps = _taxBasisPoints.mul(averageDiff).div(targetAmount);
         return _feeBasisPoints.add(taxBps);
+    }
+
+    function getFundingFee(
+        address _collateralToken,
+        uint256 _size,
+        uint256 _entryFundingRate
+    ) public override view returns (uint256) {
+        if (_size == 0) { return 0; }
+
+        uint256 fundingRate = vault.cumulativeFundingRates(_collateralToken).sub(_entryFundingRate);
+        if (fundingRate == 0) { return 0; }
+
+        return _size.mul(fundingRate).div(FUNDING_RATE_PRECISION);
+    }
+
+    function getEntryFundingRate(
+        address _collateralToken,
+        address /* _indexToken */,
+        bool /* _isLong */
+    ) public override view returns (uint256) {
+        return vault.cumulativeFundingRates(_collateralToken);
     }
 }

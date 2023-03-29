@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IInsuranceFund.sol";
 import "../interfaces/IVault.sol";
+import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IShortsTracker.sol";
 import "..//token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
@@ -153,6 +154,7 @@ contract DptpFuturesGateway is
 
     address public futuresAdapter;
     address public vault;
+    address public vaultUtils;
     address public shortsTracker;
     address public weth;
 
@@ -181,6 +183,7 @@ contract DptpFuturesGateway is
         address _pscCrossChainGateway,
         address _futuresAdapter,
         address _vault,
+        address _vaultUtils,
         address _weth,
         uint256 _minExecutionFee
     ) public initializer {
@@ -201,6 +204,9 @@ contract DptpFuturesGateway is
 
         require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
         weth = _weth;
+
+        require(_vaultUtils != address(0), Errors.VL_EMPTY_ADDRESS);
+        vaultUtils = _vaultUtils;
 
         minExecutionFee = _minExecutionFee;
     }
@@ -692,6 +698,14 @@ contract DptpFuturesGateway is
         // feeUsd = feeUsd.add(fundingFee);
 
         return feeUsd;
+    }
+
+    function _getFundingFee(
+        address _collateralToken,
+        uint256 _size,
+        uint256 _entryFundingRate)
+    internal view returns (uint256) {
+        return IVaultUtils(vaultUtils).getFundingFee(_collateralToken, _size, _entryFundingRate);
     }
 
     function _getPositionFee(

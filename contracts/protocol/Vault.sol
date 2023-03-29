@@ -48,6 +48,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     bool public override isSwapEnabled = true;
     uint256 public override liquidationFeeUsd;
 
+    uint256 public override fundingInterval = 8 hours;
+    uint256 public override fundingRateFactor;
+    uint256 public override stableFundingRateFactor;
+
     // mapping(address => bool) public whitelistTokens;
     mapping(address => bool) public whitelistCaller;
     mapping(address => uint256) public tokenBalances;
@@ -69,6 +73,11 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     mapping (address => uint256) public override globalShortSizes;
     mapping (address => uint256) public override globalShortAveragePrices;
     mapping (address => uint256) public override maxGlobalShortSizes;
+
+    // cumulativeFundingRates tracks the funding rates based on utilization
+    mapping (address => uint256) public override cumulativeFundingRates;
+    // lastFundingTimes tracks the last time funding was updated for a token
+    mapping (address => uint256) public override lastFundingTimes;
 
     modifier onlyWhitelistToken(address token) {
         require(
@@ -120,6 +129,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     event DecreaseReservedAmount(address token, uint256 amount);
     event IncreaseGuaranteedUsd(address token, uint256 amount);
     event WhitelistCallerChanged(address account, bool oldValue, bool newValue);
+    event UpdateFundingRate(address token, uint256 fundingRate);
 
     constructor(
         address vaultUtils_,
@@ -142,15 +152,11 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _validateCaller(_account);
         _validateTokens(_collateralToken, _indexToken, _isLong);
 
-        // TODO: Implement in DPTP-378
-        // updateCumulativeFundingRate(_collateralToken, _indexToken);
+        updateCumulativeFundingRate(_collateralToken, _indexToken);
 
         uint256 collateralDelta = _transferIn(_collateralToken);
         uint256 collateralDeltaUsd = tokenToUsdMin(_collateralToken, collateralDelta);
         _validate(collateralDeltaUsd >= _feeUsd, 29);
-
-        // TODO: Implement in DPTP-378
-        // position.lastIncreasedTime = block.timestamp;
 
         // TODO: Validate this from process chain
         // _validatePosition(position.size, position.collateral);
@@ -491,6 +497,15 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         inManagerMode = _inManagerMode;
     }
 
+    function setFundingRate(uint256 _fundingInterval, uint256 _fundingRateFactor, uint256 _stableFundingRateFactor) external override onlyOwner{
+        _validate(_fundingInterval >= MIN_FUNDING_RATE_INTERVAL, 10);
+        _validate(_fundingRateFactor <= MAX_FUNDING_RATE_FACTOR, 11);
+        _validate(_stableFundingRateFactor <= MAX_FUNDING_RATE_FACTOR, 12);
+        fundingInterval = _fundingInterval;
+        fundingRateFactor = _fundingRateFactor;
+        stableFundingRateFactor = _stableFundingRateFactor;
+    }
+
     /** END OWNER FUNCTIONS **/
 
     /// @notice Pay token to purchase USDP at the ask price
@@ -513,7 +528,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             "Vault: transferIn token amount must be greater than 0"
         );
 
-        // updateCumulativeFundingRate(_token, _token);
+        updateCumulativeFundingRate(_token, _token);
         uint256 price = getAskPrice(_token);
 
         uint256 usdpAmount = tokenAmount.mul(price).div(PRICE_PRECISION);
@@ -565,7 +580,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 usdpAmount = _transferIn(usdp);
         require(usdpAmount > 0, "Vault: invalid usdp amount");
 
-        // updateCumulativeFundingRate(_token, _token);
+        updateCumulativeFundingRate(_token, _token);
 
         uint256 redemptionAmount = getRedemptionAmount(_token, usdpAmount);
         require(redemptionAmount > 0, "Vault: Invalid redemption amount");
@@ -612,10 +627,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         require(isSwapEnabled, "Vault: swap is not supported");
         require(_tokenIn != _tokenOut, "Vault: invalid tokens");
 
-        // TODO check if we need to update cumulative funding rate
-
-        /* updateCumulativeFundingRate(_tokenIn, _tokenIn); */
-        /* updateCumulativeFundingRate(_tokenOut, _tokenOut); */
+        updateCumulativeFundingRate(_tokenIn, _tokenIn);
+        updateCumulativeFundingRate(_tokenOut, _tokenOut);
 
         uint256 amountIn = _transferIn(_tokenIn);
         require(amountIn > 0, "Vault: invalid amountIn");
@@ -748,6 +761,34 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 price = getBidPrice(_token);
         uint256 redemptionAmount = _usdgAmount.mul(PRICE_PRECISION).div(price);
         return adjustForDecimals(redemptionAmount, usdp, _token);
+    }
+
+    function updateCumulativeFundingRate(address _collateralToken, address _indexToken) public {
+        if (lastFundingTimes[_collateralToken] == 0) {
+            lastFundingTimes[_collateralToken] = block.timestamp.div(fundingInterval).mul(fundingInterval);
+            return;
+        }
+
+        if (lastFundingTimes[_collateralToken].add(fundingInterval) > block.timestamp) {
+            return;
+        }
+
+        uint256 fundingRate = getNextFundingRate(_collateralToken);
+        cumulativeFundingRates[_collateralToken] = cumulativeFundingRates[_collateralToken].add(fundingRate);
+        lastFundingTimes[_collateralToken] = block.timestamp.div(fundingInterval).mul(fundingInterval);
+
+        emit UpdateFundingRate(_collateralToken, cumulativeFundingRates[_collateralToken]);
+    }
+
+    function getNextFundingRate(address _token) public override view returns (uint256) {
+        if (lastFundingTimes[_token].add(fundingInterval) > block.timestamp) { return 0; }
+
+        uint256 intervals = block.timestamp.sub(lastFundingTimes[_token]).div(fundingInterval);
+        uint256 poolAmount = vaultInfo[_token].poolAmounts;
+        if (poolAmount == 0) { return 0; }
+
+        uint256 _fundingRateFactor = tokenConfigurations[_token].isStableToken ? stableFundingRateFactor : fundingRateFactor;
+        return _fundingRateFactor.mul(vaultInfo[_token].reservedAmounts).mul(intervals).div(poolAmount);
     }
 
     /* PRIVATE FUNCTIONS */

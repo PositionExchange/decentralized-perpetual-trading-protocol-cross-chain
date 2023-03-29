@@ -24,4 +24,17 @@ interface IVaultUtils {
         uint256 _taxBasisPoints,
         bool _increment
     ) external view returns (uint256);
+
+    function getFundingFee(
+        address _collateralToken,
+        uint256 _size,
+        uint256 _entryFundingRate
+    ) external view returns (uint256);
+
+    function getEntryFundingRate(
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) external view returns (uint256);
+
 }
