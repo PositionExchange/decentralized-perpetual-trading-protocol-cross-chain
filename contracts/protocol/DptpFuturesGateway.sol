@@ -173,6 +173,13 @@ contract DptpFuturesGateway is
     mapping(address => uint256) public maxGlobalLongSizes;
     mapping(address => uint256) public maxGlobalShortSizes;
 
+    struct Position {
+        uint256 entryFundingRate;
+    }
+
+    // positions tracks all open positions data
+    mapping (bytes32 => Position) public positions;
+
     bytes32[] public increasePositionRequestKeys;
     bytes32[] public decreasePositionRequestKeys;
 
@@ -225,10 +232,11 @@ contract DptpFuturesGateway is
 
         uint256 amountInUsd = IVault(vault).tokenToUsdMin(_path[0], _amountIn);
         uint256 feeInUsd = _calculateMarginFees(
+            msg.sender,
             _path[0],
             _indexToken,
             _isLong,
-            _amountIn,
+            amountInUsd,
             _leverage
         );
         uint256 amountAfterFeeInUsd = amountInUsd.sub(feeInUsd);
@@ -282,6 +290,7 @@ contract DptpFuturesGateway is
             amountInToken
         );
         uint256 feeInUsd = _calculateMarginFees(
+            msg.sender,
             _path[0],
             _indexToken,
             _isLong,
@@ -678,39 +687,44 @@ contract DptpFuturesGateway is
     }
 
     function _calculateMarginFees(
+        address _trader,
         address _collateralToken,
         address _indexToken,
         bool _isLong,
-        uint256 _amountIn,
+        uint256 _amountInUsd,
         uint256 _leverage
     ) internal returns (uint256) {
         // Fee for opening and closing position
         uint256 feeUsd = _getPositionFee(
             _collateralToken,
-            _amountIn,
+            _amountInUsd,
             _leverage,
             _isLong
         );
 
-        // TODO: Implement in ticket DPTP-378
-        // uint256 fundingFee =
-        // getFundingFee(_account, _collateralToken, _indexToken, _isLong, _size, _entryFundingRate);
-        // feeUsd = feeUsd.add(fundingFee);
-
+        uint256 fundingFee = _getFundingFee(_trader, _collateralToken, _indexToken, _amountInUsd, _isLong);
+        feeUsd = feeUsd.add(fundingFee);
         return feeUsd;
     }
 
     function _getFundingFee(
+        address _trader,
         address _collateralToken,
-        uint256 _size,
-        uint256 _entryFundingRate)
-    internal view returns (uint256) {
-        return IVaultUtils(vaultUtils).getFundingFee(_collateralToken, _size, _entryFundingRate);
+        address _indexToken,
+        uint256 _amountInUsd,
+        bool _isLong
+    ) internal view returns (uint256) {
+        IVaultUtils _vaultUtils = IVaultUtils(vaultUtils);
+        bytes32 key = getPositionEntryFundingKey(_trader,_collateralToken,_indexToken,_isLong);
+        Position memory _position = positions[key];
+        uint256 fundingFee = _vaultUtils.getFundingFee(_collateralToken, _amountInUsd, _position.entryFundingRate);
+        _position.entryFundingRate = _vaultUtils.getEntryFundingRate(_collateralToken);
+        return fundingFee;
     }
 
     function _getPositionFee(
         address _collateralToken,
-        uint256 _amountIn,
+        uint256 _amountInUsd,
         uint256 _leverage,
         bool _isLimitOrder
     ) internal view returns (uint256 fee) {
@@ -725,11 +739,7 @@ contract DptpFuturesGateway is
             );
         }
         if (tollRatio != 0) {
-            uint256 amountInUSD = IVault(vault).tokenToUsdMin(
-                _collateralToken,
-                _amountIn
-            );
-            fee = (amountInUSD * _leverage) / tollRatio;
+            fee = (_amountInUsd * _leverage) / tollRatio;
         }
         return fee;
     }
@@ -740,6 +750,20 @@ contract DptpFuturesGateway is
         returns (bytes32)
     {
         return keccak256(abi.encodePacked(_account, _index));
+    }
+
+    function getPositionEntryFundingKey(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(
+                _trader,
+                _collateralToken,
+                _indexToken,
+                _isLong
+            ));
     }
 
     function receiveFromOtherBlockchain(

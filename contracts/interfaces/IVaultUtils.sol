@@ -31,10 +31,6 @@ interface IVaultUtils {
         uint256 _entryFundingRate
     ) external view returns (uint256);
 
-    function getEntryFundingRate(
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) external view returns (uint256);
+    function getEntryFundingRate(address _collateralToken) external view returns (uint256);
 
 }
