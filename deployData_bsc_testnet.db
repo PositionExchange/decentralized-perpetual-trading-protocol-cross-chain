@@ -1,5 +1,6 @@
 {"address":"0xF55Fc8e91c0c893568dB750cD4a4eB2D953E80a5","key":"Vault","_id":"1MFHXp6e3x46yruh"}
 {"address":"0xc9548660F621d85b5FB391BE6DD9a5da5fa38B21","key":"StakedPlpDistributor","_id":"41T6OkUm4J8FrM5J"}
+{"address":"0x148eC2C7D014FA41D6072129977E3040C9Ab9125","key":"DptpFuturesGateway","_id":"4lnPp2rzZLB4f8uL"}
 {"address":"0xe3FBD8E876b0492a1ABf2c02C183D0f1453d3810","key":"FeePlpDistributor","_id":"5Kv0BrUb1x6TYAQB"}
 {"address":"0xD0178Ba7F716C6C61B7d9d55A7B92CaeDD0b4cbE","key":"VaultPriceFeed","_id":"5wxXBHaBc0z0QTce"}
 {"address":"yes","key":"0xb14636bd54Cfc725622a3181E5768CC1a1D4f4E8:verified","_id":"6o7wm4rKAoVDNRNL"}
@@ -14,6 +15,7 @@
 {"address":"0xc00902879e622a234ddbc1c41d0614feed74a0ff","key":"FuturesAdapter","_id":"HnrSCroxCLrG4rTM"}
 {"address":"0x4D906559B2cEbBe063757ab76c5620C2149e4b0D","key":"WETH","_id":"JtrS9rdtuTrVldqA"}
 {"address":"yes","key":"0x930f963Dca83b9342057e7cA92d7104d2BB6EbcB:verified","_id":"K7RKDTjGC88UyzjF"}
+{"address":"yes","key":"0x6EeD77974CAaC7A47B0590f497e956Db174599c6:verified","_id":"LSQtQsog19fMLLfs"}
 {"address":"yes","key":"0x6B3cB40F972B2ec41A1d705B712b405A7376389E:verified","_id":"MqpjaXj6SkxCNeBj"}
 {"address":"0xB202545C693631eEeBC83E600c74cFf4EE54F39c","key":"DAI","_id":"Ol0doHoxcUFl3z0d"}
 {"address":"0x792bA5e9E0Cd15083Ec2f58E434d875892005b91","key":"PLP","_id":"P2DJGiC7T2Yr3Rkk"}

@@ -67,12 +67,12 @@ describe("DPTP Futures Gateway", async function () {
       (await futuresGatewayFactory.deploy()) as unknown as DptpFuturesGatewayMock;
 
     await futuresGateway.initialize(
-        BigNumber.from('910000'),
-        futuresAdapter.address,
-        futuresAdapter.address,
-        vault.address,
-        weth.address,
-        BigNumber.from('1000000000000000')
+      BigNumber.from("910000"),
+      futuresAdapter.address,
+      futuresAdapter.address,
+      vault.address,
+      weth.address,
+      BigNumber.from("1000000000000000")
     );
     await futuresGateway.setPositionManagerConfigData(
       whitelistedToken.address,
@@ -118,7 +118,6 @@ describe("DPTP Futures Gateway", async function () {
           BigNumber.from("10000000000000000000"),
           BigNumber.from("10"),
           true,
-          BigNumber.from("1000000000000000"),
           {
             value: BigNumber.from("1000000000000000"),
           }
@@ -135,15 +134,7 @@ describe("DPTP Futures Gateway", async function () {
       expect(request.amountInToken).to.be.eq(
         BigNumber.from("10000000000000000000")
       );
-      expect(request.amountInUsd).to.be.eq(
-        BigNumber.from("10000000000000000000000")
-      );
       expect(request.feeUsd).to.be.eq(BigNumber.from("1000000000000000000000"));
-      expect(request.sizeDelta).to.be.eq(
-        BigNumber.from("90000000000000000000000")
-      );
-      expect(request.executionFee).to.be.eq(BigNumber.from("1000000000000000"));
-      expect(request.isLong).to.be.true;
       expect(request.hasCollateralInETH).to.be.false;
     });
   });
@@ -157,7 +148,6 @@ describe("DPTP Futures Gateway", async function () {
           weth.address,
           BigNumber.from("10"),
           true,
-          BigNumber.from("1000000000000000"),
           {
             value: BigNumber.from("10001000000000000000"),
           }
@@ -174,15 +164,7 @@ describe("DPTP Futures Gateway", async function () {
       expect(request.amountInToken).to.be.eq(
         BigNumber.from("10000000000000000000")
       );
-      expect(request.amountInUsd).to.be.eq(
-        BigNumber.from("10000000000000000000000")
-      );
       expect(request.feeUsd).to.be.eq(BigNumber.from("1000000000000000000000"));
-      expect(request.sizeDelta).to.be.eq(
-        BigNumber.from("90000000000000000000000")
-      );
-      expect(request.executionFee).to.be.eq(BigNumber.from("1000000000000000"));
-      expect(request.isLong).to.be.true;
       expect(request.hasCollateralInETH).to.be.false;
     });
   });
@@ -197,8 +179,7 @@ describe("DPTP Futures Gateway", async function () {
             whitelistedToken.address,
             0,
             BigNumber.from("10"),
-            true,
-            0
+            true
           )
       ).to.be.revertedWith("fee");
     });
@@ -210,8 +191,7 @@ describe("DPTP Futures Gateway", async function () {
             [whitelistedToken.address],
             whitelistedToken.address,
             BigNumber.from("10"),
-            true,
-            0
+            true
           )
       ).to.be.revertedWith("fee");
     });
@@ -225,12 +205,11 @@ describe("DPTP Futures Gateway", async function () {
             0,
             BigNumber.from("10"),
             true,
-            BigNumber.from("1000000000000000"),
             {
               value: BigNumber.from("2000000000000000"),
             }
           )
-      ).to.be.revertedWith("val");
+      ).to.be.revertedWith("fee");
     });
     it("given execution fee and msg.value not equal, when calling createIncreasePosition, should revert", async () => {
       await expect(
@@ -242,12 +221,11 @@ describe("DPTP Futures Gateway", async function () {
             0,
             BigNumber.from("10"),
             true,
-            BigNumber.from("1000000000000000"),
             {
               value: BigNumber.from("2000000000000000"),
             }
           )
-      ).to.be.revertedWith("val");
+      ).to.be.revertedWith("fee");
     });
     it("given execution fee less than msg.value, when calling createIncreasePositionETH, should revert", async () => {
       await expect(
@@ -259,12 +237,11 @@ describe("DPTP Futures Gateway", async function () {
             0,
             BigNumber.from("10"),
             true,
-            BigNumber.from("1000000000000000"),
             {
               value: BigNumber.from("100"),
             }
           )
-      ).to.be.revertedWith("val");
+      ).to.be.revertedWith("fee");
     });
   });
 });

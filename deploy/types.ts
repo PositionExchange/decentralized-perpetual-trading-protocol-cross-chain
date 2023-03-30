@@ -1,8 +1,8 @@
-import {ContractWrapperFactory} from './ContractWrapperFactory'
-import {DeployDataStore} from "./DataStore";
-import {HardhatRuntimeEnvironment} from "hardhat/types";
+import { ContractWrapperFactory } from "./ContractWrapperFactory";
+import { DeployDataStore } from "./DataStore";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-export type MigrationTask = () => Promise<void>
+export type MigrationTask = () => Promise<void>;
 
 export interface MigrationDefinition {
     configPath?: string
@@ -48,4 +48,13 @@ export interface PositionManagerConfigData {
     assetRfiPercent: number,
     minimumOrderQuantity: string,
     stepBaseSize: number
+}
+
+export interface CreateDptpFuturesGateway {
+    pcsId: number,
+    pscCrossChainGateway: string,
+    futuresAdapter: string,
+    vault: string,
+    weth: string,
+    executionFee: number,
 }
