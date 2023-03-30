@@ -117,6 +117,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     event IncreasePoolAmount(address token, uint256 amount);
     event DecreasePoolAmount(address token, uint256 amount);
     event IncreaseReservedAmount(address token, uint256 amount);
+    event DecreaseReservedAmount(address token, uint256 amount);
     event IncreaseGuaranteedUsd(address token, uint256 amount);
     event WhitelistCallerChanged(address account, bool oldValue, bool newValue);
 
@@ -154,12 +155,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         // TODO: Validate this from process chain
         // _validatePosition(position.size, position.collateral);
 
-        // TODO: Implement later
-        // validateLiquidation(_account, _collateralToken, _indexToken, _isLong, true);
-
         // reserve tokens to pay profits on the position
         uint256 reserveDelta = usdToTokenMax(_collateralToken, _sizeDelta);
         _increaseReservedAmount(_collateralToken, reserveDelta);
+
+        // Add fee to feeReserves
+        _increaseFeeReserves(_collateralToken, _feeUsd);
 
         if (_isLong) {
             // guaranteedUsd stores the sum of (position.size - position.collateral) for all positions
@@ -172,17 +173,136 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             // fees need to be deducted from the pool since fees are deducted from position.collateral
             // and collateral is treated as part of the pool
             _decreasePoolAmount(_collateralToken, usdToTokenMin(_collateralToken, _feeUsd));
-        } else {
-            uint256 price = _isLong ? getMaxPrice(_indexToken) : getMinPrice(_indexToken);
-
-            if (globalShortSizes[_indexToken] == 0) {
-                globalShortAveragePrices[_indexToken] = price;
-            } else {
-                globalShortAveragePrices[_indexToken] = getNextGlobalShortAveragePrice(_indexToken, price, _sizeDelta);
-            }
-
-            _increaseGlobalShortSize(_indexToken, _sizeDelta);
+            return;
         }
+
+        uint256 price = _isLong ? getMaxPrice(_indexToken) : getMinPrice(_indexToken);
+
+        if (globalShortSizes[_indexToken] == 0) {
+            globalShortAveragePrices[_indexToken] = price;
+        } else {
+            globalShortAveragePrices[_indexToken] = getNextGlobalShortAveragePrice(_indexToken, price, _sizeDelta);
+        }
+
+        _increaseGlobalShortSize(_indexToken, _sizeDelta);
+    }
+
+    function decreasePosition(
+        address _collateralToken,
+        address _indexToken,
+        uint256 _sizeDelta,
+        bool _isLong,
+        address _receiver,
+        uint256 _amountOutUsdAfterFees,
+        uint256 _feeUsd
+    ) external override nonReentrant returns (uint256) {
+        _validateCaller(msg.sender);
+
+        return
+        _decreasePosition(
+            _collateralToken,
+            _indexToken,
+            _sizeDelta,
+            _isLong,
+            _receiver,
+            _amountOutUsdAfterFees,
+            _feeUsd
+        );
+    }
+
+    function _decreasePosition(
+        address _collateralToken,
+        address _indexToken,
+        uint256 _sizeDelta,
+        bool _isLong,
+        address _receiver,
+        uint256 _amountOutUsdAfterFees,
+        uint256 _feeUsd
+    ) private returns (uint256) {
+        // TODO: Implement in DPTP-378
+        // updateCumulativeFundingRate(_collateralToken, _indexToken);
+        // uint256 fundingFee = getFundingFee(
+        //     _account,
+        //     _collateralToken,
+        //     _indexToken,
+        //     _isLong,
+        //     _size,
+        //     _entryFundingRate
+        // );
+        // TODO: Need to check if fundingFee is greater than _amountOutUsdAfterFees,
+        // TODO: if it does, take fundingFee out of user's collateral
+        // _amountOutUsdAfterFees = _amountOutUsdAfterFees.sub(fundingFee);
+        // _feeUsd = _feeUsd.add(fundingFee);
+
+        // Add fee to feeReserves
+        _increaseFeeReserves(_collateralToken, _feeUsd);
+
+        uint256 reserveDelta = usdToTokenMin(_collateralToken, _sizeDelta);
+        _decreaseReservedAmount(_collateralToken, reserveDelta);
+
+        // TODO: Currently not seeing any reason to _reduceCollateral
+        // _reduceCollateral(_collateralToken, _isLong);
+
+        if (_isLong) {
+            _decreaseGuaranteedUsd(_collateralToken, _sizeDelta);
+        } else {
+            _decreaseGlobalShortSize(_indexToken, _sizeDelta);
+        }
+
+        uint256 _amountOutUsd = _amountOutUsdAfterFees.add(_feeUsd);
+        if (_amountOutUsd == 0) {
+            return 0;
+        }
+
+        if (_isLong) {
+            uint256 amountOutToken = usdToTokenMin(_collateralToken, _amountOutUsd);
+            _decreasePoolAmount(_collateralToken, amountOutToken);
+        }
+
+        uint256 amountOutTokenAfterFees = usdToTokenMin(_collateralToken, _amountOutUsdAfterFees);
+        _transferOut(_collateralToken, amountOutTokenAfterFees, _receiver);
+        return amountOutTokenAfterFees;
+    }
+
+    // TODO: Currently not seeing any reason to _reduceCollateral
+//    function _reduceCollateral(
+//        address _collateralToken,
+//        bool _isLong,
+//        int256 _adjustedPnLDelta
+//    ) private {
+//
+//        uint256 adjustedPnLDeltaAbs = _adjustedPnLDelta >= 0
+//        ? uint256(_adjustedPnLDelta)
+//        : uint256(-_adjustedPnLDelta);
+//
+//        // transfer profits out
+//        if (_adjustedPnLDelta > 0) {
+//            // pay out realised profits from the pool amount for short positions
+//            if (!_isLong) {
+//                uint256 tokenAmount = usdToTokenMin(_collateralToken, adjustedPnLDeltaAbs);
+//                _decreasePoolAmount(_collateralToken, tokenAmount);
+//            }
+//        }
+//
+//        if (_adjustedPnLDelta < 0) {
+//            // transfer realised losses to the pool for short positions
+//            // realised losses for long positions are not transferred here as
+//            // _increasePoolAmount was already called in increasePosition for longs
+//            if (!_isLong) {
+//                uint256 tokenAmount = usdToTokenMin(_collateralToken, adjustedPnLDeltaAbs);
+//                _increasePoolAmount(_collateralToken, tokenAmount);
+//            }
+//        }
+//    }
+
+    function _decreaseGlobalShortSize(address _token, uint256 _amount) private {
+        uint256 size = globalShortSizes[_token];
+        if (_amount > size) {
+            globalShortSizes[_token] = 0;
+            return;
+        }
+
+        globalShortSizes[_token] = size.sub(_amount);
     }
 
     // for longs: nextAveragePrice = (nextPrice * nextSize)/ (nextSize + delta)
@@ -644,6 +764,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amount,
         address _receiver
     ) private {
+        uint256 prevBalance = tokenBalances[_token];
+        require(prevBalance >= _amount, "Vault: insufficient amount");
         IERC20(_token).safeTransfer(_receiver, _amount);
         tokenBalances[_token] = IERC20(_token).balanceOf(address(this));
     }
@@ -721,12 +843,22 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         emit IncreaseReservedAmount(_token, _amount);
     }
 
+    function _decreaseReservedAmount(address _token, uint256 _amount) private {
+        vaultInfo[_token].subReservedAmount(_amount);
+        emit DecreaseReservedAmount(_token, _amount);
+    }
+
     function _increaseGuaranteedUsd(address _token, uint256 _usdAmount) private {
         // TODO: Implement me
     }
 
     function _decreaseGuaranteedUsd(address _token, uint256 _usdAmount) private {
         // TODO: Implement me
+    }
+
+    function _increaseFeeReserves(address _collateralToken, uint256 _feeUsd) private {
+        uint256 feeTokens = usdToTokenMin(_collateralToken, _feeUsd);
+        vaultInfo[_collateralToken].addFees(feeTokens);
     }
 
     function _updateTokenBalance(address _token) private {

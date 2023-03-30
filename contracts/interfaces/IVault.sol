@@ -48,6 +48,16 @@ interface IVault {
         uint256 _feeUsd
     ) external;
 
+    function decreasePosition(
+        address _collateralToken,
+        address _indexToken,
+        uint256 _sizeDelta,
+        bool _isLong,
+        address _receiver,
+        uint256 _amountOutUsd,
+        uint256 _feeUsd
+    ) external returns (uint256);
+
     /* Goivernance function */
     function setWhitelistCaller(address caller, bool val) external;
 
