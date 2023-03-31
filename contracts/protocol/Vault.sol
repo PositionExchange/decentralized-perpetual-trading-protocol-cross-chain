@@ -79,6 +79,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     // lastFundingTimes tracks the last time funding was updated for a token
     mapping (address => uint256) public override lastFundingTimes;
 
+    // positionEntryFundingRates tracks all open positions entry funding rates
+    mapping (bytes32 => uint256) public positionEntryFundingRates;
+
     modifier onlyWhitelistToken(address token) {
         require(
             tokenConfigurations[token].isWhitelisted,
@@ -194,6 +197,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function decreasePosition(
+        address _trader,
         address _collateralToken,
         address _indexToken,
         uint256 _sizeDelta,
@@ -206,6 +210,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         return
         _decreasePosition(
+            _trader,
             _collateralToken,
             _indexToken,
             _sizeDelta,
@@ -217,6 +222,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function _decreasePosition(
+        address _trader,
         address _collateralToken,
         address _indexToken,
         uint256 _sizeDelta,
@@ -225,20 +231,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd
     ) private returns (uint256) {
-        // TODO: Implement in DPTP-378
-        // updateCumulativeFundingRate(_collateralToken, _indexToken);
-        // uint256 fundingFee = getFundingFee(
-        //     _account,
-        //     _collateralToken,
-        //     _indexToken,
-        //     _isLong,
-        //     _size,
-        //     _entryFundingRate
-        // );
+         updateCumulativeFundingRate(_collateralToken, _indexToken);
+         uint256 fundingFee = _getFundingFee(_trader, _collateralToken, _indexToken, _sizeDelta, _isLong);
         // TODO: Need to check if fundingFee is greater than _amountOutUsdAfterFees,
         // TODO: if it does, take fundingFee out of user's collateral
-        // _amountOutUsdAfterFees = _amountOutUsdAfterFees.sub(fundingFee);
-        // _feeUsd = _feeUsd.add(fundingFee);
+         _amountOutUsdAfterFees = _amountOutUsdAfterFees.sub(fundingFee);
+         _feeUsd = _feeUsd.add(fundingFee);
 
         // Add fee to feeReserves
         _increaseFeeReserves(_collateralToken, _feeUsd);
@@ -789,6 +787,44 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         uint256 _fundingRateFactor = tokenConfigurations[_token].isStableToken ? stableFundingRateFactor : fundingRateFactor;
         return _fundingRateFactor.mul(vaultInfo[_token].reservedAmounts).mul(intervals).div(poolAmount);
+    }
+
+    function getFundingFee(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _amountInUsd,
+        bool _isLong
+    ) external returns (uint256) {
+        return _getFundingFee(_trader,_collateralToken,_indexToken,_amountInUsd,_isLong);
+    }
+
+    function _getFundingFee(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _amountInUsd,
+        bool _isLong
+    ) internal returns (uint256) {
+        bytes32 _key = _getPositionEntryFundingKey(_trader,_collateralToken,_indexToken,_isLong);
+        uint256 fundingFee = _vaultUtils.getFundingFee(_collateralToken, _amountInUsd, positionEntryFundingRates[_key]);
+        uint256 _newEntryFundingRate =  _vaultUtils.getEntryFundingRate(_collateralToken);
+        positionEntryFundingRates[_key] = _newEntryFundingRate;
+        return fundingFee;
+    }
+
+    function _getPositionEntryFundingKey(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(
+                _trader,
+                _collateralToken,
+                _indexToken,
+                _isLong
+            ));
     }
 
     /* PRIVATE FUNCTIONS */

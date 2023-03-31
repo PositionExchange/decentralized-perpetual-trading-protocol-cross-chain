@@ -49,6 +49,7 @@ interface IVault {
     ) external;
 
     function decreasePosition(
+        address _trader,
         address _collateralToken,
         address _indexToken,
         uint256 _sizeDelta,
@@ -200,6 +201,13 @@ interface IVault {
 
     function getNextFundingRate(address _token) external view returns (uint256);
 
+    function getFundingFee(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _amountInUsd,
+        bool _isLong
+    ) external returns (uint256);
 
     // pool info
     function usdpAmount(address _token) external view returns (uint256);

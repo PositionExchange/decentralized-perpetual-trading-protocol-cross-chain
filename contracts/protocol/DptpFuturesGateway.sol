@@ -154,7 +154,6 @@ contract DptpFuturesGateway is
 
     address public futuresAdapter;
     address public vault;
-    address public vaultUtils;
     address public shortsTracker;
     address public weth;
 
@@ -173,13 +172,6 @@ contract DptpFuturesGateway is
     mapping(address => uint256) public maxGlobalLongSizes;
     mapping(address => uint256) public maxGlobalShortSizes;
 
-    struct Position {
-        uint256 entryFundingRate;
-    }
-
-    // positions tracks all open positions data
-    mapping (bytes32 => Position) public positions;
-
     bytes32[] public increasePositionRequestKeys;
     bytes32[] public decreasePositionRequestKeys;
 
@@ -190,7 +182,6 @@ contract DptpFuturesGateway is
         address _pscCrossChainGateway,
         address _futuresAdapter,
         address _vault,
-        address _vaultUtils,
         address _weth,
         uint256 _minExecutionFee
     ) public initializer {
@@ -211,9 +202,6 @@ contract DptpFuturesGateway is
 
         require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
         weth = _weth;
-
-        require(_vaultUtils != address(0), Errors.VL_EMPTY_ADDRESS);
-        vaultUtils = _vaultUtils;
 
         minExecutionFee = _minExecutionFee;
     }
@@ -294,7 +282,7 @@ contract DptpFuturesGateway is
             _path[0],
             _indexToken,
             _isLong,
-            amountInToken,
+            amountInUsd,
             _leverage
         );
         uint256 amountAfterFeeInUsd = amountInUsd.sub(feeInUsd);
@@ -425,6 +413,7 @@ contract DptpFuturesGateway is
         delete decreasePositionRequests[_key];
 
         _amountOutUsdAfterFees = _decreasePosition(
+            request.account,
             request.path[0],
             request.indexToken,
             request.sizeDelta,
@@ -503,6 +492,7 @@ contract DptpFuturesGateway is
     }
 
     function _decreasePosition(
+        address _account,
         address _collateralToken,
         address _indexToken,
         uint256 _sizeDelta,
@@ -527,6 +517,7 @@ contract DptpFuturesGateway is
 
         return
             IVault(vault).decreasePosition(
+                _account,
                 _collateralToken,
                 _indexToken,
                 _sizeDelta,
@@ -701,25 +692,10 @@ contract DptpFuturesGateway is
             _leverage,
             _isLong
         );
-
-        uint256 fundingFee = _getFundingFee(_trader, _collateralToken, _indexToken, _amountInUsd, _isLong);
+        IVault _vault = IVault(vault);
+        uint256 fundingFee = _vault.getFundingFee(_trader, _collateralToken, _indexToken, _amountInUsd, _isLong);
         feeUsd = feeUsd.add(fundingFee);
         return feeUsd;
-    }
-
-    function _getFundingFee(
-        address _trader,
-        address _collateralToken,
-        address _indexToken,
-        uint256 _amountInUsd,
-        bool _isLong
-    ) internal view returns (uint256) {
-        IVaultUtils _vaultUtils = IVaultUtils(vaultUtils);
-        bytes32 key = getPositionEntryFundingKey(_trader,_collateralToken,_indexToken,_isLong);
-        Position memory _position = positions[key];
-        uint256 fundingFee = _vaultUtils.getFundingFee(_collateralToken, _amountInUsd, _position.entryFundingRate);
-        _position.entryFundingRate = _vaultUtils.getEntryFundingRate(_collateralToken);
-        return fundingFee;
     }
 
     function _getPositionFee(
@@ -750,20 +726,6 @@ contract DptpFuturesGateway is
         returns (bytes32)
     {
         return keccak256(abi.encodePacked(_account, _index));
-    }
-
-    function getPositionEntryFundingKey(
-        address _trader,
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(
-                _trader,
-                _collateralToken,
-                _indexToken,
-                _isLong
-            ));
     }
 
     function receiveFromOtherBlockchain(
