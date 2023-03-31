@@ -69,6 +69,8 @@ export async function deployVaultPureFixtures() {
     mockVaultUtils.address,
     vaultPriceFeed.address,
     usdp.address,
+    600,
+    600
   ]);
 
   await mockVaultUtils.initialize(vault.address);
@@ -77,7 +79,6 @@ export async function deployVaultPureFixtures() {
   // init vault
   // set whitelist caller
   await vault.setWhitelistCaller(deployer.address, true);
-
 
   // PLP Manager
   const plpManagerFactory = await ethers.getContractFactory("LpManager")

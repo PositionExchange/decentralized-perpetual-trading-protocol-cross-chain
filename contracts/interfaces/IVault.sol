@@ -114,7 +114,11 @@ interface IVault {
 
     function setVaultUtils(IVaultUtils _vaultUtils) external;
 
-    function setFundingRate(uint256 _fundingInterval, uint256 _fundingRateFactor, uint256 _stableFundingRateFactor) external;
+    function setFundingRate(
+        uint256 _fundingInterval,
+        uint256 _fundingRateFactor,
+        uint256 _stableFundingRateFactor
+    ) external;
 
     function withdrawFees(
         address _token,
@@ -197,7 +201,9 @@ interface IVault {
 
     function getMinPrice(address _token) external view returns (uint256);
 
-    function cumulativeFundingRates(address _token) external view returns (uint256);
+    function cumulativeFundingRates(
+        address _token
+    ) external view returns (uint256);
 
     function getNextFundingRate(address _token) external view returns (uint256);
 
@@ -224,6 +230,13 @@ interface IVault {
         bool _increment
     ) external view returns (uint256);
 
-    function usdToTokenMin(address _token, uint256 _usdAmount) external view returns (uint256);
-    function tokenToUsdMin(address _token, uint256 _tokenAmount) external view returns (uint256);
+    function usdToTokenMin(
+        address _token,
+        uint256 _usdAmount
+    ) external view returns (uint256);
+
+    function tokenToUsdMin(
+        address _token,
+        uint256 _tokenAmount
+    ) external view returns (uint256);
 }

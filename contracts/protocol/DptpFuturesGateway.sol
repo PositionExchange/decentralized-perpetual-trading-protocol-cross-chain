@@ -528,10 +528,9 @@ contract DptpFuturesGateway is
             );
     }
 
-    function _createIncreasePosition(CreateIncreasePositionParam memory param)
-        internal
-        returns (bytes32)
-    {
+    function _createIncreasePosition(
+        CreateIncreasePositionParam memory param
+    ) internal returns (bytes32) {
         IncreasePositionRequest memory request = IncreasePositionRequest(
             param.account,
             param.path,
@@ -669,9 +668,10 @@ contract DptpFuturesGateway is
         }
     }
 
-    function _transferOutETH(uint256 _amountOut, address payable _account)
-        internal
-    {
+    function _transferOutETH(
+        uint256 _amountOut,
+        address payable _account
+    ) internal {
         if (msg.value != 0) {
             IWETH(weth).transfer(_account, _amountOut);
         }
@@ -693,7 +693,13 @@ contract DptpFuturesGateway is
             _isLong
         );
         IVault _vault = IVault(vault);
-        uint256 fundingFee = _vault.getFundingFee(_trader, _collateralToken, _indexToken, _amountInUsd, _isLong);
+        uint256 fundingFee = _vault.getFundingFee(
+            _trader,
+            _collateralToken,
+            _indexToken,
+            _amountInUsd,
+            _isLong
+        );
         feeUsd = feeUsd.add(fundingFee);
         return feeUsd;
     }
@@ -720,11 +726,10 @@ contract DptpFuturesGateway is
         return fee;
     }
 
-    function getRequestKey(address _account, uint256 _index)
-        public
-        pure
-        returns (bytes32)
-    {
+    function getRequestKey(
+        address _account,
+        uint256 _index
+    ) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_account, _index));
     }
 
@@ -743,10 +748,10 @@ contract DptpFuturesGateway is
         //        );
     }
 
-    function _swap(address[] memory _path, address _receiver)
-        internal
-        returns (uint256)
-    {
+    function _swap(
+        address[] memory _path,
+        address _receiver
+    ) internal returns (uint256) {
         require(_path.length == 2, "invalid _path.length");
         return IVault(vault).swap(_path[0], _path[1], _receiver);
     }
@@ -769,7 +774,7 @@ contract DptpFuturesGateway is
         }
         if (managerConfigData.stepBaseSize != 0) {
             uint256 remainder = _size %
-                (10**18 / managerConfigData.stepBaseSize);
+                (10 ** 18 / managerConfigData.stepBaseSize);
             require(remainder == 0, Errors.VL_INVALID_QUANTITY);
         }
     }
@@ -784,10 +789,9 @@ contract DptpFuturesGateway is
         _validateExecutionOrCancellation(_positionBlockNumber);
     }
 
-    function _validateExecutionOrCancellation(uint256 _positionBlockNumber)
-        internal
-        view
-    {
+    function _validateExecutionOrCancellation(
+        uint256 _positionBlockNumber
+    ) internal view {
         require(isPositionKeeper[msg.sender], "403");
         require(_positionBlockNumber <= block.number, "time");
     }
@@ -898,10 +902,10 @@ contract DptpFuturesGateway is
             .baseBasicPoint = _baseBasicPoint;
     }
 
-    function setManagerBasicPoint(address _positionManager, uint32 _basicPoint)
-        public
-        onlyOwner
-    {
+    function setManagerBasicPoint(
+        address _positionManager,
+        uint32 _basicPoint
+    ) public onlyOwner {
         require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
         positionManagerConfigData[_positionManager].basicPoint = _basicPoint;
     }
@@ -933,10 +937,10 @@ contract DptpFuturesGateway is
             .minimumOrderQuantity = _minimumOrderQuantity;
     }
 
-    function setStepBaseSize(address _positionManager, uint32 _stepBaseSize)
-        public
-        onlyOwner
-    {
+    function setStepBaseSize(
+        address _positionManager,
+        uint32 _stepBaseSize
+    ) public onlyOwner {
         require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
         positionManagerConfigData[_positionManager]
             .stepBaseSize = _stepBaseSize;
@@ -946,10 +950,9 @@ contract DptpFuturesGateway is
         pcsId = _posiChainId;
     }
 
-    function updatePosiChainCrosschainGatewayContract(address _address)
-        external
-        onlyOwner
-    {
+    function updatePosiChainCrosschainGatewayContract(
+        address _address
+    ) external onlyOwner {
         pscCrossChainGateway = _address;
     }
 

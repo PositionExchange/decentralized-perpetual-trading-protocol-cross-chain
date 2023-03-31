@@ -16,7 +16,6 @@ describe("DPTP Futures Gateway", async function () {
   let trader2: any;
 
   let vault: VaultMock;
-  let vaultUtils: VaultUtils;
   let futuresGateway: DptpFuturesGatewayMock;
   let futuresAdapter: FuturesAdapter;
 
