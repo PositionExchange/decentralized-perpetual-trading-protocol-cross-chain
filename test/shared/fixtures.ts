@@ -68,9 +68,7 @@ export async function deployVaultPureFixtures() {
   const vault = await deployContract<Vault>("Vault", [
     mockVaultUtils.address,
     vaultPriceFeed.address,
-    usdp.address,
-    600,
-    600
+    usdp.address
   ]);
 
   await mockVaultUtils.initialize(vault.address);

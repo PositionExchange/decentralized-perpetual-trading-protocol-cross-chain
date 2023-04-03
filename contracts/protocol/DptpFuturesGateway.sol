@@ -693,14 +693,14 @@ contract DptpFuturesGateway is
             _isLong
         );
         IVault _vault = IVault(vault);
-        uint256 fundingFee = _vault.getFundingFee(
+        uint256 borrowingFee = _vault.getBorrowingFee(
             _trader,
             _collateralToken,
             _indexToken,
             _amountInUsd,
             _isLong
         );
-        feeUsd = feeUsd.add(fundingFee);
+        feeUsd = feeUsd.add(borrowingFee);
         return feeUsd;
     }
 

@@ -137,18 +137,18 @@ contract VaultUtils is IVaultUtils, Initializable {
         return _feeBasisPoints.add(taxBps);
     }
 
-    function getFundingFee(
+    function getBorrowingFee(
         address _collateralToken,
         uint256 _size,
-        uint256 _entryFundingRate
+        uint256 _entryBorrowingRate
     ) public view override returns (uint256) {
         if (_size == 0) {
             return 0;
         }
 
         uint256 fundingRate = vault
-            .cumulativeFundingRates(_collateralToken)
-            .sub(_entryFundingRate);
+            .cumulativeBorrowingRates(_collateralToken)
+            .sub(_entryBorrowingRate);
         if (fundingRate == 0) {
             return 0;
         }

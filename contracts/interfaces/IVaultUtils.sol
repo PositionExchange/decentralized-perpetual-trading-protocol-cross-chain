@@ -25,9 +25,9 @@ interface IVaultUtils {
         bool _increment
     ) external view returns (uint256);
 
-    function getFundingFee(
+    function getBorrowingFee(
         address _collateralToken,
         uint256 _size,
-        uint256 _entryFundingRate
+        uint256 _entryBorrowingRate
     ) external view returns (uint256);
 }

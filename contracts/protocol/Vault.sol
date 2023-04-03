@@ -48,9 +48,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     bool public override isSwapEnabled = true;
     uint256 public override liquidationFeeUsd;
 
-    uint256 public override fundingInterval = 8 hours;
-    uint256 public override fundingRateFactor;
-    uint256 public override stableFundingRateFactor;
+    uint256 public override borrowingRateInterval = 8 hours;
+    uint256 public override borrowingRateFactor = 600;
+    uint256 public override stableBorrowingRateFactor = 600;
 
     // mapping(address => bool) public whitelistTokens;
     mapping(address => bool) public whitelistCaller;
@@ -74,13 +74,13 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     mapping(address => uint256) public override globalShortAveragePrices;
     mapping(address => uint256) public override maxGlobalShortSizes;
 
-    // cumulativeFundingRates tracks the funding rates based on utilization
-    mapping(address => uint256) public override cumulativeFundingRates;
-    // lastFundingTimes tracks the last time funding was updated for a token
-    mapping(address => uint256) public override lastFundingTimes;
+    // cumulativeBorrowingRates tracks the  rates based on utilization
+    mapping(address => uint256) public override cumulativeBorrowingRates;
+    // lastBorrowingRateTimes tracks the last time borrowing rate was updated for a token
+    mapping(address => uint256) public override lastBorrowingRateTimes;
 
-    // positionEntryFundingRates tracks all open positions entry funding rates
-    mapping(bytes32 => uint256) public positionEntryFundingRates;
+    // positionEntryBorrowingRates tracks all open positions entry borrowing rates
+    mapping(bytes32 => uint256) public positionEntryBorrowingRates;
 
     modifier onlyWhitelistToken(address token) {
         require(
@@ -132,20 +132,16 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     event DecreaseReservedAmount(address token, uint256 amount);
     event IncreaseGuaranteedUsd(address token, uint256 amount);
     event WhitelistCallerChanged(address account, bool oldValue, bool newValue);
-    event UpdateFundingRate(address token, uint256 fundingRate);
+    event UpdateBorrowingRate(address token, uint256 borrowingRate);
 
     constructor(
         address vaultUtils_,
         address vaultPriceFeed_,
-        address usdp_,
-        uint256 _fundingRateFactor,
-        uint256 _stableFundingRateFactor
+        address usdp_
     ) Ownable() ReentrancyGuard() {
         _vaultUtils = IVaultUtils(vaultUtils_);
         _priceFeed = IVaultPriceFeed(vaultPriceFeed_);
         usdp = usdp_;
-        fundingRateFactor = _fundingRateFactor;
-        stableFundingRateFactor = _stableFundingRateFactor;
     }
 
     function increasePosition(
@@ -159,8 +155,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _validateCaller(_account);
         _validateTokens(_collateralToken, _indexToken, _isLong);
 
-        updateCumulativeFundingRate(_collateralToken, _indexToken);
-        _updateEntryFundingRate(
+        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
+        _updateEntryBorrowingRate(
             _account,
             _collateralToken,
             _indexToken,
@@ -250,24 +246,24 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd
     ) private returns (uint256) {
-        updateCumulativeFundingRate(_collateralToken, _indexToken);
-        uint256 fundingFee = _getFundingFee(
+        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
+        uint256 borrowingFee = _getBorrowingFee(
             _trader,
             _collateralToken,
             _indexToken,
             _sizeDelta,
             _isLong
         );
-        _updateEntryFundingRate(
+        _updateEntryBorrowingRate(
             _trader,
             _collateralToken,
             _indexToken,
             _isLong
         );
-        // TODO: Need to check if fundingFee is greater than _amountOutUsdAfterFees,
-        // TODO: if it does, take fundingFee out of user's collateral
-        _amountOutUsdAfterFees = _amountOutUsdAfterFees.sub(fundingFee);
-        _feeUsd = _feeUsd.add(fundingFee);
+        // TODO: Need to check if borrowingFee is greater than _amountOutUsdAfterFees,
+        // TODO: if it does, take borrowingFee out of user's collateral
+        _amountOutUsdAfterFees = _amountOutUsdAfterFees.sub(borrowingFee);
+        _feeUsd = _feeUsd.add(borrowingFee);
 
         // Add fee to feeReserves
         _increaseFeeReserves(_collateralToken, _feeUsd);
@@ -534,17 +530,17 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         inManagerMode = _inManagerMode;
     }
 
-    function setFundingRate(
-        uint256 _fundingInterval,
-        uint256 _fundingRateFactor,
-        uint256 _stableFundingRateFactor
+    function setBorrowingRate(
+        uint256 _borrowingRateInterval,
+        uint256 _borrowingRateFactor,
+        uint256 _stableBorrowingRateFactor
     ) external override onlyOwner {
-        _validate(_fundingInterval >= MIN_FUNDING_RATE_INTERVAL, 10);
-        _validate(_fundingRateFactor <= MAX_FUNDING_RATE_FACTOR, 11);
-        _validate(_stableFundingRateFactor <= MAX_FUNDING_RATE_FACTOR, 12);
-        fundingInterval = _fundingInterval;
-        fundingRateFactor = _fundingRateFactor;
-        stableFundingRateFactor = _stableFundingRateFactor;
+        _validate(_borrowingRateInterval >= MIN_FUNDING_RATE_INTERVAL, 10);
+        _validate(_borrowingRateFactor <= MAX_FUNDING_RATE_FACTOR, 11);
+        _validate(_stableBorrowingRateFactor <= MAX_FUNDING_RATE_FACTOR, 12);
+        borrowingRateInterval = _borrowingRateInterval;
+        borrowingRateFactor = _borrowingRateFactor;
+        stableBorrowingRateFactor = _stableBorrowingRateFactor;
     }
 
     /** END OWNER FUNCTIONS **/
@@ -569,7 +565,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             "Vault: transferIn token amount must be greater than 0"
         );
 
-        updateCumulativeFundingRate(_token, _token);
+        _updateCumulativeBorrowingRate(_token, _token);
         uint256 price = getAskPrice(_token);
 
         uint256 usdpAmount = tokenAmount.mul(price).div(PRICE_PRECISION);
@@ -621,7 +617,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 usdpAmount = _transferIn(usdp);
         require(usdpAmount > 0, "Vault: invalid usdp amount");
 
-        updateCumulativeFundingRate(_token, _token);
+        _updateCumulativeBorrowingRate(_token, _token);
 
         uint256 redemptionAmount = getRedemptionAmount(_token, usdpAmount);
         require(redemptionAmount > 0, "Vault: Invalid redemption amount");
@@ -668,8 +664,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         require(isSwapEnabled, "Vault: swap is not supported");
         require(_tokenIn != _tokenOut, "Vault: invalid tokens");
 
-        updateCumulativeFundingRate(_tokenIn, _tokenIn);
-        updateCumulativeFundingRate(_tokenOut, _tokenOut);
+        _updateCumulativeBorrowingRate(_tokenIn, _tokenIn);
+        _updateCumulativeBorrowingRate(_tokenOut, _tokenOut);
 
         uint256 amountIn = _transferIn(_tokenIn);
         require(amountIn > 0, "Vault: invalid amountIn");
@@ -804,74 +800,40 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return adjustForDecimals(redemptionAmount, usdp, _token);
     }
 
-    function updateCumulativeFundingRate(
-        address _collateralToken,
-        address _indexToken
-    ) public {
-        if (lastFundingTimes[_collateralToken] == 0) {
-            lastFundingTimes[_collateralToken] = block
-                .timestamp
-                .div(fundingInterval)
-                .mul(fundingInterval);
-            return;
-        }
-
-        if (
-            lastFundingTimes[_collateralToken].add(fundingInterval) >
-            block.timestamp
-        ) {
-            return;
-        }
-
-        uint256 fundingRate = getNextFundingRate(_collateralToken);
-        cumulativeFundingRates[_collateralToken] = cumulativeFundingRates[
-            _collateralToken
-        ].add(fundingRate);
-        lastFundingTimes[_collateralToken] = block
-            .timestamp
-            .div(fundingInterval)
-            .mul(fundingInterval);
-
-        emit UpdateFundingRate(
-            _collateralToken,
-            cumulativeFundingRates[_collateralToken]
-        );
-    }
-
-    function getNextFundingRate(
+    function getNextBorrowingRate(
         address _token
     ) public view override returns (uint256) {
-        if (lastFundingTimes[_token].add(fundingInterval) > block.timestamp) {
+        if (lastBorrowingRateTimes[_token].add(borrowingRateInterval) > block.timestamp) {
             return 0;
         }
 
-        uint256 intervals = block.timestamp.sub(lastFundingTimes[_token]).div(
-            fundingInterval
+        uint256 intervals = block.timestamp.sub(lastBorrowingRateTimes[_token]).div(
+            borrowingRateInterval
         );
         uint256 poolAmount = vaultInfo[_token].poolAmounts;
         if (poolAmount == 0) {
             return 0;
         }
 
-        uint256 _fundingRateFactor = tokenConfigurations[_token].isStableToken
-            ? stableFundingRateFactor
-            : fundingRateFactor;
+        uint256 _borrowingRateFactor = tokenConfigurations[_token].isStableToken
+            ? stableBorrowingRateFactor
+            : borrowingRateFactor;
         return
-            _fundingRateFactor
+            _borrowingRateFactor
                 .mul(vaultInfo[_token].reservedAmounts)
                 .mul(intervals)
                 .div(poolAmount);
     }
 
-    function getFundingFee(
+    function getBorrowingFee(
         address _trader,
         address _collateralToken,
         address _indexToken,
         uint256 _amountInUsd,
         bool _isLong
-    ) external returns (uint256) {
+    ) external view returns (uint256) {
         return
-            _getFundingFee(
+            _getBorrowingFee(
                 _trader,
                 _collateralToken,
                 _indexToken,
@@ -880,60 +842,94 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             );
     }
 
-    function _updateEntryFundingRate(
+
+    /* PRIVATE FUNCTIONS */
+    function _updateCumulativeBorrowingRate(
+        address _collateralToken,
+        address _indexToken
+    ) private {
+        if (lastBorrowingRateTimes[_collateralToken] == 0) {
+            lastBorrowingRateTimes[_collateralToken] = block
+            .timestamp
+            .div(borrowingRateInterval)
+            .mul(borrowingRateInterval);
+            return;
+        }
+
+        if (
+            lastBorrowingRateTimes[_collateralToken].add(borrowingRateInterval) >
+            block.timestamp
+        ) {
+            return;
+        }
+
+        uint256 borrowingRate = getNextBorrowingRate(_collateralToken);
+        cumulativeBorrowingRates[_collateralToken] = cumulativeBorrowingRates[
+        _collateralToken
+        ].add(borrowingRate);
+        lastBorrowingRateTimes[_collateralToken] = block
+        .timestamp
+        .div(borrowingRateInterval)
+        .mul(borrowingRateInterval);
+
+        emit UpdateBorrowingRate(
+            _collateralToken,
+            cumulativeBorrowingRates[_collateralToken]
+        );
+    }
+
+    function _updateEntryBorrowingRate(
         address _trader,
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) internal {
-        bytes32 _key = _getPositionEntryFundingKey(
+    ) private {
+        bytes32 _key = _getPositionEntryBorrowingRateKey(
             _trader,
             _collateralToken,
             _indexToken,
             _isLong
         );
-        positionEntryFundingRates[_key] = cumulativeFundingRates[_collateralToken];
+        positionEntryBorrowingRates[_key] = cumulativeBorrowingRates[_collateralToken];
     }
 
-    function _getFundingFee(
+    function _getBorrowingFee(
         address _trader,
         address _collateralToken,
         address _indexToken,
         uint256 _amountInUsd,
         bool _isLong
-    ) internal returns (uint256) {
-        bytes32 _key = _getPositionEntryFundingKey(
+    ) private view returns (uint256) {
+        bytes32 _key = _getPositionEntryBorrowingRateKey(
             _trader,
             _collateralToken,
             _indexToken,
             _isLong
         );
-        uint256 fundingFee = _vaultUtils.getFundingFee(
+        uint256 borrowingFee = _vaultUtils.getBorrowingFee(
             _collateralToken,
             _amountInUsd,
-            positionEntryFundingRates[_key]
+            positionEntryBorrowingRates[_key]
         );
-        return fundingFee;
+        return borrowingFee;
     }
 
-    function _getPositionEntryFundingKey(
+    function _getPositionEntryBorrowingRateKey(
         address _trader,
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) internal returns (bytes32) {
+    ) private view returns (bytes32) {
         return
-            keccak256(
-                abi.encodePacked(
-                    _trader,
-                    _collateralToken,
-                    _indexToken,
-                    _isLong
-                )
-            );
+        keccak256(
+            abi.encodePacked(
+                _trader,
+                _collateralToken,
+                _indexToken,
+                _isLong
+            )
+        );
     }
-
-    /* PRIVATE FUNCTIONS */
 
     function _transferIn(address _token) private returns (uint256) {
         uint256 prevBalance = tokenBalances[_token];

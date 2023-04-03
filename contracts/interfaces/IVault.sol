@@ -114,10 +114,10 @@ interface IVault {
 
     function setVaultUtils(IVaultUtils _vaultUtils) external;
 
-    function setFundingRate(
-        uint256 _fundingInterval,
-        uint256 _fundingRateFactor,
-        uint256 _stableFundingRateFactor
+    function setBorrowingRate(
+        uint256 _borrowingRateInterval,
+        uint256 _borrowingRateFactor,
+        uint256 _stableBorrowingRateFactor
     ) external;
 
     function withdrawFees(
@@ -167,13 +167,13 @@ interface IVault {
 
     function globalShortSizes(address _token) external view returns (uint256);
 
-    function fundingInterval() external view returns (uint256);
+    function borrowingRateInterval() external view returns (uint256);
 
-    function fundingRateFactor() external view returns (uint256);
+    function borrowingRateFactor() external view returns (uint256);
 
-    function stableFundingRateFactor() external view returns (uint256);
+    function stableBorrowingRateFactor() external view returns (uint256);
 
-    function lastFundingTimes(address _token) external view returns (uint256);
+    function lastBorrowingRateTimes(address _token) external view returns (uint256);
 
     function globalShortAveragePrices(
         address _token
@@ -201,19 +201,19 @@ interface IVault {
 
     function getMinPrice(address _token) external view returns (uint256);
 
-    function cumulativeFundingRates(
+    function cumulativeBorrowingRates(
         address _token
     ) external view returns (uint256);
 
-    function getNextFundingRate(address _token) external view returns (uint256);
+    function getNextBorrowingRate(address _token) external view returns (uint256);
 
-    function getFundingFee(
+    function getBorrowingFee(
         address _trader,
         address _collateralToken,
         address _indexToken,
         uint256 _amountInUsd,
         bool _isLong
-    ) external returns (uint256);
+    ) external view returns (uint256);
 
     // pool info
     function usdpAmount(address _token) external view returns (uint256);

@@ -19,9 +19,9 @@ function toUsd(value) {
   return ethers.BigNumber.from(normalizedValue).mul(ethers.BigNumber.from(10).pow(20))
 }
 
-describe("Vault.fundingRate", function() {
+describe("Vault.borrowingRate", function() {
 
-  it("funding rate", async () => {
+  it("borrowing rate", async () => {
     const {btc, btcPriceFeed, usdp } = await loadMockTokenFixtures()
     const {vault} = await loadVaultPureFixtures()
     const [wallet] = await ethers.getSigners()
@@ -41,7 +41,7 @@ describe("Vault.fundingRate", function() {
         true // _hasDynamicFees
     )
 
-    await vault.setFundingRate(1,600,600)
+    await vault.setBorrowingRate(1,600,600)
 
     await btcPriceFeed.setLatestAnswer(toChainlinkPrice(40000))
     // @ts-ignore
@@ -62,18 +62,18 @@ describe("Vault.fundingRate", function() {
     await sleep(100)
     await vault.connect(user0).increasePosition(user0.address, btc.address, btc.address, toUsd(50), true,0)
     const positionKey = ethers.utils.solidityKeccak256(["address","address","address","bool"],[user0.address,btc.address,btc.address,true])
-    const fundingRate1stIncrease = await vault.positionEntryFundingRates(positionKey)
-    expect(fundingRate1stIncrease.toString()).to.be.equal('0')
+    const borrowingRate1stIncrease = await vault.positionEntryBorrowingRates(positionKey)
+    expect(borrowingRate1stIncrease.toString()).to.be.equal('0')
 
     await sleep(100)
     await vault.connect(user0).increasePosition(user0.address, btc.address, btc.address, toUsd(50), true,0)
-    const fundingRate2ndIncrease = await vault.positionEntryFundingRates(positionKey)
-    expect(fundingRate2ndIncrease.toString()).to.be.equal('273')
+    const borrowingRate2ndIncrease = await vault.positionEntryBorrowingRates(positionKey)
+    expect(borrowingRate2ndIncrease.toString()).to.be.equal('273')
 
     await sleep(100)
     await vault.connect(user0).decreasePosition(user0.address, btc.address, btc.address, toUsd(50), true,user0.address,toUsd(50),0)
-    const fundingRate1stDecrease = await vault.positionEntryFundingRates(positionKey)
-    expect(fundingRate1stDecrease.toString()).to.be.equal('819')
+    const borrowingRate1stDecrease = await vault.positionEntryBorrowingRates(positionKey)
+    expect(borrowingRate1stDecrease.toString()).to.be.equal('819')
   })
 
 })

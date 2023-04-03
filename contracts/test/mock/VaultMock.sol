@@ -7,8 +7,8 @@ contract VaultMock {
 
     uint256 public tokenPriceMock = 1000;
     uint256 public tokenDecimalsMock = 1;
-    mapping(bytes32 => uint256) public positionEntryFundingRates;
-    mapping(address => uint256) public cumulativeFundingRates;
+    mapping(bytes32 => uint256) public positionEntryBorrowingRates;
+    mapping(address => uint256) public cumulativeBorrowingRates;
 
     function usdToTokenMin(
         address,
@@ -24,13 +24,13 @@ contract VaultMock {
         return _tokenAmount.mul(tokenPriceMock);
     }
 
-    function getFundingFee(
+    function getBorrowingFee(
         address _trader,
         address _collateralToken,
         address _indexToken,
         uint256 _amountInUsd,
         bool _isLong
-    ) external returns (uint256) {
+    ) external view returns (uint256) {
         return 0;
     }
 }
