@@ -1,16 +1,17 @@
 import {MigrationContext, MigrationDefinition} from "../types";
 import {ContractWrapperFactory} from "../ContractWrapperFactory";
-import { PLP, USDP, VaultPriceFeed, VaultUtils } from "../../typeChain";
+import { LpManager, PLP, USDP, VaultPriceFeed, VaultUtils } from "../../typeChain";
 
 const migrations: MigrationDefinition = {
-    getTasks: (ctx: MigrationContext) => ({
+    getTasks: (ctx: MigrationContext) => {
+      return {
       'deploy mock tokens': async () => {
         await ctx.factory.createMockToken('USDT', 'USDT', 18)
         await ctx.factory.createMockToken('BUSD', 'BUSD', 18)
         await ctx.factory.createWrapableToken('WETH', 'WETH', 18)
         await ctx.factory.createWrapableToken('WBNB', 'WBNB', 18)
         await ctx.factory.createMockToken('BTC', 'BTC', 18)
-        await ctx.factory.createMockToken('POSI', 'POSI', 18)
+        // await ctx.factory.createMockToken('POSI', 'POSI', 18)
         await ctx.factory.createMockToken('DAI', 'DAI', 9)
       },
         'deploy core vault & config': async () => {
@@ -57,8 +58,8 @@ const migrations: MigrationDefinition = {
           for(let i = 0; i < tokens.length; i++) {
             await ctx.factory.setConfigVaultToken(tokens[i], isSkipExist)
           }
-        }
-    })
+        },
+    }}
 }
 
 

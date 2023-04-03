@@ -6,23 +6,11 @@ import { ContractWrapperFactory } from "../../../deploy/ContractWrapperFactory"
 import { ContractConfig } from '../../../deploy/shared/PreDefinedContractAddress'
 import { loadDb } from '../../../deploy/shared/utils'
 import { MockToken } from '../../../typeChain'
+import { checkApprove } from '../../shared/utilities'
 
 const TEST_STAGE = 'test'
-
-async function checkApprove(token: MockToken, spender: string) {
-  const [signer] = await hre.ethers.getSigners()
-  const allowance = await token.allowance(signer.address, spender)
-  if (allowance.eq(0)) {
-    console.log("Approving");
-    await token.approve(spender, hre.ethers.constants.MaxUint256)
-  }else{
-    console.log("Already approved");
-    
-  }
-}
-
-// should run in hardhat folk mode
-describe('Intergration.vault.liquidity', () => {
+// un skip to run test manually
+describe.skip('Intergration.vault.liquidity', () => {
   let factory: ContractWrapperFactory
   // mock token is ok even for mainnet, we just need the ERC20 interface
   let busd: MockToken

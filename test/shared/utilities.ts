@@ -1,4 +1,4 @@
-import { ethers } from "hardhat"
+import hre from "hardhat"
 import type * as ethersE from "ethers";
 import {
   FactoryOptions
@@ -7,6 +7,8 @@ import { MockToken, USDP, Vault } from "../../typeChain";
 import { loadContractFixtures, loadMockTokenFixtures } from "./fixtures";
 import { expect } from "chai";
 import * as helpers from "@nomicfoundation/hardhat-network-helpers"
+
+const {ethers} = hre
 
 
 export async function deployContract<T extends ethersE.BaseContract>(name: string, args: any[] = [], options?: ethersE.Signer | FactoryOptions) {
@@ -189,3 +191,84 @@ export function newWallet() {
   return ethers.Wallet.createRandom()
 }
 
+export async function checkApprove(token: MockToken, spender: string) {
+  const [signer] = await hre.ethers.getSigners()
+  const allowance = await token.allowance(signer.address, spender)
+  if (allowance.eq(0)) {
+    console.log("Approving");
+    await token.approve(spender, hre.ethers.constants.MaxUint256)
+  }else{
+    console.log("Already approved");
+    
+  }
+}
+
+type CompareOp = 'eq' | 'lt' | 'lte' | 'gt' | 'gte'
+
+type AnyNumber = string | number | ethersE.BigNumber
+type MultiExpectDiffValue = AnyNumber | {
+  [op in CompareOp]: AnyNumber
+} | [CompareOp, AnyNumber]
+
+export class SimpleTokenBalanceTracker {
+  public balanceBefore: Map<string, ethersE.BigNumber> = new Map()
+  constructor(protected tokens: MockToken[], readonly user: string, readonly getBalanceFn?: {[addr: string]: string}) {
+
+  }
+
+
+  async before() {
+    for (const token of this.tokens) {
+      this.balanceBefore.set(token.address, await this.getBalance(token.address))
+    }
+  }
+
+  async track() {
+    return this.before()
+  }
+
+  async expectAfter(tokenAddress: string, expectDiff: AnyNumber, expectOp: CompareOp = 'eq') {
+    if(!this.balanceBefore){
+      throw new Error('call before first.')
+    }
+    const balanceAfter = await this.getBalance(tokenAddress)
+    const actualDiff = ethers.utils.formatEther(balanceAfter.sub(this.balanceBefore.get(tokenAddress)));
+    expect(Number(actualDiff)).to[expectOp](Number(expectDiff), `Token balance don't meet`)
+  }
+
+    async multiExpectAfter(expectDiff: { [tokenAddress: string]: MultiExpectDiffValue }) {
+      for (const tokenAddress of Object.keys(expectDiff)) {
+        let op: CompareOp = 'eq'
+        let expectDiffValue = expectDiff[tokenAddress]
+        if (typeof expectDiffValue === 'object') {
+          // if is BigNumber
+          if((expectDiffValue as ethersE.BigNumber)._isBigNumber){
+            // do nothing
+          }else if (Array.isArray(expectDiffValue)) {
+            op = expectDiffValue[0]
+            expectDiffValue = expectDiffValue[1]
+          } else {
+            op = Object.keys(expectDiffValue)[0] as CompareOp
+            expectDiffValue = expectDiffValue[op] as AnyNumber
+          }
+        }else if(typeof expectDiffValue === 'string'){
+          expectDiffValue = Number(expectDiffValue)
+        } else if (typeof expectDiffValue === 'number') {
+          expectDiffValue = expectDiffValue.toString()
+        }
+        await this.expectAfter(tokenAddress, expectDiffValue as AnyNumber, op)
+      }
+    }
+
+  tokenByAddress(address: string) {
+    return this.tokens.find(t => t.address === address)
+  }
+
+  private getBalance(tokenAddress: string) {
+    let fnName = 'balanceOf'
+    if(this.getBalanceFn && this.getBalanceFn[tokenAddress]){
+      fnName = this.getBalanceFn[tokenAddress]
+    }
+    return this.tokenByAddress(tokenAddress)[fnName](this.user)
+  }
+}

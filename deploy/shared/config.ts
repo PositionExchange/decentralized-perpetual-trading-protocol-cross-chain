@@ -9,7 +9,7 @@ export interface StageConfig<K extends string,T> {
   }
 }
 
-export type AvailableStageConfig = 'whitelist'
+export type AvailableStageConfig = 'whitelist' | 'native_token'
 
 export const stageConfig: StageConfig<AvailableStageConfig,any> = {
   'production': {},
@@ -23,7 +23,8 @@ export const stageConfig: StageConfig<AvailableStageConfig,any> = {
         WETH.forChain(97),
         BTC.forChain(97),
         // POSI.forChain(97),
-      ]
+      ],
+      native_token: BNB.forChain(97)
     }
   }
 }
