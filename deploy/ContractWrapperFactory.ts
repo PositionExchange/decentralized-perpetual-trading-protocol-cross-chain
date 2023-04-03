@@ -8,14 +8,22 @@ import {verifyContract} from "../scripts/utils";
 import {TransactionResponse} from "@ethersproject/abstract-provider";
 import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {HardhatDefenderUpgrades} from "@openzeppelin/hardhat-defender";
-import {FuturesAdapter, InsuranceFund, PositionBUSDBonus} from "../typeChain";
+import {FuturesAdapter, InsuranceFund, LpManager, MockToken, PLP, PositionBUSDBonus, PriceFeed, USDP, Vault, VaultPriceFeed, VaultUtils, WETH} from "../typeChain";
+import { ContractConfig } from "./shared/PreDefinedContractAddress";
+import {ethers as ethersE} from "ethers"
+import { IExtraTokenConfig, Token } from "./shared/types";
 
+interface  ContractWrapperFactoryOptions {
+  isForceDeploy?: boolean
+}
 
 export class ContractWrapperFactory {
     defender: HardhatDefenderUpgrades
+    isForceDeploy: boolean
 
-    constructor(readonly db: DeployDataStore, readonly hre: HardhatRuntimeEnvironment) {
+    constructor(readonly db: DeployDataStore, readonly hre: HardhatRuntimeEnvironment, public readonly contractConfig: ContractConfig, options: ContractWrapperFactoryOptions = {}) {
         this.defender = hre.defender
+        this.isForceDeploy = options.isForceDeploy || false
     }
 
     async verifyContractUsingDefender(proposal : any){
@@ -43,6 +51,78 @@ export class ContractWrapperFactory {
                 await this.db.saveAddressByKey(`${implContractAddress}:verified`, 'yes')
             }
             console.error(`-- verify contract error`, err)
+        }
+    }
+
+    async getDeployedContract<T>(contractId: string, contractName?: string): Promise<T> {
+      if(!contractName){
+        contractName = contractId
+      }
+        const address = await this.db.findAddressByKey(contractId)
+        if (!address) throw new Error(`Contract ${contractId} not found`)
+        const contract = await this.hre.ethers.getContractAt(contractName, address)
+        return contract as T
+    }
+
+    async deployNonUpgradeableContract<T extends ethersE.Contract>(contractName: string, args: any[] = [], options: {
+      contractId?: string
+    } = {}): Promise<T> {
+        const contractId = options.contractId || contractName
+        if(!this.isForceDeploy){
+          // check for contract exists
+          // if exists, return the address
+          const savedAddress = await this.db.findAddressByKey(contractId)
+          if(savedAddress) {
+            console.log(`Contract ${contractId} already deployed at ${savedAddress}`)
+            console.log('Tips: use --force to force deploy')
+            const contractIns = await this.hre.ethers.getContractAt(contractName, savedAddress)
+            return contractIns as T
+          }
+        }
+        console.log(`Start deploying contract ${contractId}... with args:`, args)
+        const contract = await this.hre.ethers.getContractFactory(contractName);
+        const contractIns = await contract.deploy(...args);
+        await contractIns.deployTransaction.wait(3);
+        try{
+          await verifyContract(this.hre, contractIns.address, args)
+        }catch(err){
+          console.error(`-- verify contract error, skipping...`, err)
+        }
+        console.log(`Contract ${contractName} deployed at:`, contractIns.address)
+        await this.db.saveAddressByKey(contractId, contractIns.address)
+        return contractIns as T
+    }
+
+    async waitTx(tx: Promise<ethersE.ContractTransaction>, name = '', skipOnFail = false): Promise<ethersE.ContractReceipt> {
+        // name match initialize, auto skipping
+        if(name.match(/initialize/i) && !skipOnFail){
+          skipOnFail = true;
+        }
+        try{
+          console.log(`Waiting for tx ${name}...`)
+          const txResponse = await tx
+          console.log(`Tx ${name} hash ${txResponse.hash}`)
+          const receipt = await txResponse.wait()
+          console.log(`Tx [${name}] tx ${txResponse.hash} mined at block ${receipt.blockNumber}`)
+          return receipt
+
+        }catch(err){
+          console.log(`Tx ${name} failed with the following error:`) 
+          if(skipOnFail){
+            console.error(`-- tx ${name} failed, skipping...`, err)
+            return null
+          }
+          
+          // prompt to ask for continue
+
+          const prompt = require('prompt-sync')();
+          console.log(`-- tx ${name} failed, error:`, err.message)
+          const continueDeploy = prompt(`Tx ${name} failed, continue? [y/n]`);
+          if(continueDeploy == 'y'){
+            return null
+          }else{
+            throw err
+          }
         }
     }
 
@@ -229,4 +309,95 @@ export class ContractWrapperFactory {
             await this.verifyProxy(address)
         }
     }
+
+
+    async createCoreVaultContracts(): Promise<{usdp: USDP, plp: PLP, vaultUtils: VaultUtils, vaultPriceFeed: VaultPriceFeed, vault: Vault, plpManager: LpManager}> {
+      const usdp = await this.deployNonUpgradeableContract<USDP>('USDP', [])
+      const plp = await this.deployNonUpgradeableContract<PLP>('PLP', [])
+      const vaultUtils = await this.deployNonUpgradeableContract<VaultUtils>('VaultUtils', [])
+      const vaultPriceFeed = await this.deployNonUpgradeableContract<VaultPriceFeed>('VaultPriceFeed', [])
+      const vault = await this.deployNonUpgradeableContract<Vault>('Vault', [
+        vaultUtils.address,
+        vaultPriceFeed.address,
+        usdp.address,
+      ])
+      const plpManager = await this.deployNonUpgradeableContract<LpManager>('LpManager', [
+        plp.address,
+        usdp.address,
+        vault.address,
+        ethersE.constants.AddressZero,
+        0
+      ])
+      return {
+        usdp,
+        plp,
+        vaultUtils,
+        vaultPriceFeed,
+        vault,
+        plpManager
+      }
+
+    }
+
+    // eg name = bnbPriceFeed
+    async createPriceFeed(name: string): Promise<PriceFeed> {
+      const contract = await this.deployNonUpgradeableContract<PriceFeed>('PriceFeed', [] , {
+        contractId: name
+      })
+      return contract;
+    }
+
+    async createWrapableToken(name: string, symbol: string, decimals: number): Promise<WETH> {
+      const contract = await this.deployNonUpgradeableContract<WETH>('WETH', [
+        `Mock ${name}`, symbol, decimals
+      ] , {
+        contractId: symbol
+      })
+      return contract;
+    }
+
+    async createMockToken(symbol: string, name: string, decimals: number): Promise<MockToken> {
+      const initialAmount = ethersE.utils.parseEther("1000000");
+      const contract = await this.deployNonUpgradeableContract<MockToken>('MockToken', [
+        initialAmount, `Mock ${name}`, symbol, decimals
+      ] , {
+        contractId: symbol
+      })
+      return contract;
+    }
+
+    getWhitelistedTokens(): Token<IExtraTokenConfig>[] {
+      return this.contractConfig.getStageConfig('whitelist')
+    }
+
+    async setConfigVaultToken(token: Token<IExtraTokenConfig>, isSkipExists?: boolean) {
+      const vaultContract = await this.getDeployedContract<Vault>('Vault')
+      if(isSkipExists) {
+        // check before set
+        const tokenConfig = await vaultContract.tokenConfigurations(token.address)
+        // TODO check changes
+        if(tokenConfig.isWhitelisted) {
+          console.log(`Token ${token.address} already set`)
+          return
+        }
+      }
+
+      const {vaultTokenConfig} = token.extraConfig
+
+      await this.waitTx(
+        vaultContract.setConfigToken(
+          token.address,
+          token.decimals,
+          vaultTokenConfig.mintProfitBps,
+          vaultTokenConfig.tokenWeight,
+          ethersE.utils.parseEther(vaultTokenConfig.maxUsdpAmount.toString()),
+          vaultTokenConfig.isStableToken,
+          vaultTokenConfig.isShortable
+        ),
+        `vault.setConfigToken ${token.symbol}`
+      )
+
+
+    }
+
 }

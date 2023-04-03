@@ -5,6 +5,7 @@ import "@openzeppelin/hardhat-upgrades"
 import "@typechain/hardhat";
 import "hardhat-contract-sizer"
 import "@openzeppelin/hardhat-defender"
+import "hardhat-docgen"
 import {task} from "hardhat/config";
 import {
     BSC_MAINNET_URL,
@@ -147,7 +148,7 @@ module.exports = {
         apiKey: {
             posi_devnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             posi_testnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
-            // bscTestnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
+            bscTestnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             bsc: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             geth: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             // okex_testnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
@@ -201,6 +202,9 @@ module.exports = {
     },
     mocha: {
         timeout: 100000
+    },
+    docgen: {
+      path: './docs',
     }
 };
 

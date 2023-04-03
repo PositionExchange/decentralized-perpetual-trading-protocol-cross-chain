@@ -92,6 +92,11 @@ contract LpManager is ILpManager, Ownable {
         _transferOwnership(_gov);
     }
 
+    /**
+     * @notice Calculates the assets under management (AUM) of a vault in terms of USDP
+     * @param maximise A boolean value indicating whether to use the maximum or minimum price for each token
+     * @return The calculated AUM value in USDP as a uint256
+     */
     function getAumInUsdp(
         bool maximise
     ) external view override returns (uint256) {
@@ -99,6 +104,11 @@ contract LpManager is ILpManager, Ownable {
         return aum.mul(10 ** USDG_DECIMALS).div(PRICE_PRECISION);
     }
 
+    /**
+     * @notice Calculates the assets under management (AUM) of a vault
+     * @param maximise A boolean value indicating whether to use the maximum or minimum price for each token
+     * @return The calculated AUM value as a uint256
+     */
     function getAum(bool maximise) public view returns (uint256) {
         uint256 length = vault.allWhitelistedTokensLength();
         uint256 aum = aumAddition;
@@ -200,6 +210,11 @@ contract LpManager is ILpManager, Ownable {
                 .div(BASIS_POINTS_DIVISOR);
     }
 
+    /// @notice Add liquidity for caller. Caller pay `_token`, receive back PLP token
+    /// @param _token the pay token. eg BUSD
+    /// @param _amount the amount in pay token in wei. eg 10 * 10e18
+    /// @param _minUsdp min usdp in wei, the contract will revert if _minUsdp is not met
+    /// @param _minPlp min plp amount in wei, the contract will revert if _minPlp is not met
     function addLiquidity(
         address _token,
         uint256 _amount,
@@ -217,6 +232,13 @@ contract LpManager is ILpManager, Ownable {
             );
     }
 
+    /// @notice add liquidity for an account, only whitelist handler can call
+    /// @param _fundingAccount funding account
+    /// @param _account credit account
+    /// @param _token the pay token. eg BUSD
+    /// @param _amount the amount in pay token in wei. eg 10 * 10e18
+    /// @param _minUsdp min usdp in wei, the contract will revert if _minUsdp is not met
+    /// @param _minPlp min plp amount in wei, the contract will revert if _minPlp is not met
     function addLiquidityForAccount(
         address _fundingAccount,
         address _account,
@@ -236,6 +258,12 @@ contract LpManager is ILpManager, Ownable {
             );
     }
 
+    /// @notice Remove liquidity for caller
+    /// Transfer back the tokenOut
+    /// @param _tokenOut the receive token
+    /// @param _plpAmount plp amount to remove
+    /// @param _minOut minimum amount acceptable. otherwise will revert
+    /// @param _receiver the addres of receiver
     function removeLiquidity(
         address _tokenOut,
         uint256 _plpAmount,
@@ -252,6 +280,13 @@ contract LpManager is ILpManager, Ownable {
             );
     }
 
+    /// @notice Remove liquidity for account
+    /// Transfer back the tokenOut
+    /// @param _account the affected account
+    /// @param _tokenOut the receive token
+    /// @param _plpAmount plp amount to remove
+    /// @param _minOut minimum amount acceptable. otherwise will revert
+    /// @param _receiver the addres of receiver
     function removeLiquidityForAccount(
         address _account,
         address _tokenOut,
@@ -276,6 +311,11 @@ contract LpManager is ILpManager, Ownable {
         revert("LpManager: setShortsTrackerAveragePriceWeight not implemented");
     }
 
+    /**
+     * @notice Calculates the total asset value of a vault in terms of USDP
+     * @param maximise A boolean value indicating whether to use the maximum or minimum price for each token
+     * @return The calculated total asset value in USDP as a uint256
+     */
     function getTotalAssetValueInUsdp(
         bool maximise
     ) public view returns (uint256) {

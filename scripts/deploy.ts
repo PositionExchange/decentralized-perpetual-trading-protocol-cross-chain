@@ -6,37 +6,17 @@ import {DeployDataStore} from "../deploy/DataStore";
 import path = require("path");
 import {FuturesAdapter, FuturesGateway, InsuranceFund} from "../typeChain";
 import {BTCBUSD, BNBBUSD, ETHBUSD, CAKEBUSD, DOTBUSD, TRXBUSD, LTCBUSD, AAVEBUSD, ADABUSD, XRPBUSD, MATICBUSD, LINKBUSD, DOGEBUSD, SOLBUSD, UNIBUSD} from "../deploy/config_production";
-
-const DATA_STORE_FILE = {
-    'usd-m': './deployData_mainnet.db',
-    'coin-m': './deployData_mainnet_coin_m.db',
-    'dev': './deployData_geth.db',
-    'test': './deployData_bsc_testnet.db',
-    'production': './deployData_mainnet.db',
-    'okex_test': './deployData_okex_testnet.db',
-    'okex_main': './deployData_okex_mainnet.db',
-}
+import { ContractConfig } from "../deploy/shared/PreDefinedContractAddress";
+import { loadDb } from "../deploy/shared/utils";
 
 task('deploy', 'deploy contracts', async (taskArgs: { stage: Stage, task: string }, hre, runSuper) => {
     const basePath = path.join(__dirname, "../deploy/migrations")
     const filenames = await readdir(basePath)
-    let dataStoreFileName
-
-    if (taskArgs.stage == "production") {
-        dataStoreFileName = DATA_STORE_FILE['production']
-    } else if (taskArgs.stage == 'test') {
-        dataStoreFileName = DATA_STORE_FILE['test']
-    } else if (taskArgs.stage == 'okex_main') {
-        dataStoreFileName = DATA_STORE_FILE['okex_main']
-    } else if (taskArgs.stage == 'okex_test') {
-        dataStoreFileName = DATA_STORE_FILE['okex_test']
-    }
-
-    const db = new DeployDataStore(dataStoreFileName)
+    const db = loadDb(taskArgs.stage)
     const context: MigrationContext = {
         stage: taskArgs.stage,
         network: hre.network.name as Network,
-        factory: new ContractWrapperFactory(db, hre),
+        factory: new ContractWrapperFactory(db, hre, new ContractConfig(taskArgs.stage, hre.network.config.chainId, db)),
         db,
         hre
     }
@@ -57,28 +37,17 @@ task('deploy', 'deploy contracts', async (taskArgs: { stage: Stage, task: string
 }).addParam('stage', 'Stage').addOptionalParam('task', 'Task Name')
 
 task('listDeployedContract', 'list all deployed contracts', async (taskArgs: { stage: Stage }) => {
-    const db = new DeployDataStore('./deployData_mainnet.db')
+    const db = loadDb(taskArgs.stage)
     const data = await db.listAllContracts()
     for (const obj of data) {
         console.log(obj.key, obj.address)
     }
-})
+}).addParam('stage', 'Stage')
 
 task('configManager', 'config manager address and asset in all contract', async (taskArgs: { stage: Stage }, hre) => {
-    let dataStoreFileName
-    if (taskArgs.stage == "production") {
-        dataStoreFileName = DATA_STORE_FILE['production']
-    } else if (taskArgs.stage == 'test') {
-        dataStoreFileName = DATA_STORE_FILE['test']
-    } else if (taskArgs.stage == 'okex_main') {
-        dataStoreFileName = DATA_STORE_FILE['okex_main']
-    } else if (taskArgs.stage == 'okex_test') {
-        dataStoreFileName = DATA_STORE_FILE['okex_test']
-    }
-
     let busdAddress
 
-    const db = new DeployDataStore(dataStoreFileName)
+    const db = loadDb(taskArgs.stage)
     if (taskArgs.stage == "production") {
         busdAddress = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
     } else if (taskArgs.stage == "okex_main") {
@@ -122,18 +91,7 @@ task('configManager', 'config manager address and asset in all contract', async 
 }).addParam('stage', 'Stage')
 
 task('addRelayer', 'add whitelist relayer address', async (taskArgs : {stage: Stage}, hre) => {
-    let dataStoreFileName
-    if (taskArgs.stage == "production") {
-        dataStoreFileName = DATA_STORE_FILE['production']
-    } else if (taskArgs.stage == 'test') {
-        dataStoreFileName = DATA_STORE_FILE['test']
-    } else if (taskArgs.stage == 'okex_main') {
-        dataStoreFileName = DATA_STORE_FILE['okex_main']
-    } else if (taskArgs.stage == 'okex_test') {
-        dataStoreFileName = DATA_STORE_FILE['okex_test']
-    }
-
-    const db = new DeployDataStore(dataStoreFileName)
+    const db = loadDb(taskArgs.stage)
     const futuresAdapterAddress = await db.findAddressByKey("FuturesAdapter")
     const futuresAdapter = await hre.ethers.getContractAt('FuturesAdapter', futuresAdapterAddress) as FuturesAdapter
 
@@ -144,18 +102,7 @@ task('addRelayer', 'add whitelist relayer address', async (taskArgs : {stage: St
 }).addParam('stage', 'Stage')
 
 task('addWhitelistAdmin', 'add whitelist admin in insuranceFund', async (taskArgs : {stage: Stage}, hre) => {
-    let dataStoreFileName
-    if (taskArgs.stage == "production") {
-        dataStoreFileName = DATA_STORE_FILE['production']
-    } else if (taskArgs.stage == 'test') {
-        dataStoreFileName = DATA_STORE_FILE['test']
-    } else if (taskArgs.stage == 'okex_main') {
-        dataStoreFileName = DATA_STORE_FILE['okex_main']
-    } else if (taskArgs.stage == 'okex_test') {
-        dataStoreFileName = DATA_STORE_FILE['okex_test']
-    }
-
-    const db = new DeployDataStore(dataStoreFileName)
+    const db = loadDb(taskArgs.stage)
     const insuranceFundAddress = await db.findAddressByKey("InsuranceFund")
     const insuranceFund = await hre.ethers.getContractAt('InsuranceFund', insuranceFundAddress) as InsuranceFund
 
