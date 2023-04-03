@@ -160,7 +160,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _validateTokens(_collateralToken, _indexToken, _isLong);
 
         updateCumulativeFundingRate(_collateralToken, _indexToken);
-
+        _updateEntryFundingRate(
+            _account,
+            _collateralToken,
+            _indexToken,
+            _isLong
+        );
         uint256 collateralDelta = _transferIn(_collateralToken);
         uint256 collateralDeltaUsd = tokenToUsdMin(
             _collateralToken,
@@ -251,6 +256,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _collateralToken,
             _indexToken,
             _sizeDelta,
+            _isLong
+        );
+        _updateEntryFundingRate(
+            _trader,
+            _collateralToken,
+            _indexToken,
             _isLong
         );
         // TODO: Need to check if fundingFee is greater than _amountOutUsdAfterFees,
@@ -869,6 +880,21 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             );
     }
 
+    function _updateEntryFundingRate(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) internal {
+        bytes32 _key = _getPositionEntryFundingKey(
+            _trader,
+            _collateralToken,
+            _indexToken,
+            _isLong
+        );
+        positionEntryFundingRates[_key] = cumulativeFundingRates[_collateralToken];
+    }
+
     function _getFundingFee(
         address _trader,
         address _collateralToken,
@@ -887,10 +913,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _amountInUsd,
             positionEntryFundingRates[_key]
         );
-        uint256 _newEntryFundingRate = _vaultUtils.getEntryFundingRate(
-            _collateralToken
-        );
-        positionEntryFundingRates[_key] = _newEntryFundingRate;
         return fundingFee;
     }
 
@@ -899,7 +921,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) public pure returns (bytes32) {
+    ) internal returns (bytes32) {
         return
             keccak256(
                 abi.encodePacked(

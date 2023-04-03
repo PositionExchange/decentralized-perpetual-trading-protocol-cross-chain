@@ -155,10 +155,4 @@ contract VaultUtils is IVaultUtils, Initializable {
 
         return _size.mul(fundingRate).div(FUNDING_RATE_PRECISION);
     }
-
-    function getEntryFundingRate(
-        address _collateralToken
-    ) public view override returns (uint256) {
-        return vault.cumulativeFundingRates(_collateralToken);
-    }
 }

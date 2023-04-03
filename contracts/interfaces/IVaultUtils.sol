@@ -30,8 +30,4 @@ interface IVaultUtils {
         uint256 _size,
         uint256 _entryFundingRate
     ) external view returns (uint256);
-
-    function getEntryFundingRate(
-        address _collateralToken
-    ) external view returns (uint256);
 }

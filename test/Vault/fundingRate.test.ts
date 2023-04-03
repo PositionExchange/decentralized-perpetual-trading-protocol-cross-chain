@@ -18,6 +18,7 @@ function toUsd(value) {
   const normalizedValue = parseInt(String(value * Math.pow(10, 10)))
   return ethers.BigNumber.from(normalizedValue).mul(ethers.BigNumber.from(10).pow(20))
 }
+
 describe("Vault.fundingRate", function() {
 
   it("funding rate", async () => {
@@ -60,20 +61,19 @@ describe("Vault.fundingRate", function() {
 
     await sleep(100)
     await vault.connect(user0).increasePosition(user0.address, btc.address, btc.address, toUsd(50), true,0)
-    // console.log("vault info after 1st increase", await vault.vaultInfo(btc.address))
+    const positionKey = ethers.utils.solidityKeccak256(["address","address","address","bool"],[user0.address,btc.address,btc.address,true])
+    const fundingRate1stIncrease = await vault.positionEntryFundingRates(positionKey)
+    expect(fundingRate1stIncrease.toString()).to.be.equal('0')
 
     await sleep(100)
     await vault.connect(user0).increasePosition(user0.address, btc.address, btc.address, toUsd(50), true,0)
-    // console.log("vault info after 2nd increase", await vault.vaultInfo(btc.address))
-    // console.log("btc price", await btcPriceFeed.latestAnswer())
+    const fundingRate2ndIncrease = await vault.positionEntryFundingRates(positionKey)
+    expect(fundingRate2ndIncrease.toString()).to.be.equal('273')
 
     await sleep(100)
     await vault.connect(user0).decreasePosition(user0.address, btc.address, btc.address, toUsd(50), true,user0.address,toUsd(50),0)
-    // console.log("vault info after 1st decrease", await vault.vaultInfo(btc.address))
-    // console.log("btc price", await btcPriceFeed.latestAnswer())
-
-    const fundingRate = await vault.cumulativeFundingRates(btc.address)
-    await expect(fundingRate.toString()).eq("819")
+    const fundingRate1stDecrease = await vault.positionEntryFundingRates(positionKey)
+    expect(fundingRate1stDecrease.toString()).to.be.equal('819')
   })
 
 })
