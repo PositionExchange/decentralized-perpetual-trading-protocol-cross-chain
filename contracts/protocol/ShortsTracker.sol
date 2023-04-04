@@ -73,11 +73,9 @@ contract ShortsTracker is Governable, IShortsTracker {
         );
     }
 
-    function getGlobalShortDelta(address _token)
-        public
-        view
-        returns (bool, uint256)
-    {
+    function getGlobalShortDelta(
+        address _token
+    ) public view returns (bool, uint256) {
         uint256 size = vault.globalShortSizes(_token);
         uint256 averagePrice = globalShortAveragePrices[_token];
         if (size == 0) {
@@ -214,9 +212,10 @@ contract ShortsTracker is Governable, IShortsTracker {
         return (hasProfit, _delta);
     }
 
-    function _setGlobalShortAveragePrice(address _token, uint256 _averagePrice)
-        internal
-    {
+    function _setGlobalShortAveragePrice(
+        address _token,
+        uint256 _averagePrice
+    ) internal {
         globalShortAveragePrices[_token] = _averagePrice;
     }
 }

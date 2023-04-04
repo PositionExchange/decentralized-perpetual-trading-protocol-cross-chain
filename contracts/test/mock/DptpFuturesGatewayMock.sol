@@ -14,6 +14,7 @@ contract DptpFuturesGatewayMock is DptpFuturesGateway {
     ) public returns (uint256) {
         return
             _calculateMarginFees(
+                msg.sender,
                 _collateralToken,
                 _indexToken,
                 _isLong,

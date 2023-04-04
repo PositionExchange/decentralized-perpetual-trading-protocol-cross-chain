@@ -49,6 +49,7 @@ interface IVault {
     ) external;
 
     function decreasePosition(
+        address _trader,
         address _collateralToken,
         address _indexToken,
         uint256 _sizeDelta,
@@ -113,6 +114,12 @@ interface IVault {
 
     function setVaultUtils(IVaultUtils _vaultUtils) external;
 
+    function setBorrowingRate(
+        uint256 _borrowingRateInterval,
+        uint256 _borrowingRateFactor,
+        uint256 _stableBorrowingRateFactor
+    ) external;
+
     function withdrawFees(
         address _token,
         address _receiver
@@ -160,6 +167,14 @@ interface IVault {
 
     function globalShortSizes(address _token) external view returns (uint256);
 
+    function borrowingRateInterval() external view returns (uint256);
+
+    function borrowingRateFactor() external view returns (uint256);
+
+    function stableBorrowingRateFactor() external view returns (uint256);
+
+    function lastBorrowingRateTimes(address _token) external view returns (uint256);
+
     function globalShortAveragePrices(
         address _token
     ) external view returns (uint256);
@@ -186,6 +201,20 @@ interface IVault {
 
     function getMinPrice(address _token) external view returns (uint256);
 
+    function cumulativeBorrowingRates(
+        address _token
+    ) external view returns (uint256);
+
+    function getNextBorrowingRate(address _token) external view returns (uint256);
+
+    function getBorrowingFee(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _amountInUsd,
+        bool _isLong
+    ) external view returns (uint256);
+
     // pool info
     function usdpAmount(address _token) external view returns (uint256);
 
@@ -201,6 +230,13 @@ interface IVault {
         bool _increment
     ) external view returns (uint256);
 
-    function usdToTokenMin(address _token, uint256 _usdAmount) external view returns (uint256);
-    function tokenToUsdMin(address _token, uint256 _tokenAmount) external view returns (uint256);
+    function usdToTokenMin(
+        address _token,
+        uint256 _usdAmount
+    ) external view returns (uint256);
+
+    function tokenToUsdMin(
+        address _token,
+        uint256 _tokenAmount
+    ) external view returns (uint256);
 }
