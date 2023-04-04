@@ -14,16 +14,13 @@ import {
     POSI_CHAIN_TESTNET_URL, PRIV_GANACHE_ACCOUNT, PRIV_MAINNET_ACCOUNT,
     PRIV_POSI_CHAIN_DEVNET_ACCOUNT,
     PRIV_POSI_CHAIN_TESTNET_ACCOUNT, PRIV_TESTNET_ACCOUNT,
-    // VOLTA_ACCOUNT,
-    // VOLTA_CHAIN_ID,
-    // VOLTA_EXPLORER_API_KEY,
-    // VOLTA_EXPLORER_URL,
-    // VOLTA_RPC_URL
 } from "./constants";
 import "./scripts/deploy";
 // TODO enable gas reporter once development done
 // import "hardhat-gas-reporter";
 import "solidity-coverage";
+import "@symblox/hardhat-abi-gen";
+
 // const BSC_TESTNET_URL =
 //     `${process.env["BSC_TESTNET_ENDPOINT"]}` || "https://data-seed-prebsc-1-s1.binance.org:8545/"
 // const BSC_MAINNET_URL = `${process.env["BSC_MAINNET_ENDPOINT"]}`
@@ -62,26 +59,11 @@ module.exports = {
             chainId: 56,
             accounts: PRIV_MAINNET_ACCOUNT ? [PRIV_MAINNET_ACCOUNT] : [],
         },
-        geth: {
-            url: GANACHE_QC_URL,
-            chainId: 930000,
-            accounts: PRIV_GANACHE_ACCOUNT ? [PRIV_GANACHE_ACCOUNT] : [],
-        },
-        posi_devnet: {
-            url: POSI_CHAIN_DEVNET_URL,
-            chainId: 920000,
-            accounts: PRIV_POSI_CHAIN_DEVNET_ACCOUNT ? [PRIV_POSI_CHAIN_DEVNET_ACCOUNT] : [],
-        },
         posi_testnet: {
             url: POSI_CHAIN_TESTNET_URL,
             chainId: 910000,
             accounts: PRIV_POSI_CHAIN_TESTNET_ACCOUNT ? [PRIV_POSI_CHAIN_TESTNET_ACCOUNT] : [],
         },
-        // volta: {
-        //     url: VOLTA_RPC_URL,
-        //     chainId: VOLTA_CHAIN_ID,
-        //     accounts: VOLTA_ACCOUNT ? [VOLTA_ACCOUNT] : [],
-        // },
         okex_testnet: {
             url: OKEX_CHAIN_TESTNET_URL,
             chainId: 65,
@@ -146,23 +128,12 @@ module.exports = {
     },
     etherscan: {
         apiKey: {
-            posi_devnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             posi_testnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             bscTestnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             bsc: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             geth: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
-            // okex_testnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
-            // okex_mainnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6'
         },
         customChains: [
-            {
-                network: "posi_devnet",
-                chainId: 920000,
-                urls: {
-                    apiURL: "https://blockscout-devnet.int.posichain.org/api",
-                    browserURL: "https://blockscout-devnet.int.posichain.org"
-                }
-            },
             {
                 network: "posi_testnet",
                 chainId: 910000,
@@ -171,22 +142,6 @@ module.exports = {
                     browserURL: "http://explorer-testnet.posichain.org"
                 }
             },
-            {
-                network: "geth",
-                chainId: 930000,
-                urls: {
-                    apiURL: 'https://explorer.nonprodposi.com/api',
-                    browserURL: 'https://explorer.nonprodposi.com/'
-                }
-            },
-            // {
-            //     network: "okex_testnet",
-            //     chainId: 65,
-            //     urls: {
-            //         apiURL: 'https://www.oklink.com/okexchain-test/api',
-            //         browserURL: 'https://www.oklink.com/okexchain-test/'
-            //     }
-            // },
         ]
     },
     defender: {
@@ -202,6 +157,11 @@ module.exports = {
     },
     mocha: {
         timeout: 100000
+    },
+    abiExporter: {
+        path: './abi',
+        clear: true,
+        spacing: 2
     },
     docgen: {
       path: './docs',

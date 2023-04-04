@@ -6,14 +6,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
-import "../interfaces/IInsuranceFund.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IShortsTracker.sol";
-import "..//token/interface/IWETH.sol";
+import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
 
 contract DptpFuturesGateway is
@@ -21,8 +21,9 @@ contract DptpFuturesGateway is
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable
 {
-    using SafeERC20 for IERC20;
-    using SafeMath for uint256;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeMathUpgradeable for uint256;
+    using SafeCastUpgradeable for uint256;
 
     struct ManagerData {
         // fee = quoteAssetAmount / tollRatio (means if fee = 0.001% then tollRatio = 100000)
@@ -42,28 +43,15 @@ contract DptpFuturesGateway is
         address account;
         address[] path;
         address indexToken;
-        uint256 amountInToken;
-        uint256 amountInUsd;
-        uint256 feeUsd;
-        uint256 sizeDelta;
-        bool isLong;
-        uint256 executionFee;
-        uint256 blockNumber;
-        uint256 blockTime;
         bool hasCollateralInETH;
+        uint128 amountInToken;
+        uint128 feeUsd;
     }
 
     struct DecreasePositionRequest {
         address account;
         address[] path;
         address indexToken;
-        uint256 collateralDelta;
-        uint256 sizeDelta;
-        bool isLong;
-        address receiver;
-        uint256 executionFee;
-        uint256 blockNumber;
-        uint256 blockTime;
         bool withdrawETH;
     }
 
@@ -77,7 +65,6 @@ contract DptpFuturesGateway is
         uint256 sizeDelta;
         uint256 leverage;
         bool isLong;
-        uint256 executionFee;
         bool hasCollateralInETH;
     }
 
@@ -101,23 +88,19 @@ contract DptpFuturesGateway is
         address indexed account,
         address[] path,
         address indexToken,
-        uint256 amountInToken,
+        uint128 amountInToken,
         uint256 sizeDelta,
         bool isLong,
         uint256 executionFee,
-        bytes32 key,
-        uint256 blockNumber,
-        uint256 blockTime
+        bytes32 key
     );
 
     event CreateDecreasePosition(
         address indexed account,
         address[] path,
         address indexToken,
-        uint256 collateralDelta,
         uint256 sizeDelta,
         bool isLong,
-        address receiver,
         uint256 executionFee,
         bytes32 key,
         uint256 blockNumber,
@@ -128,25 +111,19 @@ contract DptpFuturesGateway is
         address indexed account,
         address[] path,
         address indexToken,
-        uint256 amountInToken,
+        uint128 amountInToken,
         uint256 sizeDelta,
         bool isLong,
-        uint256 executionFee,
-        uint256 blockGap,
-        uint256 timeGap
+        uint256 executionFee
     );
 
     event ExecuteDecreasePosition(
         address indexed account,
         address[] path,
         address indexToken,
-        uint256 collateralDelta,
         uint256 sizeDelta,
         bool isLong,
-        address receiver,
-        uint256 executionFee,
-        uint256 blockGap,
-        uint256 timeGap
+        uint256 executionFee
     );
 
     uint256 public pcsId;
@@ -157,11 +134,9 @@ contract DptpFuturesGateway is
     address public shortsTracker;
     address public weth;
 
-    uint256 public minExecutionFee;
-
     mapping(address => ManagerData) public positionManagerConfigData;
 
-    mapping(address => bool) public isPositionKeeper;
+    mapping(address => bool) public positionKeepers;
 
     mapping(address => uint256) public increasePositionsIndex;
     mapping(bytes32 => IncreasePositionRequest) public increasePositionRequests;
@@ -176,6 +151,7 @@ contract DptpFuturesGateway is
     bytes32[] public decreasePositionRequestKeys;
 
     uint256 public maxTimeDelay;
+    uint256 public executionFee;
 
     function initialize(
         uint256 _pcsId,
@@ -183,7 +159,7 @@ contract DptpFuturesGateway is
         address _futuresAdapter,
         address _vault,
         address _weth,
-        uint256 _minExecutionFee
+        uint256 _executionFee
     ) public initializer {
         __ReentrancyGuard_init();
         __Ownable_init();
@@ -203,7 +179,7 @@ contract DptpFuturesGateway is
         require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
         weth = _weth;
 
-        minExecutionFee = _minExecutionFee;
+        executionFee = _executionFee;
     }
 
     function createIncreasePosition(
@@ -211,11 +187,9 @@ contract DptpFuturesGateway is
         address _indexToken,
         uint256 _amountIn,
         uint256 _leverage,
-        bool _isLong,
-        uint256 _executionFee
+        bool _isLong
     ) external payable nonReentrant returns (bytes32) {
-        require(_executionFee >= minExecutionFee, "fee");
-        require(msg.value == _executionFee, "val");
+        require(msg.value == executionFee, "fee");
         require(_path.length == 1 || _path.length == 2, "len");
 
         uint256 amountInUsd = IVault(vault).tokenToUsdMin(_path[0], _amountIn);
@@ -234,7 +208,7 @@ contract DptpFuturesGateway is
         _transferInETH();
 
         if (_amountIn > 0) {
-            IERC20(_path[0]).safeTransferFrom(
+            IERC20Upgradeable(_path[0]).safeTransferFrom(
                 msg.sender,
                 address(this),
                 _amountIn
@@ -251,7 +225,6 @@ contract DptpFuturesGateway is
             sizeDelta,
             _leverage,
             _isLong,
-            _executionFee,
             false
         );
 
@@ -262,17 +235,15 @@ contract DptpFuturesGateway is
         address[] memory _path,
         address _indexToken,
         uint256 _leverage,
-        bool _isLong,
-        uint256 _executionFee
+        bool _isLong
     ) external payable nonReentrant returns (bytes32) {
-        require(_executionFee >= minExecutionFee, "fee");
-        require(msg.value >= _executionFee, "val");
+        require(msg.value >= executionFee, "fee");
         require(_path.length == 1 || _path.length == 2, "len");
         require(_path[0] == weth, "path");
 
         _transferInETH();
 
-        uint256 amountInToken = msg.value.sub(_executionFee);
+        uint256 amountInToken = msg.value.sub(executionFee);
         uint256 amountInUsd = IVault(vault).tokenToUsdMin(
             _path[0],
             amountInToken
@@ -285,8 +256,8 @@ contract DptpFuturesGateway is
             amountInUsd,
             _leverage
         );
-        uint256 amountAfterFeeInUsd = amountInUsd.sub(feeInUsd);
-        uint256 sizeDelta = amountAfterFeeInUsd.mul(_leverage);
+        uint256 amountAfterFeeUsd = amountInUsd.sub(feeInUsd);
+        uint256 sizeDelta = amountAfterFeeUsd.mul(_leverage);
         _validateSize(_path[0], sizeDelta, false);
 
         CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
@@ -299,7 +270,6 @@ contract DptpFuturesGateway is
             sizeDelta,
             _leverage,
             _isLong,
-            _executionFee,
             false
         );
 
@@ -309,15 +279,11 @@ contract DptpFuturesGateway is
     function createDecreasePosition(
         address[] memory _path,
         address _indexToken,
-        uint256 _collateralDelta,
         uint256 _sizeDelta,
         bool _isLong,
-        address _receiver,
-        uint256 _executionFee,
         bool _withdrawETH
     ) external payable nonReentrant returns (bytes32) {
-        require(_executionFee >= minExecutionFee, "fee");
-        require(msg.value == _executionFee, "val");
+        require(msg.value == executionFee, "val");
         require(_path.length == 1 || _path.length == 2, "len");
 
         if (_withdrawETH) {
@@ -331,43 +297,36 @@ contract DptpFuturesGateway is
                 msg.sender,
                 _path,
                 _indexToken,
-                _collateralDelta,
                 _sizeDelta,
                 _isLong,
-                _receiver,
-                _executionFee,
                 _withdrawETH
             );
     }
 
-    function executeIncreasePosition(bytes32 _key) public nonReentrant {
-        IncreasePositionRequest memory request = increasePositionRequests[_key];
+    function executeIncreasePosition(
+        bytes32 _key,
+        uint256 _sizeDelta,
+        bool _isLong
+    ) public nonReentrant {
+        require(positionKeepers[msg.sender], "403");
 
+        IncreasePositionRequest memory request = increasePositionRequests[_key];
         if (request.account == address(0)) {
             return;
         }
-
-        _validateExecutionOrCancellation(request.blockNumber);
-        _validateMaxGlobalSize(
-            request.indexToken,
-            request.isLong,
-            request.sizeDelta
-        );
+        _validateMaxGlobalSize(request.indexToken, _isLong, _sizeDelta);
 
         delete increasePositionRequests[_key];
 
         if (request.amountInToken > 0) {
-            uint256 amountInToken = request.amountInToken;
+            uint256 amountInToken = uint256(request.amountInToken);
 
             if (request.path.length > 1) {
-                IERC20(request.path[0]).safeTransfer(
-                    vault,
-                    request.amountInToken
-                );
+                IERC20Upgradeable(request.path[0]).safeTransfer(vault, amountInToken);
                 amountInToken = _swap(request.path, address(this));
             }
 
-            IERC20(request.path[request.path.length - 1]).safeTransfer(
+            IERC20Upgradeable(request.path[request.path.length - 1]).safeTransfer(
                 vault,
                 amountInToken
             );
@@ -377,30 +336,32 @@ contract DptpFuturesGateway is
             request.account,
             request.path[request.path.length - 1],
             request.indexToken,
-            request.sizeDelta,
-            request.isLong,
-            request.feeUsd
+            _sizeDelta,
+            _isLong,
+            uint256(request.feeUsd)
         );
-        _transferOutETH(request.executionFee, payable(msg.sender));
+        _transferOutETH(executionFee, payable(msg.sender));
 
         emit ExecuteIncreasePosition(
             request.account,
             request.path,
             request.indexToken,
             request.amountInToken,
-            request.sizeDelta,
-            request.isLong,
-            request.executionFee,
-            block.number.sub(request.blockNumber),
-            block.timestamp.sub(request.blockTime)
+            _sizeDelta,
+            _isLong,
+            executionFee
         );
     }
 
     function executeDecreasePosition(
         bytes32 _key,
         uint256 _amountOutUsdAfterFees,
-        uint256 _feeUsd
+        uint256 _feeUsd,
+        uint256 _sizeDelta,
+        bool _isLong
     ) public nonReentrant {
+        require(positionKeepers[msg.sender], "403");
+
         DecreasePositionRequest memory request = decreasePositionRequests[_key];
         // if the request was already executed or cancelled, return true so that the
         // executeDecreasePositions loop will continue executing the next request
@@ -408,16 +369,14 @@ contract DptpFuturesGateway is
             return;
         }
 
-        _validateExecution(request.blockNumber, request.blockTime);
-
         delete decreasePositionRequests[_key];
 
         _amountOutUsdAfterFees = _decreasePosition(
             request.account,
             request.path[0],
             request.indexToken,
-            request.sizeDelta,
-            request.isLong,
+            _sizeDelta,
+            _isLong,
             address(this),
             _amountOutUsdAfterFees,
             _feeUsd
@@ -430,33 +389,29 @@ contract DptpFuturesGateway is
             );
 
             if (request.path.length > 1) {
-                IERC20(request.path[0]).safeTransfer(vault, amountOutToken);
+                IERC20Upgradeable(request.path[0]).safeTransfer(vault, amountOutToken);
                 amountOutToken = _swap(request.path, address(this));
             }
 
             if (request.withdrawETH) {
-                _transferOutETH(amountOutToken, payable(request.receiver));
+                _transferOutETH(amountOutToken, payable(request.account));
             } else {
-                IERC20(request.path[request.path.length - 1]).safeTransfer(
-                    request.receiver,
+                IERC20Upgradeable(request.path[request.path.length - 1]).safeTransfer(
+                    request.account,
                     amountOutToken
                 );
             }
         }
 
-        _transferOutETH(request.executionFee, payable(msg.sender));
+        _transferOutETH(executionFee, payable(msg.sender));
 
         emit ExecuteDecreasePosition(
             request.account,
             request.path,
             request.indexToken,
-            request.collateralDelta,
-            request.sizeDelta,
-            request.isLong,
-            request.receiver,
-            request.executionFee,
-            block.number.sub(request.blockNumber),
-            block.timestamp.sub(request.blockTime)
+            _sizeDelta,
+            _isLong,
+            executionFee
         );
     }
 
@@ -535,45 +490,42 @@ contract DptpFuturesGateway is
             param.account,
             param.path,
             param.indexToken,
-            param.amountInToken,
-            param.amountInUsd,
-            param.feeInUsd,
-            param.sizeDelta,
-            param.isLong,
-            param.executionFee,
-            block.number,
-            block.timestamp,
-            param.hasCollateralInETH
+            param.hasCollateralInETH,
+            param.amountInToken.toUint128(),
+            param.feeInUsd.toUint128()
         );
 
         (, bytes32 requestKey) = _storeIncreasePositionRequest(request);
 
-        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.OPEN_MARKET),
-            abi.encode(
-                requestKey,
-                request.path[0],
-                request.isLong,
-                request.sizeDelta,
-                param.leverage,
-                msg.sender,
-                request.amountInUsd.sub(param.feeInUsd)
-            )
-        );
+        {
+            uint256 amountInUsdAfterFees = param.amountInUsd.sub(
+                param.feeInUsd
+            );
+            CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+                pcsId,
+                pscCrossChainGateway,
+                uint8(Method.OPEN_MARKET),
+                abi.encode(
+                    requestKey,
+                    request.path[0],
+                    param.isLong,
+                    param.sizeDelta,
+                    param.leverage,
+                    msg.sender,
+                    amountInUsdAfterFees
+                )
+            );
+        }
 
         emit CreateIncreasePosition(
             request.account,
             request.path,
             request.indexToken,
             request.amountInToken,
-            request.sizeDelta,
-            request.isLong,
-            request.executionFee,
-            requestKey,
-            request.blockNumber,
-            request.blockTime
+            param.sizeDelta,
+            param.isLong,
+            executionFee,
+            requestKey
         );
 
         return requestKey;
@@ -583,24 +535,14 @@ contract DptpFuturesGateway is
         address _account,
         address[] memory _path,
         address _indexToken,
-        uint256 _collateralDelta,
         uint256 _sizeDelta,
         bool _isLong,
-        address _receiver,
-        uint256 _executionFee,
         bool _withdrawETH
     ) internal returns (bytes32) {
         DecreasePositionRequest memory request = DecreasePositionRequest(
             _account,
             _path,
             _indexToken,
-            _collateralDelta,
-            _sizeDelta,
-            _isLong,
-            _receiver,
-            _executionFee,
-            block.number,
-            block.timestamp,
             _withdrawETH
         );
 
@@ -610,23 +552,16 @@ contract DptpFuturesGateway is
             pcsId,
             pscCrossChainGateway,
             uint8(Method.CLOSE_POSITION),
-            abi.encode(
-                requestKey,
-                request.path[0],
-                request.sizeDelta,
-                msg.sender
-            )
+            abi.encode(requestKey, request.path[0], _sizeDelta, msg.sender)
         );
 
         emit CreateDecreasePosition(
             request.account,
             request.path,
             request.indexToken,
-            request.collateralDelta,
-            request.sizeDelta,
-            request.isLong,
-            request.receiver,
-            request.executionFee,
+            _sizeDelta,
+            _isLong,
+            executionFee,
             requestKey,
             block.number,
             block.timestamp
@@ -733,25 +668,10 @@ contract DptpFuturesGateway is
         return keccak256(abi.encodePacked(_account, _index));
     }
 
-    function receiveFromOtherBlockchain(
-        address _manager,
-        address _trader,
-        uint256 _totalAmount,
-        uint256 _busdBonusAmount
-    ) external {
-        require(msg.sender == futuresAdapter, "only futures adapter");
-        //        insuranceFund.withdraw(
-        //            _manager,
-        //            _trader,
-        //            _totalAmount,
-        //            _busdBonusAmount
-        //        );
-    }
-
-    function _swap(
-        address[] memory _path,
-        address _receiver
-    ) internal returns (uint256) {
+    function _swap(address[] memory _path, address _receiver)
+        internal
+        returns (uint256)
+    {
         require(_path.length == 2, "invalid _path.length");
         return IVault(vault).swap(_path[0], _path[1], _receiver);
     }
@@ -777,23 +697,6 @@ contract DptpFuturesGateway is
                 (10 ** 18 / managerConfigData.stepBaseSize);
             require(remainder == 0, Errors.VL_INVALID_QUANTITY);
         }
-    }
-
-    function _validateExecution(
-        uint256 _positionBlockNumber,
-        uint256 _positionBlockTime
-    ) internal view {
-        if (_positionBlockTime.add(maxTimeDelay) <= block.timestamp) {
-            revert("expired");
-        }
-        _validateExecutionOrCancellation(_positionBlockNumber);
-    }
-
-    function _validateExecutionOrCancellation(
-        uint256 _positionBlockNumber
-    ) internal view {
-        require(isPositionKeeper[msg.sender], "403");
-        require(_positionBlockNumber <= block.number, "time");
     }
 
     function _validateMaxGlobalSize(
@@ -830,8 +733,8 @@ contract DptpFuturesGateway is
     // ONLY OWNER FUNCTIONS
     //******************************************************************************************************************
 
-    function setMinExecutionFee(uint256 _minExecutionFee) external onlyOwner {
-        minExecutionFee = _minExecutionFee;
+    function setExecutionFee(uint256 _executionFee) external onlyOwner {
+        executionFee = _executionFee;
     }
 
     function setWeth(address _weth) external onlyOwner {
@@ -875,7 +778,7 @@ contract DptpFuturesGateway is
             .stepBaseSize = _stepBaseSize;
     }
 
-    function updateManagerTakerTollRatio(
+    function setManagerTakerTollRatio(
         address _positionManager,
         uint24 _takerTollRatio
     ) public onlyOwner {
@@ -884,7 +787,7 @@ contract DptpFuturesGateway is
             .takerTollRatio = _takerTollRatio;
     }
 
-    function updateManagerMakerTollRatio(
+    function setManagerMakerTollRatio(
         address _positionManager,
         uint24 _makerTollRatio
     ) public onlyOwner {
@@ -946,14 +849,22 @@ contract DptpFuturesGateway is
             .stepBaseSize = _stepBaseSize;
     }
 
-    function updatePosiChainId(uint256 _posiChainId) external onlyOwner {
+    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
         pcsId = _posiChainId;
     }
 
-    function updatePosiChainCrosschainGatewayContract(
-        address _address
-    ) external onlyOwner {
+    function setPosiChainCrosschainGatewayContract(address _address)
+        external
+        onlyOwner
+    {
         pscCrossChainGateway = _address;
+    }
+
+    function setPositionKeeper(address _address)
+        external
+        onlyOwner
+    {
+        positionKeepers[_address] = true;
     }
 
     /**
