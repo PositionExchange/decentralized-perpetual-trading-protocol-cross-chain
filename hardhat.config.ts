@@ -130,8 +130,7 @@ module.exports = {
         apiKey: {
             posi_testnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             bscTestnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
-            bsc: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
-            geth: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
+            bsc: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6'
         },
         customChains: [
             {

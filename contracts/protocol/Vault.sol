@@ -513,10 +513,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function setVaultUtils(
-        IVaultUtils _vaultUtils
+        IVaultUtils _address
     ) external override onlyOwner {
-        // TODO implement me
-        revert("Vault not implement");
+        _vaultUtils = IVaultUtils(_address);
     }
 
     function withdrawFees(

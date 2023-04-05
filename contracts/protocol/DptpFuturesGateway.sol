@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
@@ -24,6 +25,7 @@ contract DptpFuturesGateway is
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint256;
     using SafeCastUpgradeable for uint256;
+    using AddressUpgradeable for address;
 
     struct ManagerData {
         // fee = quoteAssetAmount / tollRatio (means if fee = 0.001% then tollRatio = 100000)
@@ -44,8 +46,8 @@ contract DptpFuturesGateway is
         address[] path;
         address indexToken;
         bool hasCollateralInETH;
-        uint128 amountInToken;
-        uint128 feeUsd;
+        uint256 amountInToken;
+        uint256 feeUsd;
     }
 
     struct DecreasePositionRequest {
@@ -88,7 +90,7 @@ contract DptpFuturesGateway is
         address indexed account,
         address[] path,
         address indexToken,
-        uint128 amountInToken,
+        uint256 amountInToken,
         uint256 sizeDelta,
         bool isLong,
         uint256 executionFee,
@@ -111,7 +113,7 @@ contract DptpFuturesGateway is
         address indexed account,
         address[] path,
         address indexToken,
-        uint128 amountInToken,
+        uint256 amountInToken,
         uint256 sizeDelta,
         bool isLong,
         uint256 executionFee
@@ -322,14 +324,15 @@ contract DptpFuturesGateway is
             uint256 amountInToken = uint256(request.amountInToken);
 
             if (request.path.length > 1) {
-                IERC20Upgradeable(request.path[0]).safeTransfer(vault, amountInToken);
+                IERC20Upgradeable(request.path[0]).safeTransfer(
+                    vault,
+                    amountInToken
+                );
                 amountInToken = _swap(request.path, address(this));
             }
 
-            IERC20Upgradeable(request.path[request.path.length - 1]).safeTransfer(
-                vault,
-                amountInToken
-            );
+            IERC20Upgradeable(request.path[request.path.length - 1])
+                .safeTransfer(vault, amountInToken);
         }
 
         _increasePosition(
@@ -389,17 +392,18 @@ contract DptpFuturesGateway is
             );
 
             if (request.path.length > 1) {
-                IERC20Upgradeable(request.path[0]).safeTransfer(vault, amountOutToken);
+                IERC20Upgradeable(request.path[0]).safeTransfer(
+                    vault,
+                    amountOutToken
+                );
                 amountOutToken = _swap(request.path, address(this));
             }
 
             if (request.withdrawETH) {
                 _transferOutETH(amountOutToken, payable(request.account));
             } else {
-                IERC20Upgradeable(request.path[request.path.length - 1]).safeTransfer(
-                    request.account,
-                    amountOutToken
-                );
+                IERC20Upgradeable(request.path[request.path.length - 1])
+                    .safeTransfer(request.account, amountOutToken);
             }
         }
 
@@ -483,16 +487,17 @@ contract DptpFuturesGateway is
             );
     }
 
-    function _createIncreasePosition(
-        CreateIncreasePositionParam memory param
-    ) internal returns (bytes32) {
+    function _createIncreasePosition(CreateIncreasePositionParam memory param)
+        internal
+        returns (bytes32)
+    {
         IncreasePositionRequest memory request = IncreasePositionRequest(
             param.account,
             param.path,
             param.indexToken,
             param.hasCollateralInETH,
-            param.amountInToken.toUint128(),
-            param.feeInUsd.toUint128()
+            param.amountInToken,
+            param.feeInUsd
         );
 
         (, bytes32 requestKey) = _storeIncreasePositionRequest(request);
@@ -507,12 +512,12 @@ contract DptpFuturesGateway is
                 uint8(Method.OPEN_MARKET),
                 abi.encode(
                     requestKey,
-                    request.path[0],
+                    coreManagers[request.path[0]],
                     param.isLong,
-                    param.sizeDelta,
+                    param.amountInToken,
                     param.leverage,
                     msg.sender,
-                    amountInUsdAfterFees
+                    amountInUsdAfterFees.div(10**24)
                 )
             );
         }
@@ -603,10 +608,9 @@ contract DptpFuturesGateway is
         }
     }
 
-    function _transferOutETH(
-        uint256 _amountOut,
-        address payable _account
-    ) internal {
+    function _transferOutETH(uint256 _amountOut, address payable _account)
+        internal
+    {
         if (msg.value != 0) {
             IWETH(weth).transfer(_account, _amountOut);
         }
@@ -627,8 +631,7 @@ contract DptpFuturesGateway is
             _leverage,
             _isLong
         );
-        IVault _vault = IVault(vault);
-        uint256 borrowingFee = _vault.getBorrowingFee(
+        uint256 borrowingFee = IVault(vault).getBorrowingFee(
             _trader,
             _collateralToken,
             _indexToken,
@@ -661,10 +664,11 @@ contract DptpFuturesGateway is
         return fee;
     }
 
-    function getRequestKey(
-        address _account,
-        uint256 _index
-    ) public pure returns (bytes32) {
+    function getRequestKey(address _account, uint256 _index)
+        public
+        pure
+        returns (bytes32)
+    {
         return keccak256(abi.encodePacked(_account, _index));
     }
 
@@ -694,7 +698,7 @@ contract DptpFuturesGateway is
         }
         if (managerConfigData.stepBaseSize != 0) {
             uint256 remainder = _size %
-                (10 ** 18 / managerConfigData.stepBaseSize);
+                (10**18 / managerConfigData.stepBaseSize);
             require(remainder == 0, Errors.VL_INVALID_QUANTITY);
         }
     }
@@ -805,10 +809,10 @@ contract DptpFuturesGateway is
             .baseBasicPoint = _baseBasicPoint;
     }
 
-    function setManagerBasicPoint(
-        address _positionManager,
-        uint32 _basicPoint
-    ) public onlyOwner {
+    function setManagerBasicPoint(address _positionManager, uint32 _basicPoint)
+        public
+        onlyOwner
+    {
         require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
         positionManagerConfigData[_positionManager].basicPoint = _basicPoint;
     }
@@ -840,10 +844,10 @@ contract DptpFuturesGateway is
             .minimumOrderQuantity = _minimumOrderQuantity;
     }
 
-    function setStepBaseSize(
-        address _positionManager,
-        uint32 _stepBaseSize
-    ) public onlyOwner {
+    function setStepBaseSize(address _positionManager, uint32 _stepBaseSize)
+        public
+        onlyOwner
+    {
         require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
         positionManagerConfigData[_positionManager]
             .stepBaseSize = _stepBaseSize;
@@ -860,11 +864,15 @@ contract DptpFuturesGateway is
         pscCrossChainGateway = _address;
     }
 
-    function setPositionKeeper(address _address)
+    function setPositionKeeper(address _address) external onlyOwner {
+        positionKeepers[_address] = true;
+    }
+
+    function setCoreManager(address _token, address _manager)
         external
         onlyOwner
     {
-        positionKeepers[_address] = true;
+        coreManagers[_token] = _manager;
     }
 
     /**
@@ -873,4 +881,5 @@ contract DptpFuturesGateway is
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
+    mapping(address => address) public coreManagers;
 }

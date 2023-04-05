@@ -8,7 +8,21 @@ import {verifyContract} from "../scripts/utils";
 import {TransactionResponse} from "@ethersproject/abstract-provider";
 import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {HardhatDefenderUpgrades} from "@openzeppelin/hardhat-defender";
-import {FuturesAdapter, InsuranceFund, LpManager, MockToken, PLP, PositionBUSDBonus, PriceFeed, USDP, Vault, VaultPriceFeed, VaultUtils, WETH} from "../typeChain";
+import {
+    DptpFuturesGateway,
+    FuturesAdapter,
+    InsuranceFund,
+    LpManager,
+    MockToken,
+    PLP,
+    PositionBUSDBonus,
+    PriceFeed,
+    USDP,
+    Vault,
+    VaultPriceFeed,
+    VaultUtils,
+    WETH
+} from "../typeChain";
 import { ContractConfig } from "./shared/PreDefinedContractAddress";
 import {ethers as ethersE} from "ethers"
 import { IExtraTokenConfig, Token } from "./shared/types";
