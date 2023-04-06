@@ -1,0 +1,14 @@
+@startuml
+  actor user
+  participant "Web UI" as web
+  participant "RewardRouter Contract" as rewardRouter
+
+  user -> web: Buy PLP
+    activate web
+    web -> rewardRouter: Call `mintAndStakePlp` if use token, call `mintAndStakePlpETH` if use native token (ETH)
+  deactivate web
+  user -> web: Sell PLP
+    activate web
+    web -> rewardRouter: Call `unstakeAndRedeemPlp` if to ERC20 token, `unstakeAndRedeemPlpETH` to native token (ETH)
+  deactivate web
+@enduml

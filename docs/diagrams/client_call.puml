@@ -47,6 +47,5 @@
   note right of RewardRouter::mintAndStakePlpETH
     Sell PLP for native token
   end note
-
   
 @enduml
