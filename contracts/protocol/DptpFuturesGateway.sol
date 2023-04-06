@@ -194,14 +194,18 @@ contract DptpFuturesGateway is
         require(msg.value == executionFee, "fee");
         require(_path.length == 1 || _path.length == 2, "len");
 
-        uint256 amountInUsd = IVault(vault).tokenToUsdMin(_path[0], _amountIn);
+        uint256 amountInUsd = IVault(vault).tokenToUsdMinWithAdjustment(
+            _path[0],
+            _amountIn
+        );
         uint256 feeInUsd = _calculateMarginFees(
             msg.sender,
             _path[0],
             _indexToken,
             _isLong,
             amountInUsd,
-            _leverage
+            _leverage,
+            false
         );
         uint256 amountAfterFeeInUsd = amountInUsd.sub(feeInUsd);
         uint256 sizeDelta = amountAfterFeeInUsd.mul(_leverage);
@@ -246,7 +250,7 @@ contract DptpFuturesGateway is
         _transferInETH();
 
         uint256 amountInToken = msg.value.sub(executionFee);
-        uint256 amountInUsd = IVault(vault).tokenToUsdMin(
+        uint256 amountInUsd = IVault(vault).tokenToUsdMinWithAdjustment(
             _path[0],
             amountInToken
         );
@@ -256,7 +260,8 @@ contract DptpFuturesGateway is
             _indexToken,
             _isLong,
             amountInUsd,
-            _leverage
+            _leverage,
+            false
         );
         uint256 amountAfterFeeUsd = amountInUsd.sub(feeInUsd);
         uint256 sizeDelta = amountAfterFeeUsd.mul(_leverage);
@@ -307,7 +312,7 @@ contract DptpFuturesGateway is
 
     function executeIncreasePosition(
         bytes32 _key,
-        uint256 _sizeDelta,
+        uint256 _sizeInToken,
         bool _isLong
     ) public nonReentrant {
         require(positionKeepers[msg.sender], "403");
@@ -316,7 +321,11 @@ contract DptpFuturesGateway is
         if (request.account == address(0)) {
             return;
         }
-        _validateMaxGlobalSize(request.indexToken, _isLong, _sizeDelta);
+        uint256 sizeDelta = IVault(vault).tokenToUsdMinWithAdjustment(
+            request.path[0],
+            _sizeInToken
+        );
+        _validateMaxGlobalSize(request.indexToken, _isLong, sizeDelta);
 
         delete increasePositionRequests[_key];
 
@@ -339,7 +348,7 @@ contract DptpFuturesGateway is
             request.account,
             request.path[request.path.length - 1],
             request.indexToken,
-            _sizeDelta,
+            sizeDelta,
             _isLong,
             uint256(request.feeUsd)
         );
@@ -350,7 +359,7 @@ contract DptpFuturesGateway is
             request.path,
             request.indexToken,
             request.amountInToken,
-            _sizeDelta,
+            sizeDelta,
             _isLong,
             executionFee
         );
@@ -514,10 +523,10 @@ contract DptpFuturesGateway is
                     requestKey,
                     coreManagers[request.path[0]],
                     param.isLong,
-                    param.amountInToken,
+                    param.amountInToken.mul(param.leverage),
                     param.leverage,
                     msg.sender,
-                    amountInUsdAfterFees.div(10**24)
+                    amountInUsdAfterFees.div(10**12)
                 )
             );
         }
@@ -622,14 +631,15 @@ contract DptpFuturesGateway is
         address _indexToken,
         bool _isLong,
         uint256 _amountInUsd,
-        uint256 _leverage
+        uint256 _leverage,
+        bool _isLimitOrder
     ) internal returns (uint256) {
         // Fee for opening and closing position
         uint256 feeUsd = _getPositionFee(
             _collateralToken,
             _amountInUsd,
             _leverage,
-            _isLong
+            _isLimitOrder
         );
         uint256 borrowingFee = IVault(vault).getBorrowingFee(
             _trader,

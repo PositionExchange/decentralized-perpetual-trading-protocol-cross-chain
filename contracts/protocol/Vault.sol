@@ -1157,6 +1157,14 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return _tokenAmount.mul(price).div(10 ** decimals);
     }
 
+    function tokenToUsdMinWithAdjustment(
+        address _token,
+        uint256 _tokenAmount
+    ) public view returns (uint256) {
+        uint256 usdAmount = tokenToUsdMin(_token, _tokenAmount);
+        return adjustForDecimals(usdAmount, usdp, _token);
+    }
+
     function usdToTokenMax(
         address _token,
         uint256 _usdAmount
