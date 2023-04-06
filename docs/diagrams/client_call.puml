@@ -1,0 +1,52 @@
+@startuml
+  class RewardRouter {
+    .. write function ..
+    +function mintAndStakePlp(address _token,uint256 _amount,uint256 _minUsdp,uint256 _minPlp
+    )
+    +function mintAndStakePlpETH( uint256 _minUsdp, uint256 _minPlp) 
+    +function unstakeAndRedeemPlp(
+        address _tokenOut,
+        uint256 _plpAmount,
+        uint256 _minOut,
+        address _receiver
+    )
+    +function unstakeAndRedeemPlpETH(
+        uint256 _plpAmount,
+        uint256 _minOut,
+        address payable _receiver
+    )
+    +function claim()
+    +function claimFees()
+    +function claimEsPosi()
+    +function compound()
+    +function handleRewards(
+        bool _shouldClaimPosi,
+        bool _shouldStakePosi,
+        bool _shouldClaimEsPosi,
+        bool _shouldStakeEsPosi,
+        bool _shouldStakeMultiplierPoints,
+        bool _shouldClaimWeth,
+        bool _shouldConvertWethToEth
+    )
+    +function batchCompoundForAccounts(
+        address[] memory _accounts
+    )
+    +function signalTransfer(address _receiver)
+    +function acceptTransfer(address _sender)
+  }
+
+  note right of RewardRouter::mintAndStakePlp
+    Buy PLP with ERC20 token
+  end note
+  note right of RewardRouter::mintAndStakePlpETH
+    Pay ETH to Buy PLP with native ETH (need send ETH to the contract)
+  end note
+  note right of RewardRouter::mintAndStakePlp
+    Sell PLP for ERC20 tokens
+  end note
+  note right of RewardRouter::mintAndStakePlpETH
+    Sell PLP for native token
+  end note
+
+  
+@enduml
