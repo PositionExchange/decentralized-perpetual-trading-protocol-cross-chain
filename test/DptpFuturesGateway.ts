@@ -5,7 +5,6 @@ import {
   FuturesAdapter,
   VaultMock,
   WETH,
-  VaultUtils,
 } from "../typeChain";
 import { expect } from "chai";
 import { BigNumber } from "ethers";

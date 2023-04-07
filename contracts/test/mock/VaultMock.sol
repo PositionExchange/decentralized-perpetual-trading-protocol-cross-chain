@@ -24,6 +24,13 @@ contract VaultMock {
         return _tokenAmount.mul(tokenPriceMock);
     }
 
+    function tokenToUsdMinWithAdjustment(
+        address,
+        uint256 _tokenAmount
+    ) public view returns (uint256) {
+        return _tokenAmount.mul(tokenPriceMock);
+    }
+
     function getBorrowingFee(
         address _trader,
         address _collateralToken,

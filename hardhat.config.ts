@@ -19,7 +19,7 @@ import "./scripts/deploy";
 // TODO enable gas reporter once development done
 // import "hardhat-gas-reporter";
 import "solidity-coverage";
-import "@symblox/hardhat-abi-gen";
+// import "@symblox/hardhat-abi-gen";
 
 // const BSC_TESTNET_URL =
 //     `${process.env["BSC_TESTNET_ENDPOINT"]}` || "https://data-seed-prebsc-1-s1.binance.org:8545/"
@@ -160,7 +160,8 @@ module.exports = {
     abiExporter: {
         path: './abi',
         clear: true,
-        spacing: 2
+        spacing: 2,
+        runOnCompile: true,
     },
     docgen: {
       path: './docs',
