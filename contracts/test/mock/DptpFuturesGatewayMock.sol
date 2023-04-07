@@ -10,7 +10,8 @@ contract DptpFuturesGatewayMock is DptpFuturesGateway {
         bool _isLong,
         uint256 _sizeDelta,
         uint256 _amountIn,
-        uint256 _leverage
+        uint256 _leverage,
+        bool _isLimitOrder
     ) public returns (uint256) {
         return
             _calculateMarginFees(
@@ -19,7 +20,8 @@ contract DptpFuturesGatewayMock is DptpFuturesGateway {
                 _indexToken,
                 _isLong,
                 _amountIn,
-                _leverage
+                _leverage,
+                _isLimitOrder
             );
     }
 }

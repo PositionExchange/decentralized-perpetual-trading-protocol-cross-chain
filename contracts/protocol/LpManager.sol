@@ -76,6 +76,12 @@ contract LpManager is ILpManager, Ownable {
         aumDeduction = _aumDeduction;
     }
 
+    function setVault(
+        address _vault
+    ) external onlyOwner {
+        vault = IVault(_vault);
+    }
+
     function setCooldownDuration(uint256 _cooldownDuration) external onlyOwner {
         require(
             _cooldownDuration <= MAX_COOLDOWN_DURATION,

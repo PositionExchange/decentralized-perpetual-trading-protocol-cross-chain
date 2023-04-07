@@ -239,4 +239,9 @@ interface IVault {
         address _token,
         uint256 _tokenAmount
     ) external view returns (uint256);
+
+    function tokenToUsdMinWithAdjustment(
+        address _token,
+        uint256 _tokenAmount
+    ) external view returns (uint256);
 }

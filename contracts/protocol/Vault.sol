@@ -513,10 +513,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function setVaultUtils(
-        IVaultUtils _vaultUtils
+        IVaultUtils _address
     ) external override onlyOwner {
-        // TODO implement me
-        revert("Vault not implement");
+        _vaultUtils = IVaultUtils(_address);
     }
 
     function withdrawFees(
@@ -1156,6 +1155,14 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 price = getMinPrice(_token);
         uint256 decimals = tokenConfigurations[_token].tokenDecimals;
         return _tokenAmount.mul(price).div(10 ** decimals);
+    }
+
+    function tokenToUsdMinWithAdjustment(
+        address _token,
+        uint256 _tokenAmount
+    ) public view returns (uint256) {
+        uint256 usdAmount = tokenToUsdMin(_token, _tokenAmount);
+        return adjustForDecimals(usdAmount, usdp, _token);
     }
 
     function usdToTokenMax(
