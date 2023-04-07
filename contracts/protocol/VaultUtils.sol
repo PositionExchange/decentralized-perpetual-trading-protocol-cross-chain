@@ -10,7 +10,7 @@ contract VaultUtils is IVaultUtils, Initializable {
 
     IVault public vault;
 
-    uint256 public constant FUNDING_RATE_PRECISION = 1000000;
+    uint256 public constant BORROWING_RATE_PRECISION = 1000000;
 
     function initialize(IVault _vault) public initializer {
         vault = _vault;
@@ -145,14 +145,13 @@ contract VaultUtils is IVaultUtils, Initializable {
         if (_size == 0) {
             return 0;
         }
-
-        uint256 fundingRate = vault
+        uint256 borrowingRate = vault
             .cumulativeBorrowingRates(_collateralToken)
             .sub(_entryBorrowingRate);
-        if (fundingRate == 0) {
+        if (borrowingRate == 0) {
             return 0;
         }
 
-        return _size.mul(fundingRate).div(FUNDING_RATE_PRECISION);
+        return _size.mul(borrowingRate).div(BORROWING_RATE_PRECISION);
     }
 }

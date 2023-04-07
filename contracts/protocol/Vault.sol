@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "./libraries/TokenConfiguration.sol";
 import "./libraries/VaultInfo.sol";
+import "./libraries/PositionInfo.sol";
 
 import "../interfaces/IVault.sol";
 import "../token/interface/IUSDP.sol";
@@ -20,14 +21,15 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using TokenConfiguration for TokenConfiguration.Data;
     using VaultInfo for VaultInfo.Data;
+    using PositionInfo for PositionInfo.Data;
 
-    uint256 public constant FUNDING_RATE_PRECISION = 1000000;
+    uint256 public constant BORROWING_RATE_PRECISION = 1000000;
     uint256 public constant MIN_LEVERAGE = 10000; // 1x
     uint256 public constant USDG_DECIMALS = 18;
     uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
     uint256 public constant MAX_LIQUIDATION_FEE_USD = 100 * PRICE_PRECISION; // 100 USD
-    uint256 public constant MIN_FUNDING_RATE_INTERVAL = 1 hours;
-    uint256 public constant MAX_FUNDING_RATE_FACTOR = 10000; // 1%
+    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
+    uint256 public constant MAX_BORROWING_RATE_FACTOR = 10000; // 1%
     uint256 public constant BASIS_POINTS_DIVISOR = 10000;
     uint256 public constant PRICE_PRECISION = 10 ** 30;
     uint256 public constant DEAFULT_DECIMALS = 18;
@@ -80,8 +82,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     // lastBorrowingRateTimes tracks the last time borrowing rate was updated for a token
     mapping(address => uint256) public override lastBorrowingRateTimes;
 
-    // positionEntryBorrowingRates tracks all open positions entry borrowing rates
-    mapping(bytes32 => uint256) public positionEntryBorrowingRates;
+    // positionInfo tracks all open positions entry borrowing rates
+    mapping(bytes32 => PositionInfo.Data) public positionInfo;
 
     modifier onlyWhitelistToken(address token) {
         require(
@@ -157,12 +159,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _validateTokens(_collateralToken, _indexToken, _isLong);
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
-        _updateEntryBorrowingRate(
-            _account,
-            _collateralToken,
-            _indexToken,
-            _isLong
-        );
+        bytes32 key = _getPositionInfoKey(_account,_collateralToken,_indexToken,_isLong);
+        _updateEntryBorrowingRate(key, _collateralToken);
+
         uint256 collateralDelta = _transferIn(_collateralToken);
         uint256 collateralDeltaUsd = tokenToUsdMin(
             _collateralToken,
@@ -176,6 +175,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         // reserve tokens to pay profits on the position
         uint256 reserveDelta = usdToTokenMax(_collateralToken, _sizeDelta);
         _increaseReservedAmount(_collateralToken, reserveDelta);
+
+        _increasePositionCollateral(key, reserveDelta);
 
         // Add fee to feeReserves
         _increaseFeeReserves(_collateralToken, _feeUsd);
@@ -255,15 +256,15 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _sizeDelta,
             _isLong
         );
-        _updateEntryBorrowingRate(
-            _trader,
-            _collateralToken,
-            _indexToken,
-            _isLong
-        );
-        // TODO: Need to check if borrowingFee is greater than _amountOutUsdAfterFees,
-        // TODO: if it does, take borrowingFee out of user's collateral
-        _amountOutUsdAfterFees = _amountOutUsdAfterFees.sub(borrowingFee);
+        bytes32 key = _getPositionInfoKey( _trader, _collateralToken, _indexToken, _isLong);
+        _updateEntryBorrowingRate(key ,_collateralToken);
+
+        if (borrowingFee > _amountOutUsdAfterFees) {
+            _decreasePositionCollateral(key,borrowingFee.sub(_amountOutUsdAfterFees));
+            _amountOutUsdAfterFees = 0;
+        } else {
+            _amountOutUsdAfterFees = _amountOutUsdAfterFees.sub(borrowingFee);
+        }
         _feeUsd = _feeUsd.add(borrowingFee);
 
         // Add fee to feeReserves
@@ -535,9 +536,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _borrowingRateFactor,
         uint256 _stableBorrowingRateFactor
     ) external override onlyOwner {
-        _validate(_borrowingRateInterval >= MIN_FUNDING_RATE_INTERVAL, 10);
-        _validate(_borrowingRateFactor <= MAX_FUNDING_RATE_FACTOR, 11);
-        _validate(_stableBorrowingRateFactor <= MAX_FUNDING_RATE_FACTOR, 12);
+        _validate(_borrowingRateInterval >= MIN_BORROWING_RATE_INTERVAL, 10);
+        _validate(_borrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, 11);
+        _validate(_stableBorrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, 12);
         borrowingRateInterval = _borrowingRateInterval;
         borrowingRateFactor = _borrowingRateFactor;
         stableBorrowingRateFactor = _stableBorrowingRateFactor;
@@ -807,9 +808,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             return 0;
         }
 
-        uint256 intervals = block.timestamp.sub(lastBorrowingRateTimes[_token]).div(
-            borrowingRateInterval
-        );
+        uint256 intervals = block.timestamp.sub(lastBorrowingRateTimes[_token])
+            .div(borrowingRateInterval);
         uint256 poolAmount = vaultInfo[_token].poolAmounts;
         if (poolAmount == 0) {
             return 0;
@@ -849,10 +849,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _indexToken
     ) private {
         if (lastBorrowingRateTimes[_collateralToken] == 0) {
-            lastBorrowingRateTimes[_collateralToken] = block
-            .timestamp
-            .div(borrowingRateInterval)
-            .mul(borrowingRateInterval);
+            lastBorrowingRateTimes[_collateralToken] = block.timestamp
+                .div(borrowingRateInterval)
+                .mul(borrowingRateInterval);
             return;
         }
 
@@ -864,13 +863,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         }
 
         uint256 borrowingRate = getNextBorrowingRate(_collateralToken);
-        cumulativeBorrowingRates[_collateralToken] = cumulativeBorrowingRates[
-        _collateralToken
-        ].add(borrowingRate);
+        cumulativeBorrowingRates[_collateralToken] = cumulativeBorrowingRates[_collateralToken]
+            .add(borrowingRate);
         lastBorrowingRateTimes[_collateralToken] = block
-        .timestamp
-        .div(borrowingRateInterval)
-        .mul(borrowingRateInterval);
+            .timestamp
+            .div(borrowingRateInterval)
+            .mul(borrowingRateInterval);
 
         emit UpdateBorrowingRate(
             _collateralToken,
@@ -878,19 +876,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
     }
 
-    function _updateEntryBorrowingRate(
-        address _trader,
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) private {
-        bytes32 _key = _getPositionEntryBorrowingRateKey(
-            _trader,
-            _collateralToken,
-            _indexToken,
-            _isLong
-        );
-        positionEntryBorrowingRates[_key] = cumulativeBorrowingRates[_collateralToken];
+    function _updateEntryBorrowingRate(bytes32 _key, address _collateralToken) private {
+        positionInfo[_key].setEntryBorrowingRates(cumulativeBorrowingRates[_collateralToken]);
     }
 
     function _getBorrowingFee(
@@ -900,7 +887,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amountInUsd,
         bool _isLong
     ) private view returns (uint256) {
-        bytes32 _key = _getPositionEntryBorrowingRateKey(
+        bytes32 _key = _getPositionInfoKey(
             _trader,
             _collateralToken,
             _indexToken,
@@ -909,12 +896,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 borrowingFee = _vaultUtils.getBorrowingFee(
             _collateralToken,
             _amountInUsd,
-            positionEntryBorrowingRates[_key]
+            positionInfo[_key].entryBorrowingRates
         );
         return borrowingFee;
     }
 
-    function _getPositionEntryBorrowingRateKey(
+    function _getPositionInfoKey(
         address _trader,
         address _collateralToken,
         address _indexToken,
@@ -1025,6 +1012,14 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     function _decreaseReservedAmount(address _token, uint256 _amount) private {
         vaultInfo[_token].subReservedAmount(_amount);
         emit DecreaseReservedAmount(_token, _amount);
+    }
+
+    function _increasePositionCollateral(bytes32 _key, uint256 _amount) private {
+        positionInfo[_key].addCollateral(_amount);
+    }
+
+    function _decreasePositionCollateral(bytes32 _key, uint256 _amount) private {
+        positionInfo[_key].subCollateral(_amount);
     }
 
     function _increaseGuaranteedUsd(
