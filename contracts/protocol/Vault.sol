@@ -301,7 +301,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _amountOutUsdAfterFees
         );
 
-        // TODO: Consider to update position information in core chain in case borrowingFee greater than _amountOutUsdAfterFees
+        // TODO: Consider to update position info in core chain when borrowingFee greater than _amountOut
         // If not update, must compare _amountOutUsdAfterFees with remaining position collateral amount
         // Case _amountOutUsdAfterFees greater than collateral, must transfer out collateral amount,
         // else transfer _amountOutUsdAfterFees
