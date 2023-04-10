@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
@@ -258,8 +257,9 @@ contract DptpFuturesGateway is
             _path[0]
         ];
 
-        uint256 amountInUsd = _price.mul(_sizeDeltaToken).div(_leverage).div(managerConfigData.basicPoint);
-
+        uint256 amountInUsd = _price.mul(_sizeDeltaToken).div(_leverage).div(
+            managerConfigData.basicPoint
+        );
 
         _transferIn(_path[0], amountInUsd);
         _transferInETH();
@@ -532,12 +532,13 @@ contract DptpFuturesGateway is
                     .crossBlockchainCall(
                         pcsId,
                         pscCrossChainGateway,
-                        uint8(Method.OPEN_MARKET),
+                        uint8(Method.OPEN_LIMIT),
                         abi.encode(
                             requestKey,
                             coreManagers[request.path[0]],
                             isLong,
                             sizeDelta,
+                            pip,
                             leverage,
                             msg.sender,
                             amountAfterFeeInUsd.div(10**12)
@@ -548,13 +549,12 @@ contract DptpFuturesGateway is
                     .crossBlockchainCall(
                         pcsId,
                         pscCrossChainGateway,
-                        uint8(Method.OPEN_LIMIT),
+                        uint8(Method.OPEN_MARKET),
                         abi.encode(
                             requestKey,
                             coreManagers[request.path[0]],
                             isLong,
                             sizeDelta,
-                            pip,
                             leverage,
                             msg.sender,
                             amountAfterFeeInUsd.div(10**12)
@@ -599,7 +599,12 @@ contract DptpFuturesGateway is
             pcsId,
             pscCrossChainGateway,
             uint8(Method.CLOSE_POSITION),
-            abi.encode(requestKey, request.path[0], _sizeDelta, msg.sender)
+            abi.encode(
+                requestKey,
+                coreManagers[request.path[0]],
+                _sizeDelta,
+                msg.sender
+            )
         );
 
         emit CreateDecreasePosition(
