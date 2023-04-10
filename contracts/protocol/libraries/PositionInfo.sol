@@ -2,7 +2,8 @@ pragma solidity ^0.8.2;
 
 library PositionInfo {
     struct Data {
-        uint128 collateral;
+        uint256 collateralAmount;
+        uint256 reservedAmount;
         uint128 entryBorrowingRates;
     }
 
@@ -10,15 +11,27 @@ library PositionInfo {
         _self.entryBorrowingRates = uint128(_rate);
     }
 
-    function addCollateral(Data storage _self, uint256 _amount) internal {
-        _self.collateral = _self.collateral + uint128(_amount);
+    function addCollateralAmount(Data storage _self, uint256 _amount) internal {
+        _self.collateralAmount = _self.collateralAmount + _amount;
     }
 
-    function subCollateral(Data storage _self, uint256 _amount) internal {
+    function subCollateralAmount(Data storage _self, uint256 _amount) internal {
         require(
-            _amount <= _self.collateral,
+            _amount <= _self.collateralAmount,
             "Vault: collateral exceeded"
         );
-        _self.collateral = _self.collateral - uint128(_amount);
+        _self.collateralAmount = _self.collateralAmount - _amount;
+    }
+
+    function addReservedAmount(Data storage _self, uint256 _amount) internal {
+        _self.reservedAmount = _self.reservedAmount + _amount;
+    }
+
+    function subReservedAmount(Data storage _self, uint256 _amount) internal {
+        require(
+            _amount <= _self.reservedAmount,
+            "Vault: reservedAmount exceeded"
+        );
+        _self.reservedAmount = _self.reservedAmount - _amount;
     }
 }
