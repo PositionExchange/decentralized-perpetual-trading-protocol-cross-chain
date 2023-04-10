@@ -211,7 +211,6 @@ interface IVault {
         address _trader,
         address _collateralToken,
         address _indexToken,
-        uint256 _amountInUsd,
         bool _isLong
     ) external view returns (uint256);
 

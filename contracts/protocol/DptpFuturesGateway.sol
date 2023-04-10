@@ -686,7 +686,6 @@ contract DptpFuturesGateway is
             _trader,
             _collateralToken,
             _indexToken,
-            _amountInUsd,
             _isLong
         );
         feeUsd = feeUsd.add(borrowingFee);
