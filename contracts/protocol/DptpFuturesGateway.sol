@@ -110,6 +110,19 @@ contract DptpFuturesGateway is
         uint256 blockTime
     );
 
+    event CreateDecreaseOrder(
+        address indexed account,
+        address[] path,
+        address indexToken,
+        uint256 pip,
+        uint256 sizeDelta,
+        bool isLong,
+        uint256 executionFee,
+        bytes32 key,
+        uint256 blockNumber,
+        uint256 blockTime
+    );
+
     event ExecuteIncreasePosition(
         address indexed account,
         address[] path,
@@ -264,9 +277,9 @@ contract DptpFuturesGateway is
         uint256 amountInUsd = _pip.mul(_sizeDeltaToken).div(_leverage).div(
             managerConfigData.basicPoint
         );
-        uint256 amountInToken = IVault(vault).tokenToUsdMinWithAdjustment(
+        uint256 amountInToken = IVault(vault).usdToTokenMin(
             _path[0],
-            amountInUsd
+            amountInUsd.mul(PRICE_DECIMALS)
         );
 
         _transferIn(_path[0], amountInToken);
@@ -290,12 +303,13 @@ contract DptpFuturesGateway is
     function createDecreasePosition(
         address[] memory _path,
         address _indexToken,
-        uint256 _sizeDelta,
+        uint256 _sizeDeltaToken,
         bool _isLong,
         bool _withdrawETH
     ) external payable nonReentrant returns (bytes32) {
         require(msg.value == executionFee, "val");
         require(_path.length == 1 || _path.length == 2, "len");
+        _validateSize(_path[0], _sizeDeltaToken, false);
 
         if (_withdrawETH) {
             require(_path[_path.length - 1] == weth, "path");
@@ -308,7 +322,37 @@ contract DptpFuturesGateway is
                 msg.sender,
                 _path,
                 _indexToken,
-                _sizeDelta,
+                _sizeDeltaToken,
+                _isLong,
+                _withdrawETH
+            );
+    }
+
+    function createDecreaseOrder(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _pip,
+        uint256 _sizeDeltaToken,
+        bool _isLong,
+        bool _withdrawETH
+    ) external payable nonReentrant returns (bytes32) {
+        require(msg.value == executionFee, "val");
+        require(_path.length == 1 || _path.length == 2, "len");
+        _validateSize(_path[0], _sizeDeltaToken, false);
+
+        if (_withdrawETH) {
+            require(_path[_path.length - 1] == weth, "path");
+        }
+
+        _transferInETH();
+
+        return
+            _createDecreaseOrder(
+                msg.sender,
+                _path,
+                _indexToken,
+                _pip,
+                _sizeDeltaToken,
                 _isLong,
                 _withdrawETH
             );
@@ -622,6 +666,52 @@ contract DptpFuturesGateway is
             request.path,
             request.indexToken,
             _sizeDelta,
+            _isLong,
+            executionFee,
+            requestKey,
+            block.number,
+            block.timestamp
+        );
+        return requestKey;
+    }
+
+    function _createDecreaseOrder(
+        address _account,
+        address[] memory _path,
+        address _indexToken,
+        uint256 _pip,
+        uint256 _sizeDeltaToken,
+        bool _isLong,
+        bool _withdrawETH
+    ) internal returns (bytes32) {
+        DecreasePositionRequest memory request = DecreasePositionRequest(
+            _account,
+            _path,
+            _indexToken,
+            _withdrawETH
+        );
+
+        (, bytes32 requestKey) = _storeDecreasePositionRequest(request);
+
+        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.CLOSE_LIMIT_POSITION),
+            abi.encode(
+                requestKey,
+                coreManagers[request.path[0]],
+                _pip,
+                _sizeDeltaToken,
+                msg.sender
+            )
+        );
+
+        emit CreateDecreaseOrder(
+            request.account,
+            request.path,
+            request.indexToken,
+            _pip,
+            _sizeDeltaToken,
             _isLong,
             executionFee,
             requestKey,
