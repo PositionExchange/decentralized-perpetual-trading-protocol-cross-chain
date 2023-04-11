@@ -173,6 +173,11 @@ export function expandDecimals(n: string | number, decimals: number) {
   return bigNumberify(n).mul(bigNumberify(10).pow(decimals))
 }
 
+export function toUsd(value) {
+  const normalizedValue = parseInt(String(value * Math.pow(10, 10)))
+  return ethers.BigNumber.from(normalizedValue).mul(ethers.BigNumber.from(10).pow(20))
+}
+
 export async function getBlockTime(provider?: any, blockNumber?: number) {
   if(!provider)
     provider = ethers.getDefaultProvider()

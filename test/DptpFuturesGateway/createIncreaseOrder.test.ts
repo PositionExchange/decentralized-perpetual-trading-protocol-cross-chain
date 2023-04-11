@@ -10,7 +10,7 @@ import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import {formatEther} from "@ethersproject/units/src.ts";
 
-describe.only("DPTP Futures Gateway", async function () {
+describe("DPTP Futures Gateway", async function () {
   let deployer: any;
   let trader: any;
   let trader2: any;

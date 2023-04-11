@@ -332,6 +332,44 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return amountOutTokenAfterFees;
     }
 
+    function liquidatePosition(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _positionSize,
+        bool _isLong
+    ) external override nonReentrant {
+        _validateCaller(msg.sender);
+
+        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
+
+        uint256 borrowingFee = _getBorrowingFee(
+            _trader,
+            _collateralToken,
+            _indexToken,
+            _isLong
+        );
+
+        bytes32 key = _getPositionInfoKey( _trader, _collateralToken, _indexToken, _isLong);
+        PositionInfo.Data memory _positionInfo = positionInfo[key];
+
+        uint256 positionAmountUsd = tokenToUsdMin(_collateralToken, _positionInfo.collateralAmount);
+        if (borrowingFee >= positionAmountUsd) {
+            borrowingFee = positionAmountUsd;
+        }
+        _increaseFeeReserves(_collateralToken, borrowingFee);
+        _decreaseReservedAmount(_collateralToken, _positionInfo.reservedAmount);
+        _decreasePoolAmount(_collateralToken, usdToTokenMin(_collateralToken, borrowingFee));
+
+        if (_isLong) {
+            _decreaseGuaranteedUsd(_collateralToken, _positionSize);
+        } else {
+            _decreaseGlobalShortSize(_indexToken, _positionSize);
+        }
+
+        delete positionInfo[key];
+    }
+
     // TODO: Currently not seeing any reason to _reduceCollateral
     //    function _reduceCollateral(
     //        address _collateralToken,

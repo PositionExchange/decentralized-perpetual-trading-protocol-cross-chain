@@ -1,23 +1,9 @@
 import { expect } from "chai"
 import { ethers } from "hardhat"
-import { MockToken } from "../../typeChain"
-import {getBnbConfig, getBtcConfig, getDaiConfig} from "../shared/config"
-import { loadContractFixtures, loadMockTokenFixtures, loadVaultPureFixtures } from "../shared/fixtures"
-import { toChainlinkPrice, VaultTracker } from "../shared/utilities"
+import {getBtcConfig} from "../shared/config"
+import {loadMockTokenFixtures, loadVaultPureFixtures } from "../shared/fixtures"
+import {expandDecimals, toChainlinkPrice, toUsd} from "../shared/utilities"
 import {sleep} from "../../scripts/helper";
-
-function bigNumberify(n) {
-  return ethers.BigNumber.from(n)
-}
-
-function expandDecimals(n, decimals) {
-  return bigNumberify(n).mul(bigNumberify(10).pow(decimals))
-}
-
-function toUsd(value) {
-  const normalizedValue = parseInt(String(value * Math.pow(10, 10)))
-  return ethers.BigNumber.from(normalizedValue).mul(ethers.BigNumber.from(10).pow(20))
-}
 
 // TODO: Un-skip later
 describe.skip("Vault.borrowingRate", function() {
@@ -60,21 +46,21 @@ describe.skip("Vault.borrowingRate", function() {
     await expect(vault.connect(user0).increasePosition(user0.address, btc.address, btc.address, toUsd(110), true,0))
         .to.be.revertedWith("Vault: reservedAmount exceeded poolAmount")
 
-    await sleep(100)
+    await sleep(1000)
     await vault.connect(user0).increasePosition(user0.address, btc.address, btc.address, toUsd(50), true,0)
     const positionKey = ethers.utils.solidityKeccak256(["address","address","address","bool"],[user0.address,btc.address,btc.address,true])
-    const borrowingRate1stIncrease = await vault.positionEntryBorrowingRates(positionKey)
-    expect(borrowingRate1stIncrease.toString()).to.be.equal('0')
+    const positionInfo1stIncrease = await vault.positionInfo(positionKey)
+    expect(positionInfo1stIncrease.entryBorrowingRates.toString()).to.be.equal('0')
 
-    await sleep(100)
+    await sleep(1000)
     await vault.connect(user0).increasePosition(user0.address, btc.address, btc.address, toUsd(50), true,0)
-    const borrowingRate2ndIncrease = await vault.positionEntryBorrowingRates(positionKey)
-    expect(borrowingRate2ndIncrease.toString()).to.be.equal('273')
+    const positionInfo2ndIncrease = await vault.positionInfo(positionKey)
+    expect(positionInfo2ndIncrease.entryBorrowingRates.toString()).to.be.equal('273')
 
-    await sleep(100)
+    await sleep(1000)
     await vault.connect(user0).decreasePosition(user0.address, btc.address, btc.address, toUsd(50), true,user0.address,toUsd(50),0)
-    const borrowingRate1stDecrease = await vault.positionEntryBorrowingRates(positionKey)
-    expect(borrowingRate1stDecrease.toString()).to.be.equal('819')
+    const positionInfo1stDecrease = await vault.positionInfo(positionKey)
+    expect(positionInfo1stDecrease.entryBorrowingRates.toString()).to.be.equal('819')
   })
 
 })
