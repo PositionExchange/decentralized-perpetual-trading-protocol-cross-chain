@@ -59,6 +59,14 @@ interface IVault {
         uint256 _feeUsd
     ) external returns (uint256);
 
+    function liquidatePosition(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _positionSize,
+        bool _isLong
+    ) external;
+
     /* Goivernance function */
     function setWhitelistCaller(address caller, bool val) external;
 

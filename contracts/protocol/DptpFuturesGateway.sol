@@ -478,6 +478,22 @@ contract DptpFuturesGateway is
         );
     }
 
+    function liquidatePosition(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _positionSize,
+        bool _isLong
+    ) public nonReentrant {
+        IVault(vault).liquidatePosition(
+            _trader,
+            _collateralToken,
+            _indexToken,
+            _positionSize,
+            _isLong
+        );
+    }
+
     function _increasePosition(
         address _account,
         address _collateralToken,
