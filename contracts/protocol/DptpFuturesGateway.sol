@@ -61,7 +61,7 @@ contract DptpFuturesGateway is
         address[] path;
         address indexToken;
         uint256 amountInToken;
-        uint256 sizeDelta;
+        uint256 sizeDeltaToken;
         uint256 pip;
         uint16 leverage;
         bool isLong;
@@ -244,7 +244,7 @@ contract DptpFuturesGateway is
     function createIncreaseOrder(
         address[] memory _path,
         address _indexToken,
-        uint256 _price,
+        uint256 _pip,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong
@@ -257,20 +257,23 @@ contract DptpFuturesGateway is
             _path[0]
         ];
 
-        uint256 amountInUsd = _price.mul(_sizeDeltaToken).div(_leverage).div(
+        uint256 amountInUsd = _pip.mul(_sizeDeltaToken).div(_leverage).div(
             managerConfigData.basicPoint
         );
+        uint256 amountInToken = IVault(vault).tokenToUsdMinWithAdjustment(
+            amountInUsd
+        );
 
-        _transferIn(_path[0], amountInUsd);
+        _transferIn(_path[0], amountInToken);
         _transferInETH();
 
         CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
             msg.sender,
             _path,
             _indexToken,
-            amountInUsd,
+            amountInToken,
             _sizeDeltaToken,
-            0,
+            _pip,
             _leverage,
             _isLong,
             false
@@ -522,7 +525,7 @@ contract DptpFuturesGateway is
         (, bytes32 requestKey) = _storeIncreasePositionRequest(request);
 
         {
-            uint256 sizeDelta = param.sizeDelta;
+            uint256 sizeDelta = param.sizeDeltaToken;
             uint256 pip = param.pip;
             uint16 leverage = param.leverage;
             bool isLong = param.isLong;
@@ -568,7 +571,7 @@ contract DptpFuturesGateway is
             request.path,
             request.indexToken,
             request.amountInToken,
-            param.sizeDelta,
+            param.sizeDeltaToken,
             param.pip,
             param.isLong,
             executionFee,
