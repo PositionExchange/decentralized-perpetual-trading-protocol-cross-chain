@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
@@ -26,6 +25,8 @@ contract DptpFuturesGateway is
     using SafeMathUpgradeable for uint256;
     using SafeCastUpgradeable for uint256;
     using AddressUpgradeable for address;
+
+    uint256 constant PRICE_DECIMALS = 10**12;
 
     struct ManagerData {
         // fee = quoteAssetAmount / tollRatio (means if fee = 0.001% then tollRatio = 100000)
@@ -62,7 +63,7 @@ contract DptpFuturesGateway is
         address[] path;
         address indexToken;
         uint256 amountInToken;
-        uint256 sizeDelta;
+        uint256 sizeDeltaToken;
         uint256 pip;
         uint16 leverage;
         bool isLong;
@@ -109,6 +110,19 @@ contract DptpFuturesGateway is
         uint256 blockTime
     );
 
+    event CreateDecreaseOrder(
+        address indexed account,
+        address[] path,
+        address indexToken,
+        uint256 pip,
+        uint256 sizeDelta,
+        bool isLong,
+        uint256 executionFee,
+        bytes32 key,
+        uint256 blockNumber,
+        uint256 blockTime
+    );
+
     event ExecuteIncreasePosition(
         address indexed account,
         address[] path,
@@ -127,6 +141,8 @@ contract DptpFuturesGateway is
         bool isLong,
         uint256 executionFee
     );
+
+    event CollectFees(uint256 positionFee, uint256 borrowFee, uint256 totalFee);
 
     uint256 public pcsId;
     address public pscCrossChainGateway;
@@ -245,7 +261,7 @@ contract DptpFuturesGateway is
     function createIncreaseOrder(
         address[] memory _path,
         address _indexToken,
-        uint256 _price,
+        uint256 _pip,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong
@@ -258,19 +274,24 @@ contract DptpFuturesGateway is
             _path[0]
         ];
 
-        uint256 amountInUsd = _price.mul(_sizeDeltaToken).div(_leverage).div(managerConfigData.basicPoint);
+        uint256 amountInUsd = _pip.mul(_sizeDeltaToken).div(_leverage).div(
+            managerConfigData.basicPoint
+        );
+        uint256 amountInToken = IVault(vault).usdToTokenMin(
+            _path[0],
+            amountInUsd.mul(PRICE_DECIMALS)
+        );
 
-
-        _transferIn(_path[0], amountInUsd);
+        _transferIn(_path[0], amountInToken);
         _transferInETH();
 
         CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
             msg.sender,
             _path,
             _indexToken,
-            amountInUsd,
+            amountInToken,
             _sizeDeltaToken,
-            0,
+            _pip,
             _leverage,
             _isLong,
             false
@@ -282,12 +303,13 @@ contract DptpFuturesGateway is
     function createDecreasePosition(
         address[] memory _path,
         address _indexToken,
-        uint256 _sizeDelta,
+        uint256 _sizeDeltaToken,
         bool _isLong,
         bool _withdrawETH
     ) external payable nonReentrant returns (bytes32) {
         require(msg.value == executionFee, "val");
         require(_path.length == 1 || _path.length == 2, "len");
+        _validateSize(_path[0], _sizeDeltaToken, false);
 
         if (_withdrawETH) {
             require(_path[_path.length - 1] == weth, "path");
@@ -300,7 +322,37 @@ contract DptpFuturesGateway is
                 msg.sender,
                 _path,
                 _indexToken,
-                _sizeDelta,
+                _sizeDeltaToken,
+                _isLong,
+                _withdrawETH
+            );
+    }
+
+    function createDecreaseOrder(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _pip,
+        uint256 _sizeDeltaToken,
+        bool _isLong,
+        bool _withdrawETH
+    ) external payable nonReentrant returns (bytes32) {
+        require(msg.value == executionFee, "val");
+        require(_path.length == 1 || _path.length == 2, "len");
+        _validateSize(_path[0], _sizeDeltaToken, false);
+
+        if (_withdrawETH) {
+            require(_path[_path.length - 1] == weth, "path");
+        }
+
+        _transferInETH();
+
+        return
+            _createDecreaseOrder(
+                msg.sender,
+                _path,
+                _indexToken,
+                _pip,
+                _sizeDeltaToken,
                 _isLong,
                 _withdrawETH
             );
@@ -365,7 +417,7 @@ contract DptpFuturesGateway is
         bytes32 _key,
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd,
-        uint256 _sizeDelta,
+        uint256 _sizeDeltaInToken,
         bool _isLong
     ) public nonReentrant {
         require(positionKeepers[msg.sender], "403");
@@ -379,36 +431,38 @@ contract DptpFuturesGateway is
 
         delete decreasePositionRequests[_key];
 
-        _amountOutUsdAfterFees = _decreasePosition(
+        uint256 sizeDelta = IVault(vault).tokenToUsdMinWithAdjustment(
+            request.path[0],
+            _sizeDeltaInToken
+        );
+        uint256 amountOutTokenAfterFees = _decreasePosition(
             request.account,
             request.path[0],
             request.indexToken,
-            _sizeDelta,
+            sizeDelta,
             _isLong,
             address(this),
-            _amountOutUsdAfterFees,
-            _feeUsd
+            _amountOutUsdAfterFees.mul(PRICE_DECIMALS),
+            _feeUsd.mul(PRICE_DECIMALS)
         );
 
-        if (_amountOutUsdAfterFees > 0) {
-            uint256 amountOutToken = IVault(vault).usdToTokenMin(
-                request.path[0],
-                _amountOutUsdAfterFees
-            );
-
+        if (amountOutTokenAfterFees > 0) {
             if (request.path.length > 1) {
                 IERC20Upgradeable(request.path[0]).safeTransfer(
                     vault,
-                    amountOutToken
+                    amountOutTokenAfterFees
                 );
-                amountOutToken = _swap(request.path, address(this));
+                amountOutTokenAfterFees = _swap(request.path, address(this));
             }
 
             if (request.withdrawETH) {
-                _transferOutETH(amountOutToken, payable(request.account));
+                _transferOutETH(
+                    amountOutTokenAfterFees,
+                    payable(request.account)
+                );
             } else {
                 IERC20Upgradeable(request.path[request.path.length - 1])
-                    .safeTransfer(request.account, amountOutToken);
+                    .safeTransfer(request.account, amountOutTokenAfterFees);
             }
         }
 
@@ -418,7 +472,7 @@ contract DptpFuturesGateway is
             request.account,
             request.path,
             request.indexToken,
-            _sizeDelta,
+            _sizeDeltaInToken,
             _isLong,
             executionFee
         );
@@ -522,28 +576,12 @@ contract DptpFuturesGateway is
         (, bytes32 requestKey) = _storeIncreasePositionRequest(request);
 
         {
-            uint256 sizeDelta = param.sizeDelta;
+            uint256 sizeDelta = param.sizeDeltaToken;
             uint256 pip = param.pip;
             uint16 leverage = param.leverage;
             bool isLong = param.isLong;
             uint256 amountAfterFeeInUsd = amountInUsd.sub(feeInUsd);
             if (param.pip > 0) {
-                CrosschainFunctionCallInterface(futuresAdapter)
-                    .crossBlockchainCall(
-                        pcsId,
-                        pscCrossChainGateway,
-                        uint8(Method.OPEN_MARKET),
-                        abi.encode(
-                            requestKey,
-                            coreManagers[request.path[0]],
-                            isLong,
-                            sizeDelta,
-                            leverage,
-                            msg.sender,
-                            amountAfterFeeInUsd.div(10**12)
-                        )
-                    );
-            } else {
                 CrosschainFunctionCallInterface(futuresAdapter)
                     .crossBlockchainCall(
                         pcsId,
@@ -557,7 +595,23 @@ contract DptpFuturesGateway is
                             pip,
                             leverage,
                             msg.sender,
-                            amountAfterFeeInUsd.div(10**12)
+                            amountAfterFeeInUsd.div(PRICE_DECIMALS)
+                        )
+                    );
+            } else {
+                CrosschainFunctionCallInterface(futuresAdapter)
+                    .crossBlockchainCall(
+                        pcsId,
+                        pscCrossChainGateway,
+                        uint8(Method.OPEN_MARKET),
+                        abi.encode(
+                            requestKey,
+                            coreManagers[request.path[0]],
+                            isLong,
+                            sizeDelta,
+                            leverage,
+                            msg.sender,
+                            amountAfterFeeInUsd.div(PRICE_DECIMALS)
                         )
                     );
             }
@@ -568,7 +622,7 @@ contract DptpFuturesGateway is
             request.path,
             request.indexToken,
             request.amountInToken,
-            param.sizeDelta,
+            param.sizeDeltaToken,
             param.pip,
             param.isLong,
             executionFee,
@@ -599,7 +653,12 @@ contract DptpFuturesGateway is
             pcsId,
             pscCrossChainGateway,
             uint8(Method.CLOSE_POSITION),
-            abi.encode(requestKey, request.path[0], _sizeDelta, msg.sender)
+            abi.encode(
+                requestKey,
+                coreManagers[request.path[0]],
+                _sizeDelta,
+                msg.sender
+            )
         );
 
         emit CreateDecreasePosition(
@@ -607,6 +666,52 @@ contract DptpFuturesGateway is
             request.path,
             request.indexToken,
             _sizeDelta,
+            _isLong,
+            executionFee,
+            requestKey,
+            block.number,
+            block.timestamp
+        );
+        return requestKey;
+    }
+
+    function _createDecreaseOrder(
+        address _account,
+        address[] memory _path,
+        address _indexToken,
+        uint256 _pip,
+        uint256 _sizeDeltaToken,
+        bool _isLong,
+        bool _withdrawETH
+    ) internal returns (bytes32) {
+        DecreasePositionRequest memory request = DecreasePositionRequest(
+            _account,
+            _path,
+            _indexToken,
+            _withdrawETH
+        );
+
+        (, bytes32 requestKey) = _storeDecreasePositionRequest(request);
+
+        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.CLOSE_LIMIT_POSITION),
+            abi.encode(
+                requestKey,
+                coreManagers[request.path[0]],
+                _pip,
+                _sizeDeltaToken,
+                msg.sender
+            )
+        );
+
+        emit CreateDecreaseOrder(
+            request.account,
+            request.path,
+            request.indexToken,
+            _pip,
+            _sizeDeltaToken,
             _isLong,
             executionFee,
             requestKey,
@@ -676,7 +781,7 @@ contract DptpFuturesGateway is
         bool _isLimitOrder
     ) internal returns (uint256) {
         // Fee for opening and closing position
-        uint256 feeUsd = _getPositionFee(
+        uint256 positionFee = _getPositionFee(
             _collateralToken,
             _amountInUsd,
             _leverage,
@@ -688,7 +793,10 @@ contract DptpFuturesGateway is
             _indexToken,
             _isLong
         );
-        feeUsd = feeUsd.add(borrowingFee);
+        uint256 feeUsd = positionFee.add(borrowingFee);
+
+        emit CollectFees(positionFee, borrowingFee, feeUsd);
+
         return feeUsd;
     }
 
