@@ -127,6 +127,8 @@ contract DptpFuturesGateway is
         uint256 executionFee
     );
 
+    event CollectFees(uint256 positionFee, uint256 borrowFee, uint256 totalFee);
+
     uint256 public pcsId;
     address public pscCrossChainGateway;
 
@@ -261,6 +263,7 @@ contract DptpFuturesGateway is
             managerConfigData.basicPoint
         );
         uint256 amountInToken = IVault(vault).tokenToUsdMinWithAdjustment(
+            _path[0],
             amountInUsd
         );
 
@@ -684,7 +687,7 @@ contract DptpFuturesGateway is
         bool _isLimitOrder
     ) internal returns (uint256) {
         // Fee for opening and closing position
-        uint256 feeUsd = _getPositionFee(
+        uint256 positionFee = _getPositionFee(
             _collateralToken,
             _amountInUsd,
             _leverage,
@@ -696,7 +699,10 @@ contract DptpFuturesGateway is
             _indexToken,
             _isLong
         );
-        feeUsd = feeUsd.add(borrowingFee);
+        uint256 feeUsd = positionFee.add(borrowingFee);
+
+        emit CollectFees(positionFee, borrowingFee, feeUsd);
+
         return feeUsd;
     }
 
