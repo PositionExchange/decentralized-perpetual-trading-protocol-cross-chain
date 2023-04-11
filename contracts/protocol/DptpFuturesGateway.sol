@@ -26,6 +26,8 @@ contract DptpFuturesGateway is
     using SafeCastUpgradeable for uint256;
     using AddressUpgradeable for address;
 
+    uint256 constant PRICE_DECIMALS = 10**12;
+
     struct ManagerData {
         // fee = quoteAssetAmount / tollRatio (means if fee = 0.001% then tollRatio = 100000)
         uint24 takerTollRatio;
@@ -371,7 +373,7 @@ contract DptpFuturesGateway is
         bytes32 _key,
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd,
-        uint256 _sizeDelta,
+        uint256 _sizeDeltaInToken,
         bool _isLong
     ) public nonReentrant {
         require(positionKeepers[msg.sender], "403");
@@ -385,36 +387,38 @@ contract DptpFuturesGateway is
 
         delete decreasePositionRequests[_key];
 
-        _amountOutUsdAfterFees = _decreasePosition(
+        uint256 sizeDelta = IVault(vault).tokenToUsdMinWithAdjustment(
+            request.path[0],
+            _sizeDeltaInToken
+        );
+        uint256 amountOutTokenAfterFees = _decreasePosition(
             request.account,
             request.path[0],
             request.indexToken,
-            _sizeDelta,
+            sizeDelta,
             _isLong,
             address(this),
-            _amountOutUsdAfterFees,
-            _feeUsd
+            _amountOutUsdAfterFees.mul(PRICE_DECIMALS),
+            _feeUsd.mul(PRICE_DECIMALS)
         );
 
-        if (_amountOutUsdAfterFees > 0) {
-            uint256 amountOutToken = IVault(vault).usdToTokenMin(
-                request.path[0],
-                _amountOutUsdAfterFees
-            );
-
+        if (amountOutTokenAfterFees > 0) {
             if (request.path.length > 1) {
                 IERC20Upgradeable(request.path[0]).safeTransfer(
                     vault,
-                    amountOutToken
+                    amountOutTokenAfterFees
                 );
-                amountOutToken = _swap(request.path, address(this));
+                amountOutTokenAfterFees = _swap(request.path, address(this));
             }
 
             if (request.withdrawETH) {
-                _transferOutETH(amountOutToken, payable(request.account));
+                _transferOutETH(
+                    amountOutTokenAfterFees,
+                    payable(request.account)
+                );
             } else {
                 IERC20Upgradeable(request.path[request.path.length - 1])
-                    .safeTransfer(request.account, amountOutToken);
+                    .safeTransfer(request.account, amountOutTokenAfterFees);
             }
         }
 
@@ -424,7 +428,7 @@ contract DptpFuturesGateway is
             request.account,
             request.path,
             request.indexToken,
-            _sizeDelta,
+            _sizeDeltaInToken,
             _isLong,
             executionFee
         );
@@ -547,7 +551,7 @@ contract DptpFuturesGateway is
                             pip,
                             leverage,
                             msg.sender,
-                            amountAfterFeeInUsd.div(10**12)
+                            amountAfterFeeInUsd.div(PRICE_DECIMALS)
                         )
                     );
             } else {
@@ -563,7 +567,7 @@ contract DptpFuturesGateway is
                             sizeDelta,
                             leverage,
                             msg.sender,
-                            amountAfterFeeInUsd.div(10**12)
+                            amountAfterFeeInUsd.div(PRICE_DECIMALS)
                         )
                     );
             }

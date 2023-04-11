@@ -126,6 +126,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 amountOutAfterFees,
         uint256 feeBasisPoints
     );
+    event CollectFees(uint256 positionFee, uint256 borrowFee, uint256 totalFee);
 
     event IncreaseUsdgAmount(address token, uint256 amount);
     event DecreaseUsdgAmount(address token, uint256 amount);
@@ -267,6 +268,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _indexToken,
             _isLong
         );
+        emit CollectFees(_feeUsd, borrowingFee, _feeUsd.add(borrowingFee));
+
         bytes32 key = _getPositionInfoKey(
             _trader,
             _collateralToken,
