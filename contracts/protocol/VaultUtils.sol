@@ -90,17 +90,18 @@ contract VaultUtils is IVaultUtils, Initializable {
     function getFeeBasisPoints(
         address _token,
         uint256 _usdgDelta,
-        uint256 _feeBasisPoints,
-        uint256 _taxBasisPoints,
+        uint256 _feeBasisPoints, // 0.3%
+        uint256 _taxBasisPoints, // 0.5%
         bool _increment
     ) public view override returns (uint256) {
         if (!vault.hasDynamicFees()) {
             return _feeBasisPoints;
         }
 
-        uint256 initialAmount = vault.usdpAmount(_token);
-        uint256 nextAmount = initialAmount.add(_usdgDelta);
-        if (!_increment) {
+        uint256 initialAmount = vault.usdpAmount(_token); // return amount of pool usdp
+
+        uint256 nextAmount = initialAmount.add(_usdgDelta); // get the next amount after deposit the delta amount for buy
+        if (!_increment) { // for sell
             nextAmount = _usdgDelta > initialAmount
                 ? 0
                 : initialAmount.sub(_usdgDelta);
@@ -111,9 +112,18 @@ contract VaultUtils is IVaultUtils, Initializable {
             return _feeBasisPoints;
         }
 
+        // get the delta of initialAmount and targetAmount
         uint256 initialDiff = initialAmount > targetAmount
             ? initialAmount.sub(targetAmount)
             : targetAmount.sub(initialAmount);
+        // initialAmount = 100
+        // targetAmount = 90
+        // ===> initialDiff = 10
+
+
+        // nextAmount = 110
+        // targetAmount = 90
+        // ===> nextDiff = 20
         uint256 nextDiff = nextAmount > targetAmount
             ? nextAmount.sub(targetAmount)
             : targetAmount.sub(nextAmount);
@@ -129,10 +139,12 @@ contract VaultUtils is IVaultUtils, Initializable {
                     : _feeBasisPoints.sub(rebateBps);
         }
 
+        // (initialDiff + nextDiff) / 2 =  (10+20)/2 = 15 = averageDiff
         uint256 averageDiff = initialDiff.add(nextDiff).div(2);
         if (averageDiff > targetAmount) {
             averageDiff = targetAmount;
         }
+        // 50 * 15 / 90
         uint256 taxBps = _taxBasisPoints.mul(averageDiff).div(targetAmount);
         return _feeBasisPoints.add(taxBps);
     }

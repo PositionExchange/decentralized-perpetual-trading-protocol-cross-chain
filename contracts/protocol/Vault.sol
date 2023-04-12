@@ -49,11 +49,17 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     bool public override hasDynamicFees = false;
     bool public override inManagerMode = false;
     bool public override isSwapEnabled = true;
+    bool public override isLeverageEnabled = true;
     uint256 public override liquidationFeeUsd;
 
     uint256 public override borrowingRateInterval = 8 hours;
     uint256 public override borrowingRateFactor = 600;
     uint256 public override stableBorrowingRateFactor = 600;
+
+    uint256 public override maxGasPrice;
+    uint256 public override maxLeverage = 50 * 10000; // 50x
+
+    bool public override inPrivateLiquidationMode = false;
 
     // mapping(address => bool) public whitelistTokens;
     mapping(address => bool) public whitelistCaller;
@@ -84,6 +90,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     // positionInfo tracks all open positions entry borrowing rates
     mapping(bytes32 => PositionInfo.Data) public positionInfo;
+
+
+    mapping (address => bool) public override isLiquidator;
+    mapping (address => bool) public override isManager;
 
     modifier onlyWhitelistToken(address token) {
         require(
@@ -467,6 +477,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         require(address(_priceFeed) != address(0), "Need priceFeed");
     }
 
+    function clearTokenConfig(address _token) external onlyOwner {
+        _validate(tokenConfigurations[_token].isWhitelisted, 13);
+        totalTokenWeight = totalTokenWeight.sub(tokenConfigurations[_token].tokenWeight);
+        delete tokenConfigurations[_token];
+    }
+
     function setFees(
         uint256 _taxBasisPoints,
         uint256 _stableTaxBasisPoints,
@@ -501,54 +517,45 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         whitelistCaller[caller] = val;
     }
 
-    function setUsdpAmount(address _token, uint256 _amount)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setUsdpAmount not implement");
+    function setUsdpAmount(
+        address _token,
+        uint256 _amount
+    ) external override onlyOwner {
+        vaultInfo[_token].usdpAmounts = uint128(_amount);
     }
 
     function setMaxLeverage(uint256 _maxLeverage) external override onlyOwner {
-        // TODO implement me
-        revert("setMaxLeverage not implement");
+        _validate(_maxLeverage > MIN_LEVERAGE, 2);
+        maxLeverage = _maxLeverage;
+
     }
 
-    function setManager(address _manager, bool _isManager)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setManager not implement");
+    function setManager(
+        address _manager,
+        bool _isManager
+    ) external override onlyOwner {
+        isManager[_manager] = _isManager;
     }
 
     function setIsSwapEnabled(bool _isSwapEnabled) external override onlyOwner {
         isSwapEnabled = _isSwapEnabled;
     }
 
-    function setIsLeverageEnabled(bool _isLeverageEnabled)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setIsLeverageEnabled not implement");
+    function setIsLeverageEnabled(
+        bool _isLeverageEnabled
+    ) external override onlyOwner {
+        isLeverageEnabled = _isLeverageEnabled;
     }
 
     function setMaxGasPrice(uint256 _maxGasPrice) external override onlyOwner {
-        // TODO implement me
-        revert("setMaxGasPrice not implement");
+        maxGasPrice =  _maxGasPrice;
     }
 
-    function setUsdgAmount(address _token, uint256 _amount)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setUsdgAmount not implement");
+    function setUsdgAmount(
+        address _token,
+        uint256 _amount
+    ) external override onlyOwner {
+        vaultInfo[_token].usdpAmounts = uint128(_amount);
     }
 
     function setBufferAmount(address _token, uint256 _amount)
@@ -559,31 +566,24 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         bufferAmounts[_token] = _amount;
     }
 
-    function setMaxGlobalShortSize(address _token, uint256 _amount)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setMaxGlobalShortSize not implement");
+    function setMaxGlobalShortSize(
+        address _token,
+        uint256 _amount
+    ) external override onlyOwner {
+        maxGlobalShortSizes[_token] = _amount;
     }
 
-    function setInPrivateLiquidationMode(bool _inPrivateLiquidationMode)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setInPrivateLiquidationMode not implement");
+    function setInPrivateLiquidationMode(
+        bool _inPrivateLiquidationMode
+    ) external override onlyOwner {
+        inPrivateLiquidationMode = _inPrivateLiquidationMode;
     }
 
-    function setLiquidator(address _liquidator, bool _isActive)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setLiquidator not implement");
+    function setLiquidator(
+        address _liquidator,
+        bool _isActive
+    ) external override onlyOwner {
+        isLiquidator[_liquidator] = _isActive;
     }
 
     function setPriceFeed(address _feed) external override onlyOwner {
@@ -1264,27 +1264,21 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return uint256(vaultInfo[_token].reservedAmounts);
     }
 
-    // @deprecated use usdpAmount
-    function usdgAmounts(address _token)
-        external
-        view
-        override
-        returns (uint256)
-    {
-        return uint256(vaultInfo[_token].usdpAmounts);
-    }
+//    // @deprecated use usdpAmount
+//    function usdgAmounts(
+//        address _token
+//    ) external view override returns (uint256) {
+//        return uint(vaultInfo[_token].usdpAmounts);
+//    }
 
     function usdpAmounts(address _token) external view returns (uint256) {
         return uint256(vaultInfo[_token].usdpAmounts);
     }
 
-    function maxUsdgAmounts(address _token)
-        external
-        view
-        override
-        returns (uint256)
-    {
-        // TODO impment me
+    function maxUsdgAmounts(
+        address _token
+    ) external view override returns (uint256) {
+        return tokenConfigurations[_token].maxUsdpAmount;
     }
 
     function tokenToUsdMin(address _token, uint256 _tokenAmount)
@@ -1361,10 +1355,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return IVaultPriceFeed(_priceFeed).getPrice(_token, false);
     }
 
-    function whitelistedTokenCount() external view override returns (uint256) {
-        // TODO implement me
-        revert("Vault not implemented");
-    }
+//    function whitelistedTokenCount() external view override returns (uint256) {
+//        // TODO implement me
+//        revert("Vault not implemented");
+//    }
 
     function isWhitelistedTokens(address _token)
         external
