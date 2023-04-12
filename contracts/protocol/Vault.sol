@@ -377,7 +377,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
-        bytes32 key = _getPositionInfoKey(
+        bytes32 key = getPositionInfoKey(
             _account,
             _collateralToken,
             _indexToken,
@@ -396,7 +396,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
-        bytes32 key = _getPositionInfoKey(
+        bytes32 key = getPositionInfoKey(
             _account,
             _collateralToken,
             _indexToken,
