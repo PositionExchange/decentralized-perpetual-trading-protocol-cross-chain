@@ -27,7 +27,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     uint256 public constant MIN_LEVERAGE = 10000; // 1x
     uint256 public constant USDG_DECIMALS = 18;
     uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
-    uint256 public constant MAX_LIQUIDATION_FEE_USD = 100 * PRICE_PRECISION; // 100 USD
 //    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
     uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1;
     uint256 public constant MAX_BORROWING_RATE_FACTOR = 10000; // 1%
@@ -51,7 +50,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     bool public override hasDynamicFees = false;
     bool public override inManagerMode = false;
     bool public override isSwapEnabled = true;
-    uint256 public override liquidationFeeUsd;
 
     uint256 public override borrowingRateInterval = 8 hours;
     uint256 public override borrowingRateFactor = 600;
@@ -331,6 +329,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return amountOutTokenAfterFees;
     }
 
+    // TODO: refactor later using _decreasePosition function
     function liquidatePosition(
         address _trader,
         address _collateralToken,
@@ -481,7 +480,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _swapFeeBasisPoints,
         uint256 _stableSwapFeeBasisPoints,
         uint256 _marginFeeBasisPoints,
-        uint256 _liquidationFeeUsd,
         uint256 _minProfitTime,
         bool _hasDynamicFees
     ) external onlyOwner {
@@ -491,14 +489,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         require(_swapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M4");
         require(_stableSwapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M5");
         require(_marginFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M6");
-        require(_liquidationFeeUsd <= MAX_LIQUIDATION_FEE_USD, "M7");
         taxBasisPoints = _taxBasisPoints;
         stableTaxBasisPoints = _stableTaxBasisPoints;
         mintBurnFeeBasisPoints = _mintBurnFeeBasisPoints;
         swapFeeBasisPoints = _swapFeeBasisPoints;
         stableSwapFeeBasisPoints = _stableSwapFeeBasisPoints;
         marginFeeBasisPoints = _marginFeeBasisPoints;
-        liquidationFeeUsd = _liquidationFeeUsd;
         minProfitTime = _minProfitTime;
         hasDynamicFees = _hasDynamicFees;
     }

@@ -71,6 +71,12 @@ contract DptpFuturesGateway is
         bool hasCollateralInETH;
     }
 
+    enum SetTPSLOption {
+        BOTH,
+        ONLY_HIGHER,
+        ONLY_LOWER
+    }
+
     enum Method {
         OPEN_MARKET,
         OPEN_LIMIT,
@@ -636,6 +642,48 @@ contract DptpFuturesGateway is
         _transferOut(_collateralToken, amountOutToken, payable(_account));
         emit CollateralRemove(_account, _collateralToken, amountOutToken);
     }
+
+    function setTPSL(
+        address _pmAddress,
+        uint128 _higherPip,
+        uint128 _lowerPip,
+        SetTPSLOption _option
+    ) external nonReentrant {
+        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.SET_TPSL),
+            abi.encode(
+                _pmAddress,
+                msg.sender,
+                _higherPip,
+                _lowerPip,
+                uint8(_option)
+            )
+        );
+    }
+
+    function unsetTPAndSL(address _pmAddress) external nonReentrant {
+        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.UNSET_TP_AND_SL),
+            abi.encode(_pmAddress, msg.sender)
+        );
+    }
+
+    function unsetTPOrSL(
+        address _pmAddress,
+        bool _isHigherPrice
+    ) external nonReentrant {
+        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.UNSET_TP_OR_SL),
+            abi.encode(_pmAddress, msg.sender, _isHigherPrice)
+        );
+    }
+
 
     function _increasePosition(
         address _account,

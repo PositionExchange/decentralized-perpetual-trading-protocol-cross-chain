@@ -258,7 +258,6 @@ contract Timelock is ITimelock {
             _swapFeeBasisPoints,
             _stableSwapFeeBasisPoints,
             maxMarginFeeBasisPoints,
-            vault.liquidationFeeUsd(),
             vault.minProfitTime(),
             vault.hasDynamicFees()
         );
@@ -275,7 +274,6 @@ contract Timelock is ITimelock {
         uint256 _swapFeeBasisPoints,
         uint256 _stableSwapFeeBasisPoints,
         uint256 _marginFeeBasisPoints,
-        uint256 _liquidationFeeUsd,
         uint256 _minProfitTime,
         bool _hasDynamicFees
     ) external onlyKeeperAndAbove {
@@ -288,7 +286,6 @@ contract Timelock is ITimelock {
             _swapFeeBasisPoints,
             _stableSwapFeeBasisPoints,
             maxMarginFeeBasisPoints,
-            _liquidationFeeUsd,
             _minProfitTime,
             _hasDynamicFees
         );
@@ -312,7 +309,6 @@ contract Timelock is ITimelock {
             vault.swapFeeBasisPoints(),
             vault.stableSwapFeeBasisPoints(),
             marginFeeBasisPoints,
-            vault.liquidationFeeUsd(),
             vault.minProfitTime(),
             vault.hasDynamicFees()
         );
@@ -336,7 +332,6 @@ contract Timelock is ITimelock {
             vault.swapFeeBasisPoints(),
             vault.stableSwapFeeBasisPoints(),
             maxMarginFeeBasisPoints, // marginFeeBasisPoints
-            vault.liquidationFeeUsd(),
             vault.minProfitTime(),
             vault.hasDynamicFees()
         );

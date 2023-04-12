@@ -29,8 +29,6 @@ const migrations: MigrationDefinition = {
               20, // _swapFeeBasisPoints
               1, // _stableSwapFeeBasisPoints
               10, // _marginFeeBasisPoints
-              // TODO config me??
-              (0), // _liquidationFeeUsd
               24 * 60 * 60, // _minProfitTime
               true // _hasDynamicFees
             ), "vault.setFees")
