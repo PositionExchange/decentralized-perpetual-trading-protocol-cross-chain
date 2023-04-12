@@ -14,7 +14,7 @@ interface IVault {
 
     function poolAmounts(address token) external view returns (uint256);
 
-    function whitelistedTokenCount() external view returns (uint256);
+//    function whitelistedTokenCount() external view returns (uint256);
 
     function minProfitTime() external returns (uint256);
 
@@ -201,7 +201,7 @@ interface IVault {
 
     function reservedAmounts(address _token) external view returns (uint256);
 
-    function usdgAmounts(address _token) external view returns (uint256);
+//    function usdgAmounts(address _token) external view returns (uint256);
 
     function maxUsdgAmounts(address _token) external view returns (uint256);
 
@@ -251,4 +251,12 @@ interface IVault {
         address _token,
         uint256 _tokenAmount
     ) external view returns (uint256);
+
+    function isLeverageEnabled() external view returns (bool);
+
+    function maxGasPrice() external view returns (uint256);
+    function maxLeverage() external view returns (uint256);
+    function inPrivateLiquidationMode() external view returns (bool);
+    function isLiquidator(address _account) external view returns (bool);
+    function isManager(address _account) external view returns (bool);
 }
