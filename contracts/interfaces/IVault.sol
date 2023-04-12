@@ -67,6 +67,22 @@ interface IVault {
         bool _isLong
     ) external;
 
+    function addCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong,
+        uint256 _amountInToken
+    ) external;
+
+    function removeCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong,
+        uint256 _amountInToken
+    ) external;
+
     /* Goivernance function */
     function setWhitelistCaller(address caller, bool val) external;
 

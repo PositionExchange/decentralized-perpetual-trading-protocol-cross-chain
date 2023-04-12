@@ -28,7 +28,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     uint256 public constant USDG_DECIMALS = 18;
     uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
     uint256 public constant MAX_LIQUIDATION_FEE_USD = 100 * PRICE_PRECISION; // 100 USD
-    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
+//    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
+    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1;
     uint256 public constant MAX_BORROWING_RATE_FACTOR = 10000; // 1%
     uint256 public constant BASIS_POINTS_DIVISOR = 10000;
     uint256 public constant PRICE_PRECISION = 10**30;
@@ -36,6 +37,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     IVaultPriceFeed private _priceFeed;
     IVaultUtils private _vaultUtils;
+    address public futuresGateway;
 
     address public usdp;
     uint256 public totalTokenWeight;
@@ -365,6 +367,45 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         }
 
         delete positionInfo[key];
+    }
+
+    function addCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong,
+        uint256 _amountInToken
+    ) external override nonReentrant {
+        _validateCaller(msg.sender);
+
+        bytes32 key = _getPositionInfoKey(
+            _account,
+            _collateralToken,
+            _indexToken,
+            _isLong
+        );
+        _increasePositionCollateralAmount(key, _amountInToken);
+        _increasePoolAmount(_collateralToken, _amountInToken);
+    }
+
+    function removeCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong,
+        uint256 _amountInToken
+    ) external override nonReentrant {
+        _validateCaller(msg.sender);
+
+        bytes32 key = _getPositionInfoKey(
+            _account,
+            _collateralToken,
+            _indexToken,
+            _isLong
+        );
+        _decreasePositionCollateralAmount(key, _amountInToken);
+        _decreasePoolAmount(_collateralToken, _amountInToken);
+        _transferOut(_collateralToken, _amountInToken, msg.sender);
     }
 
     function _decreaseGlobalShortSize(address _token, uint256 _amount) private {
@@ -995,6 +1036,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _amount,
         address _receiver
     ) private {
+        if (_amount == 0) {
+            return;
+        }
         uint256 prevBalance = tokenBalances[_token];
         require(prevBalance >= _amount, "Vault: insufficient amount");
         IERC20(_token).safeTransfer(_receiver, _amount);

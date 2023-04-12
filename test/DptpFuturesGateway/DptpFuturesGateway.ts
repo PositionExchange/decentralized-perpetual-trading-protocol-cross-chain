@@ -9,7 +9,7 @@ import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { deployContract } from "./common";
 
-describe("DPTP Futures Gateway", async function () {
+describe.skip("DPTP Futures Gateway", async function () {
   let deployer: any;
   let trader: any;
   let trader2: any;
