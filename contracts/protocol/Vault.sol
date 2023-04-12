@@ -166,7 +166,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _validateTokens(_collateralToken, _indexToken, _isLong);
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
-        bytes32 key = _getPositionInfoKey(
+        bytes32 key = getPositionInfoKey(
             _account,
             _collateralToken,
             _indexToken,
@@ -270,7 +270,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
         emit CollectFees(_feeUsd, borrowingFee, _feeUsd.add(borrowingFee));
 
-        bytes32 key = _getPositionInfoKey(
+        bytes32 key = getPositionInfoKey(
             _trader,
             _collateralToken,
             _indexToken,
@@ -348,7 +348,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _isLong
         );
 
-        bytes32 key = _getPositionInfoKey( _trader, _collateralToken, _indexToken, _isLong);
+        bytes32 key = getPositionInfoKey( _trader, _collateralToken, _indexToken, _isLong);
         PositionInfo.Data memory _positionInfo = positionInfo[key];
 
         uint256 positionAmountUsd = tokenToUsdMin(_collateralToken, _positionInfo.collateralAmount);
@@ -937,6 +937,23 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _getBorrowingFee(_trader, _collateralToken, _indexToken, _isLong);
     }
 
+    function getPositionInfoKey(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) public view returns (bytes32) {
+        return
+        keccak256(
+            abi.encodePacked(
+                _trader,
+                _collateralToken,
+                _indexToken,
+                _isLong
+            )
+        );
+    }
+
     /* PRIVATE FUNCTIONS */
     function _updateCumulativeBorrowingRate(
         address _collateralToken,
@@ -988,7 +1005,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _indexToken,
         bool _isLong
     ) private view returns (uint256) {
-        bytes32 _key = _getPositionInfoKey(
+        bytes32 _key = getPositionInfoKey(
             _trader,
             _collateralToken,
             _indexToken,
@@ -1001,23 +1018,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _positionInfo.entryBorrowingRates
         );
         return borrowingFee;
-    }
-
-    function _getPositionInfoKey(
-        address _trader,
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) private view returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    _trader,
-                    _collateralToken,
-                    _indexToken,
-                    _isLong
-                )
-            );
     }
 
     function _transferIn(address _token) private returns (uint256) {
