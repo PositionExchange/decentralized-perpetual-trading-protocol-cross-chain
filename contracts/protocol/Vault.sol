@@ -296,9 +296,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _decreaseReservedAmount(_collateralToken, reserveDelta);
         _decreasePositionReservedAmount(key, reserveDelta);
 
-        // TODO: Currently not seeing any reason to _reduceCollateral
-        // _reduceCollateral(_collateralToken, _isLong);
-
         if (_isLong) {
             _decreaseGuaranteedUsd(_collateralToken, _sizeDelta);
         } else {
@@ -369,37 +366,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         delete positionInfo[key];
     }
-
-    // TODO: Currently not seeing any reason to _reduceCollateral
-    //    function _reduceCollateral(
-    //        address _collateralToken,
-    //        bool _isLong,
-    //        int256 _adjustedPnLDelta
-    //    ) private {
-    //
-    //        uint256 adjustedPnLDeltaAbs = _adjustedPnLDelta >= 0
-    //        ? uint256(_adjustedPnLDelta)
-    //        : uint256(-_adjustedPnLDelta);
-    //
-    //        // transfer profits out
-    //        if (_adjustedPnLDelta > 0) {
-    //            // pay out realised profits from the pool amount for short positions
-    //            if (!_isLong) {
-    //                uint256 tokenAmount = usdToTokenMin(_collateralToken, adjustedPnLDeltaAbs);
-    //                _decreasePoolAmount(_collateralToken, tokenAmount);
-    //            }
-    //        }
-    //
-    //        if (_adjustedPnLDelta < 0) {
-    //            // transfer realised losses to the pool for short positions
-    //            // realised losses for long positions are not transferred here as
-    //            // _increasePoolAmount was already called in increasePosition for longs
-    //            if (!_isLong) {
-    //                uint256 tokenAmount = usdToTokenMin(_collateralToken, adjustedPnLDeltaAbs);
-    //                _increasePoolAmount(_collateralToken, tokenAmount);
-    //            }
-    //        }
-    //    }
 
     function _decreaseGlobalShortSize(address _token, uint256 _amount) private {
         uint256 size = globalShortSizes[_token];

@@ -63,6 +63,7 @@ contract DptpFuturesGateway is
         address[] path;
         address indexToken;
         uint256 amountInToken;
+        uint256 amountInUsd;
         uint256 sizeDeltaToken;
         uint256 pip;
         uint16 leverage;
@@ -203,6 +204,7 @@ contract DptpFuturesGateway is
     function createIncreasePosition(
         address[] memory _path,
         address _indexToken,
+        uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong
@@ -211,7 +213,10 @@ contract DptpFuturesGateway is
         require(_path.length == 1 || _path.length == 2, "len");
         _validateSize(_path[0], _sizeDeltaToken, false);
 
-        uint256 amountInToken = _sizeDeltaToken.div(_leverage);
+        uint256 amountInToken = IVault(vault).usdToTokenMin(
+            _path[0],
+            _amountInUsd.mul(PRICE_DECIMALS)
+        );
         _transferIn(_path[0], amountInToken);
         _transferInETH();
 
@@ -220,6 +225,7 @@ contract DptpFuturesGateway is
             _path,
             _indexToken,
             amountInToken,
+            _amountInUsd,
             _sizeDeltaToken,
             0,
             _leverage,
@@ -229,38 +235,41 @@ contract DptpFuturesGateway is
         return _createIncreasePosition(params);
     }
 
-    function createIncreasePositionETH(
-        address[] memory _path,
-        address _indexToken,
-        uint256 _sizeDeltaToken,
-        uint16 _leverage,
-        bool _isLong
-    ) external payable nonReentrant returns (bytes32) {
-        require(msg.value >= executionFee, "fee");
-        require(_path.length == 1 || _path.length == 2, "len");
-        require(_path[0] == weth, "path");
-        _validateSize(_path[0], _sizeDeltaToken, false);
-
-        uint256 amountInToken = msg.value.sub(executionFee);
-        _transferInETH();
-
-        CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
-            msg.sender,
-            _path,
-            _indexToken,
-            amountInToken,
-            _sizeDeltaToken,
-            0,
-            _leverage,
-            _isLong,
-            false
-        );
-        return _createIncreasePosition(params);
-    }
+    //    function createIncreasePositionETH(
+    //        address[] memory _path,
+    //        address _indexToken,
+    //        uint256 _amountInUsd,
+    //        uint256 _sizeDeltaToken,
+    //        uint16 _leverage,
+    //        bool _isLong
+    //    ) external payable nonReentrant returns (bytes32) {
+    //        require(msg.value >= executionFee, "fee");
+    //        require(_path.length == 1 || _path.length == 2, "len");
+    //        require(_path[0] == weth, "path");
+    //        _validateSize(_path[0], _sizeDeltaToken, false);
+    //
+    //        uint256 amountInToken = msg.value.sub(executionFee);
+    //        _transferInETH();
+    //
+    //        CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
+    //            msg.sender,
+    //            _path,
+    //            _indexToken,
+    //            amountInToken,
+    //            _amountInUsd,
+    //            _sizeDeltaToken,
+    //            0,
+    //            _leverage,
+    //            _isLong,
+    //            false
+    //        );
+    //        return _createIncreasePosition(params);
+    //    }
 
     function createIncreaseOrder(
         address[] memory _path,
         address _indexToken,
+        uint256 _amountInUsd,
         uint256 _pip,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
@@ -274,12 +283,9 @@ contract DptpFuturesGateway is
             _path[0]
         ];
 
-        uint256 amountInUsd = _pip.mul(_sizeDeltaToken).div(_leverage).div(
-            managerConfigData.basicPoint
-        );
         uint256 amountInToken = IVault(vault).usdToTokenMin(
             _path[0],
-            amountInUsd.mul(PRICE_DECIMALS)
+            _amountInUsd.mul(PRICE_DECIMALS)
         );
 
         _transferIn(_path[0], amountInToken);
@@ -290,6 +296,7 @@ contract DptpFuturesGateway is
             _path,
             _indexToken,
             amountInToken,
+            _amountInUsd,
             _sizeDeltaToken,
             _pip,
             _leverage,
