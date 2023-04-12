@@ -491,6 +491,61 @@ contract DptpFuturesGateway is
         );
     }
 
+    function createCancelOrderRequest(
+        bytes32 _key,
+        uint256 _orderIdx,
+        bool _isReduce
+    ) external payable nonReentrant {
+        address account;
+        address collateralToken;
+
+        if (_isReduce) {
+            DecreasePositionRequest memory request = decreasePositionRequests[
+                _key
+            ];
+            account = request.account;
+            collateralToken = request.path[0];
+        } else {
+            IncreasePositionRequest memory request = increasePositionRequests[
+                _key
+            ];
+            account = request.account;
+            collateralToken = request.path[0];
+        }
+        require(account == msg.sender, "403");
+
+        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.CANCEL_LIMIT),
+            abi.encode(
+                _key,
+                coreManagers[collateralToken],
+                _orderIdx,
+                _isReduce,
+                msg.sender
+            )
+        );
+    }
+
+    function executeCancelIncreaseOrder(bytes32 _key, bool _isReduce)
+        external
+        payable
+        nonReentrant
+    {
+        //        require(positionKeepers[msg.sender], "403");
+        if (_isReduce) {
+            delete decreasePositionRequests[_key];
+            return;
+        }
+
+        IncreasePositionRequest memory request = increasePositionRequests[_key];
+
+        _transferOut(request.path[0], request.amountInToken, payable(request.account));
+
+        delete increasePositionRequests[_key];
+    }
+
     function liquidatePosition(
         address _trader,
         address _collateralToken,
