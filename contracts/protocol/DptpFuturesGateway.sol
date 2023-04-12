@@ -644,7 +644,7 @@ contract DptpFuturesGateway is
     }
 
     function setTPSL(
-        address _pmAddress,
+        address _indexToken,
         uint128 _higherPip,
         uint128 _lowerPip,
         SetTPSLOption _option
@@ -654,7 +654,7 @@ contract DptpFuturesGateway is
             pscCrossChainGateway,
             uint8(Method.SET_TPSL),
             abi.encode(
-                _pmAddress,
+                coreManagers[_indexToken],
                 msg.sender,
                 _higherPip,
                 _lowerPip,
@@ -663,24 +663,24 @@ contract DptpFuturesGateway is
         );
     }
 
-    function unsetTPAndSL(address _pmAddress) external nonReentrant {
+    function unsetTPAndSL(address _indexToken) external nonReentrant {
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
             uint8(Method.UNSET_TP_AND_SL),
-            abi.encode(_pmAddress, msg.sender)
+            abi.encode(coreManagers[_indexToken], msg.sender)
         );
     }
 
     function unsetTPOrSL(
-        address _pmAddress,
+        address _indexToken,
         bool _isHigherPrice
     ) external nonReentrant {
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
             uint8(Method.UNSET_TP_OR_SL),
-            abi.encode(_pmAddress, msg.sender, _isHigherPrice)
+            abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
         );
     }
 
