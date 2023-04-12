@@ -41,7 +41,6 @@ describe("LPManager", function() {
       30, // _swapFeeBasisPoints
       4, // _stableSwapFeeBasisPoints
       10, // _marginFeeBasisPoints
-      (5), // _liquidationFeeUsd
       0, // _minProfitTime
       false// _hasDynamicFees
     )

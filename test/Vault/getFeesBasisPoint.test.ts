@@ -22,7 +22,6 @@ describe("Vault.getFeesBasisPoint", function() {
       30, // _swapFeeBasisPoints
       4, // _stableSwapFeeBasisPoints
       10, // _marginFeeBasisPoints
-      (5), // _liquidationFeeUsd
       0, // _minProfitTime
       true // _hasDynamicFees
     )

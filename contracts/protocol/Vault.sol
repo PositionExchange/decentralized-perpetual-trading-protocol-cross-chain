@@ -27,7 +27,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     uint256 public constant MIN_LEVERAGE = 10000; // 1x
     uint256 public constant USDG_DECIMALS = 18;
     uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
-    uint256 public constant MAX_LIQUIDATION_FEE_USD = 100 * PRICE_PRECISION; // 100 USD
 //    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
     uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1;
     uint256 public constant MAX_BORROWING_RATE_FACTOR = 10000; // 1%
@@ -51,7 +50,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     bool public override hasDynamicFees = false;
     bool public override inManagerMode = false;
     bool public override isSwapEnabled = true;
-    uint256 public override liquidationFeeUsd;
 
     uint256 public override borrowingRateInterval = 8 hours;
     uint256 public override borrowingRateFactor = 600;
@@ -168,7 +166,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _validateTokens(_collateralToken, _indexToken, _isLong);
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
-        bytes32 key = _getPositionInfoKey(
+        bytes32 key = getPositionInfoKey(
             _account,
             _collateralToken,
             _indexToken,
@@ -272,7 +270,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
         emit CollectFees(_feeUsd, borrowingFee, _feeUsd.add(borrowingFee));
 
-        bytes32 key = _getPositionInfoKey(
+        bytes32 key = getPositionInfoKey(
             _trader,
             _collateralToken,
             _indexToken,
@@ -331,6 +329,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return amountOutTokenAfterFees;
     }
 
+    // TODO: refactor later using _decreasePosition function
     function liquidatePosition(
         address _trader,
         address _collateralToken,
@@ -349,7 +348,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _isLong
         );
 
-        bytes32 key = _getPositionInfoKey( _trader, _collateralToken, _indexToken, _isLong);
+        bytes32 key = getPositionInfoKey( _trader, _collateralToken, _indexToken, _isLong);
         PositionInfo.Data memory _positionInfo = positionInfo[key];
 
         uint256 positionAmountUsd = tokenToUsdMin(_collateralToken, _positionInfo.collateralAmount);
@@ -378,7 +377,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
-        bytes32 key = _getPositionInfoKey(
+        bytes32 key = getPositionInfoKey(
             _account,
             _collateralToken,
             _indexToken,
@@ -397,7 +396,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
-        bytes32 key = _getPositionInfoKey(
+        bytes32 key = getPositionInfoKey(
             _account,
             _collateralToken,
             _indexToken,
@@ -481,7 +480,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _swapFeeBasisPoints,
         uint256 _stableSwapFeeBasisPoints,
         uint256 _marginFeeBasisPoints,
-        uint256 _liquidationFeeUsd,
         uint256 _minProfitTime,
         bool _hasDynamicFees
     ) external onlyOwner {
@@ -491,14 +489,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         require(_swapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M4");
         require(_stableSwapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M5");
         require(_marginFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M6");
-        require(_liquidationFeeUsd <= MAX_LIQUIDATION_FEE_USD, "M7");
         taxBasisPoints = _taxBasisPoints;
         stableTaxBasisPoints = _stableTaxBasisPoints;
         mintBurnFeeBasisPoints = _mintBurnFeeBasisPoints;
         swapFeeBasisPoints = _swapFeeBasisPoints;
         stableSwapFeeBasisPoints = _stableSwapFeeBasisPoints;
         marginFeeBasisPoints = _marginFeeBasisPoints;
-        liquidationFeeUsd = _liquidationFeeUsd;
         minProfitTime = _minProfitTime;
         hasDynamicFees = _hasDynamicFees;
     }
@@ -941,6 +937,23 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _getBorrowingFee(_trader, _collateralToken, _indexToken, _isLong);
     }
 
+    function getPositionInfoKey(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) public view returns (bytes32) {
+        return
+        keccak256(
+            abi.encodePacked(
+                _trader,
+                _collateralToken,
+                _indexToken,
+                _isLong
+            )
+        );
+    }
+
     /* PRIVATE FUNCTIONS */
     function _updateCumulativeBorrowingRate(
         address _collateralToken,
@@ -992,7 +1005,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _indexToken,
         bool _isLong
     ) private view returns (uint256) {
-        bytes32 _key = _getPositionInfoKey(
+        bytes32 _key = getPositionInfoKey(
             _trader,
             _collateralToken,
             _indexToken,
@@ -1005,23 +1018,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _positionInfo.entryBorrowingRates
         );
         return borrowingFee;
-    }
-
-    function _getPositionInfoKey(
-        address _trader,
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) private view returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    _trader,
-                    _collateralToken,
-                    _indexToken,
-                    _isLong
-                )
-            );
     }
 
     function _transferIn(address _token) private returns (uint256) {

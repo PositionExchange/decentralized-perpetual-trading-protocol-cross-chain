@@ -93,7 +93,6 @@ interface IVault {
         uint256 _swapFeeBasisPoints,
         uint256 _stableSwapFeeBasisPoints,
         uint256 _marginFeeBasisPoints,
-        uint256 _liquidationFeeUsd,
         uint256 _minProfitTime,
         bool _hasDynamicFees
     ) external;
@@ -160,8 +159,6 @@ interface IVault {
         address _token,
         uint256 _usdpAmount
     ) external view returns (uint256);
-
-    function liquidationFeeUsd() external view returns (uint256);
 
     function taxBasisPoints() external view returns (uint256);
 
