@@ -264,4 +264,10 @@ interface IVault {
         address _token,
         uint256 _tokenAmount
     ) external view returns (uint256);
+
+    function validateTokens(
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) external view returns (bool);
 }
