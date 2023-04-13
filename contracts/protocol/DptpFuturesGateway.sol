@@ -220,7 +220,8 @@ contract DptpFuturesGateway is
     ) external payable nonReentrant returns (bytes32) {
         require(msg.value == executionFee, "fee");
         require(_path.length == 1 || _path.length == 2, "len");
-        _validateSize(_path[0], _sizeDeltaToken, false);
+        _validateSize(_indexToken, _sizeDeltaToken, false);
+        _validateToken(_path[_path.length - 1], _indexToken, _isLong);
 
         uint256 amountInToken = IVault(vault).usdToTokenMin(
             _path[0],
@@ -286,7 +287,8 @@ contract DptpFuturesGateway is
     ) external payable nonReentrant returns (bytes32) {
         require(msg.value == executionFee, "fee");
         require(_path.length == 1 || _path.length == 2, "len");
-        _validateSize(_path[0], _sizeDeltaToken, false);
+        _validateSize(_indexToken, _sizeDeltaToken, false);
+        _validateToken(_path[_path.length - 1], _indexToken, _isLong);
 
         ManagerData memory managerConfigData = positionManagerConfigData[
             _path[0]
@@ -325,7 +327,7 @@ contract DptpFuturesGateway is
     ) external payable nonReentrant returns (bytes32) {
         require(msg.value == executionFee, "val");
         require(_path.length == 1 || _path.length == 2, "len");
-        _validateSize(_path[0], _sizeDeltaToken, false);
+        _validateSize(_indexToken, _sizeDeltaToken, false);
 
         if (_withdrawETH) {
             require(_path[_path.length - 1] == weth, "path");
@@ -354,7 +356,7 @@ contract DptpFuturesGateway is
     ) external payable nonReentrant returns (bytes32) {
         require(msg.value == executionFee, "val");
         require(_path.length == 1 || _path.length == 2, "len");
-        _validateSize(_path[0], _sizeDeltaToken, false);
+        _validateSize(_indexToken, _sizeDeltaToken, false);
 
         if (_withdrawETH) {
             require(_path[_path.length - 1] == weth, "path");
@@ -547,7 +549,11 @@ contract DptpFuturesGateway is
 
         IncreasePositionRequest memory request = increasePositionRequests[_key];
 
-        _transferOut(request.path[0], request.amountInToken, payable(request.account));
+        _transferOut(
+            request.path[0],
+            request.amountInToken,
+            payable(request.account)
+        );
 
         delete increasePositionRequests[_key];
     }
@@ -672,10 +678,10 @@ contract DptpFuturesGateway is
         );
     }
 
-    function unsetTPOrSL(
-        address _indexToken,
-        bool _isHigherPrice
-    ) external nonReentrant {
+    function unsetTPOrSL(address _indexToken, bool _isHigherPrice)
+        external
+        nonReentrant
+    {
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
@@ -683,7 +689,6 @@ contract DptpFuturesGateway is
             abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
         );
     }
-
 
     function _increasePosition(
         address _account,
@@ -1047,6 +1052,15 @@ contract DptpFuturesGateway is
     {
         require(_path.length == 2, "invalid _path.length");
         return IVault(vault).swap(_path[0], _path[1], _receiver);
+    }
+
+    function _validateToken(
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) internal view {
+        bool _isTokenValid = IVault(vault).validateTokens(_collateralToken, _indexToken, _isLong);
+        require(_isTokenValid, "token invalid");
     }
 
     function _validateSize(

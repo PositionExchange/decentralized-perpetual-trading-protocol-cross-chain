@@ -163,7 +163,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _feeUsd
     ) external override nonReentrant {
         _validateCaller(_account);
-        _validateTokens(_collateralToken, _indexToken, _isLong);
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         bytes32 key = getPositionInfoKey(
@@ -1381,6 +1380,14 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return tokenConfigurations[_token].isWhitelisted;
     }
 
+    function validateTokens(
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) external view returns (bool) {
+        return _validateTokens(_collateralToken, _indexToken, _isLong);
+    }
+
     function _increaseGlobalShortSize(address _token, uint256 _amount)
         internal
     {
@@ -1403,7 +1410,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) private view {
+    ) private view returns (bool){
         TokenConfiguration.Data memory cTokenCfg = tokenConfigurations[
             _collateralToken
         ];
@@ -1412,7 +1419,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _validate(_collateralToken == _indexToken, 42);
             _validate(cTokenCfg.isWhitelisted, 43);
             _validate(!cTokenCfg.isStableToken, 44);
-            return;
+            return true;
         }
 
         _validate(cTokenCfg.isWhitelisted, 45);
@@ -1423,6 +1430,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         ];
         _validate(!iTokenCfg.isStableToken, 47);
         _validate(iTokenCfg.isShortableToken, 48);
+
+        return true;
     }
 
     function _validatePosition(uint256 _size, uint256 _collateral)
