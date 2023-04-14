@@ -575,15 +575,13 @@ contract DptpFuturesGateway is
         );
     }
 
-    function createUpdateCollateralRequest(
+    function createAddCollateralRequest(
         address _collateralToken,
         address _indexToken,
         uint256 _amountInUsd,
-        bool _isRemove
+        bool _isLong
     ) external nonReentrant {
-        uint8 methodId = _isRemove
-            ? uint8(Method.REMOVE_MARGIN)
-            : uint8(Method.ADD_MARGIN);
+        IVault(vault).validateTokens(_collateralToken, _indexToken, _isLong);
         uint256 amountInToken = IVault(vault).usdToTokenMin(
             _collateralToken,
             _amountInUsd.mul(PRICE_DECIMALS)
@@ -592,13 +590,35 @@ contract DptpFuturesGateway is
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
-            methodId,
+            uint8(Method.ADD_MARGIN),
             abi.encode(
                 _collateralToken,
                 _indexToken,
                 coreManagers[_indexToken],
                 _amountInUsd,
                 amountInToken,
+                msg.sender
+            )
+        );
+    }
+
+    function createRemoveCollateralRequest(
+        address _collateralToken,
+        address _indexToken,
+        uint256 _amountInUsd,
+        bool _isLong
+    ) external nonReentrant {
+        IVault(vault).validateTokens(_collateralToken, _indexToken, _isLong);
+        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.REMOVE_MARGIN),
+            abi.encode(
+                _collateralToken,
+                _indexToken,
+                coreManagers[_indexToken],
+                _amountInUsd,
+                0,
                 msg.sender
             )
         );
@@ -628,7 +648,6 @@ contract DptpFuturesGateway is
         address _collateralToken,
         address _indexToken,
         bool _isLong,
-        uint256 _amountInToken,
         uint256 _amountOutUsd
     ) external nonReentrant {
         //        require(positionKeepers[msg.sender], "403");
@@ -1137,7 +1156,11 @@ contract DptpFuturesGateway is
         address _indexToken,
         bool _isLong
     ) internal view {
-        bool _isTokenValid = IVault(vault).validateTokens(_collateralToken, _indexToken, _isLong);
+        bool _isTokenValid = IVault(vault).validateTokens(
+            _collateralToken,
+            _indexToken,
+            _isLong
+        );
         require(_isTokenValid, "token invalid");
     }
 
