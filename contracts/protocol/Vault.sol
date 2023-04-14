@@ -384,6 +384,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
         _increasePositionCollateralAmount(key, _amountInToken);
         _increasePoolAmount(_collateralToken, _amountInToken);
+        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
     }
 
     function removeCollateral(
@@ -403,6 +404,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
         _decreasePositionCollateralAmount(key, _amountInToken);
         _decreasePoolAmount(_collateralToken, _amountInToken);
+        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         _transferOut(_collateralToken, _amountInToken, msg.sender);
     }
 

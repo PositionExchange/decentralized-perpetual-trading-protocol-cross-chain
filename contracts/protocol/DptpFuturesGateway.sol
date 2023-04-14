@@ -227,6 +227,7 @@ contract DptpFuturesGateway is
             _path[0],
             _amountInUsd.mul(PRICE_DECIMALS)
         );
+
         _transferIn(_path[0], amountInToken);
         _transferInETH();
 
@@ -575,7 +576,7 @@ contract DptpFuturesGateway is
     }
 
     function createUpdateCollateralRequest(
-        address[] memory _path,
+        address _collateralToken,
         address _indexToken,
         uint256 _amountInUsd,
         bool _isRemove
@@ -584,16 +585,16 @@ contract DptpFuturesGateway is
             ? uint8(Method.REMOVE_MARGIN)
             : uint8(Method.ADD_MARGIN);
         uint256 amountInToken = IVault(vault).usdToTokenMin(
-            _path[0],
+            _collateralToken,
             _amountInUsd.mul(PRICE_DECIMALS)
         );
-        _transferIn(_path[0], _amountInUsd);
+        _transferIn(_collateralToken, amountInToken);
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
             methodId,
             abi.encode(
-                _path[0],
+                _collateralToken,
                 _indexToken,
                 coreManagers[_indexToken],
                 _amountInUsd,

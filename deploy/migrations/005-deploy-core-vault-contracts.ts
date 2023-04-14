@@ -30,7 +30,7 @@ const migrations: MigrationDefinition = {
               1, // _stableSwapFeeBasisPoints
               10, // _marginFeeBasisPoints
               24 * 60 * 60, // _minProfitTime
-              true // _hasDynamicFees
+              false // _hasDynamicFees
             ), "vault.setFees")
         },
         // call this one to re config price feed for tokens

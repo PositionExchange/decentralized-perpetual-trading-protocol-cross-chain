@@ -36,6 +36,7 @@
 {"address":"yes","key":"0xf13B553538ad6013c1ede00d00658aa6657a22a0:verified","_id":"LILJAcMhuRCggvPk"}
 {"address":"yes","key":"0x6EeD77974CAaC7A47B0590f497e956Db174599c6:verified","_id":"LSQtQsog19fMLLfs"}
 {"address":"yes","key":"0x6B3cB40F972B2ec41A1d705B712b405A7376389E:verified","_id":"MqpjaXj6SkxCNeBj"}
+{"address":"yes","key":"0x07f1Ec651a66647d23aE37De37bC05615E6F1308:verified","_id":"NtKEqEoZjRDR03cV"}
 {"address":"yes","key":"0x322173A50e05cd80f49C0d39178FcB242074F2B7:verified","_id":"OPOdsM8WhtZxUxwf"}
 {"address":"0xB202545C693631eEeBC83E600c74cFf4EE54F39c","key":"DAI","_id":"Ol0doHoxcUFl3z0d"}
 {"address":"0x792bA5e9E0Cd15083Ec2f58E434d875892005b91","key":"PLP","_id":"P2DJGiC7T2Yr3Rkk"}
@@ -59,6 +60,7 @@
 {"address":"yes","key":"0xF9540bdD497468F2d96815f01BdB18E19CE8F6BA:verified","_id":"fYVpLupHOm3f7RcP"}
 {"address":"0xa3afbfc6dea71ada49a13e5a8a2d6cfde052533f","key":"TokenBUSDTestnet","_id":"gBODZiYM7fXkzF3e"}
 {"address":"yes","key":"0x36aA2c146b222959Eb5100D881C8f94480B57b08:verified","_id":"gQdLUUViZAWJOzlZ"}
+{"address":"yes","key":"0x3303b10a3518f7b607FC10F21D03b4287D138DeE:verified","_id":"hAqM2EyIKy050TuW"}
 {"address":"0xc4900937c3222CA28Cd4b300Eb2575ee0868540F","key":"BTC","_id":"hspEsbMONZVzALgJ"}
 {"address":"yes","key":"0xee37771c584a6C21D63AC7686645a074B35d7812:verified","_id":"ikhSWV1RTmm60WUH"}
 {"address":"yes","key":"0xA62952F46a271fa594336f7bBD87F9e35975B5FE:verified","_id":"j7nGH3VEN4TfIplP"}
@@ -68,6 +70,7 @@
 {"address":"yes","key":"0x27a905Ed109A560D4D56E5036D8591c493352b05:verified","_id":"nj3gIfDxULGRRLXD"}
 {"address":"yes","key":"0x52B2540bA1BF6782243A61f4DCD226E6fBeB13C2:verified","_id":"o98RPlks4KHPTCaw"}
 {"address":"0xe8982682e8ba2a55c3f44fef4f949decad46befc","key":"FuturesGateway","_id":"omenC6tEzXLbhnjn"}
+{"address":"yes","key":"0xD66579EAf4Dae4967DE7DDB2E88D06Ce2E028593:verified","_id":"pSzg7pNvEMFkxRCg"}
 {"address":"0x7F8CD121aEdD5249a03328ce792C6FC5A7F224cE","key":"DptpFuturesGateway","_id":"q11jcHZqRz4u0pfH"}
 {"address":"0x806C04C3a79e3bD6DDe8a8928b92B58fc61e3Ce4","key":"RewardRouter","_id":"quqryEdQDn7KuPOe"}
 {"address":"yes","key":"0x91caf6f0C9Ec204C697B6D464fEbaaa0bc984976:verified","_id":"rKeR6iJunqnIAdge"}
