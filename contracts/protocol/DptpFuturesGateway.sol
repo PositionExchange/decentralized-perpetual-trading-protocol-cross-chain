@@ -650,11 +650,27 @@ contract DptpFuturesGateway is
     }
 
     function setTPSL(
+        address[] memory _path,
         address _indexToken,
+        bool _withdrawETH,
         uint128 _higherPip,
         uint128 _lowerPip,
         SetTPSLOption _option
     ) external nonReentrant {
+        bytes32 requestKey = _createTPSLDecreaseOrder(
+            msg.sender,
+            _path,
+            _indexToken,
+            _withdrawETH
+        );
+        if (_option == SetTPSLOption.ONLY_HIGHER) {
+            TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, true)] = requestKey;
+        } else if (_option == SetTPSLOption.ONLY_LOWER) {
+            TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, false)] = requestKey;
+        } else if (_option == SetTPSLOption.BOTH) {
+            TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, true)] = requestKey;
+            TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, false)] = requestKey;
+        }
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
@@ -670,6 +686,10 @@ contract DptpFuturesGateway is
     }
 
     function unsetTPAndSL(address _indexToken) external nonReentrant {
+        delete decreasePositionRequests[TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, true)]];
+        delete TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, true)];
+        delete decreasePositionRequests[TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, false)]];
+        delete TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, false)];
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
@@ -682,12 +702,46 @@ contract DptpFuturesGateway is
         external
         nonReentrant
     {
+        if (_isHigherPrice){
+            delete decreasePositionRequests[TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, true)]];
+            delete TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, true)];
+        } else {
+            delete decreasePositionRequests[TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, false)]];
+            delete TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, false)];
+        }
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
             uint8(Method.UNSET_TP_OR_SL),
             abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
         );
+    }
+
+    function triggerTPSL(
+        address _account,
+        address _positionManager,
+        uint256 _amountOutUsdAfterFees,
+        uint256 _feeUsd,
+        uint256 _sizeDeltaInToken,
+        bool _isHigherPrice,
+        bool _isLong
+    ) external nonReentrant
+    {
+        address indexToken = indexTokens[_positionManager];
+        // delete untriggered tp or sl order
+        delete decreasePositionRequests[TPSLRequestMap[_getTPSLRequestKey(_account, indexToken, !_isHigherPrice)]];
+        delete TPSLRequestMap[_getTPSLRequestKey(_account, indexToken, !_isHigherPrice)];
+
+        bytes32  triggeredTPSLKey = _getTPSLRequestKey(_account, indexToken, _isHigherPrice);
+        executeDecreasePosition(
+            TPSLRequestMap[triggeredTPSLKey],
+            _amountOutUsdAfterFees,
+            _feeUsd,
+            _sizeDeltaInToken,
+            _isLong
+        );
+        delete decreasePositionRequests[TPSLRequestMap[triggeredTPSLKey]];
+        delete TPSLRequestMap[triggeredTPSLKey];
     }
 
     function _increasePosition(
@@ -929,6 +983,22 @@ contract DptpFuturesGateway is
         return requestKey;
     }
 
+    function _createTPSLDecreaseOrder(
+        address _account,
+        address[] memory _path,
+        address _indexToken,
+        bool _withdrawETH
+    ) internal returns (bytes32) {
+        DecreasePositionRequest memory request = DecreasePositionRequest(
+            _account,
+            _path,
+            _indexToken,
+            _withdrawETH
+        );
+        (, bytes32 requestKey) = _storeDecreasePositionRequest(request);
+        return requestKey;
+    }
+
     function _storeIncreasePositionRequest(
         IncreasePositionRequest memory _request
     ) internal returns (uint256, bytes32) {
@@ -1044,6 +1114,13 @@ contract DptpFuturesGateway is
         returns (bytes32)
     {
         return keccak256(abi.encodePacked(_account, _index));
+    }
+
+    function _getTPSLRequestKey(address _account, address _indexToken, bool _isHigherPip)
+        internal
+        returns (bytes32)
+    {
+        return keccak256(abi.encodePacked(_account, _indexToken, _isHigherPip));
     }
 
     function _swap(address[] memory _path, address _receiver)
@@ -1256,6 +1333,7 @@ contract DptpFuturesGateway is
         onlyOwner
     {
         coreManagers[_token] = _manager;
+        indexTokens[_manager] = _token;
     }
 
     /**
@@ -1264,5 +1342,9 @@ contract DptpFuturesGateway is
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
+    // mapping indexToken with positionManager
     mapping(address => address) public coreManagers;
+    // mapping positionManager with indexToken
+    mapping(address => address) public indexTokens;
+    mapping(bytes32 => bytes32) TPSLRequestMap;
 }
