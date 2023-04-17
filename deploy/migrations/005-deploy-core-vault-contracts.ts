@@ -1,6 +1,16 @@
 import {MigrationContext, MigrationDefinition} from "../types";
 import {ContractWrapperFactory} from "../ContractWrapperFactory";
-import {DptpFuturesGateway, LpManager, PLP, USDP, Vault, VaultPriceFeed, VaultUtils, WETH} from "../../typeChain";
+import {
+  DptpFuturesGateway,
+  LpManager,
+  MockToken,
+  PLP,
+  USDP,
+  Vault,
+  VaultPriceFeed,
+  VaultUtils,
+  WETH
+} from "../../typeChain";
 import {BigNumber, ContractTransaction} from "ethers";
 
 const migrations: MigrationDefinition = {
@@ -65,34 +75,64 @@ const migrations: MigrationDefinition = {
           const vaultAddress = ctx.db.findAddressByKey('Vault')
 
           const weth = await ctx.factory.getDeployedContract<WETH>('WETH')
+          const usdt = await ctx.factory.getDeployedContract<MockToken>( 'USDT', 'MockToken')
+          const busd = await ctx.factory.getDeployedContract<MockToken>('BUSD', 'MockToken')
           const lpManager = await ctx.factory.getDeployedContract<LpManager>('LpManager')
           const usdp = await ctx.factory.getDeployedContract<USDP>('USDP')
           const futuresGateway = await ctx.factory.getDeployedContract<DptpFuturesGateway>('DptpFuturesGateway')
 
           let tx: Promise<ContractTransaction>;
 
-          tx = usdp.addVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'usdp.addVault')
+          // tx = usdp.addVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'usdp.addVault')
+          //
+          // tx = lpManager.setVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'lpManager.setVault')
+          //
+          // tx = futuresGateway.setVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'futuresGateway.setVault')
+          //
+          // tx = weth.mint(deployerAddress, BigNumber.from('1000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'weth.mint')
+          //
+          // tx = weth.approve(lpManager.address, BigNumber.from('1000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'weth.approve')
+          //
+          // tx = lpManager.addLiquidity(
+          //     weth.address,
+          //     BigNumber.from('1000000000000000000000'),
+          //     BigNumber.from('0'),
+          //     BigNumber.from('1000000000000000000')
+          // )
+          // await ctx.factory.waitTx(tx, 'lpManager.addLiquidity')
 
-          tx = lpManager.setVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'lpManager.setVault')
+          tx = usdt.mint(deployerAddress, BigNumber.from('10000000000000000000000000'))
+          await ctx.factory.waitTx(tx, 'usdt.mint')
 
-          tx = futuresGateway.setVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'futuresGateway.setVault')
-
-          tx = weth.mint(deployerAddress, BigNumber.from('1000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'weth.mint')
-
-          tx = weth.approve(lpManager.address, BigNumber.from('1000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'weth.approve')
+          tx = usdt.approve(lpManager.address, BigNumber.from('10000000000000000000000000'))
+          await ctx.factory.waitTx(tx, 'usdt.approve')
 
           tx = lpManager.addLiquidity(
-              weth.address,
-              BigNumber.from('1000000000000000000000'),
+              usdt.address,
+              BigNumber.from('10000000000000000000000000'),
               BigNumber.from('0'),
-              BigNumber.from('1000000000000000000')
+              BigNumber.from('10000000000000000000000')
           )
-          await ctx.factory.waitTx(tx, 'lpManager.addLiquidity')
+          await ctx.factory.waitTx(tx, 'lpManager.addLiquidity.usdt')
+
+          tx = busd.mint(deployerAddress, BigNumber.from('10000000000000000000000000'))
+          await ctx.factory.waitTx(tx, 'busd.mint')
+
+          tx = busd.approve(lpManager.address, BigNumber.from('10000000000000000000000000'))
+          await ctx.factory.waitTx(tx, 'busd.approve')
+
+          tx = lpManager.addLiquidity(
+              busd.address,
+              BigNumber.from('10000000000000000000000000'),
+              BigNumber.from('0'),
+              BigNumber.from('10000000000000000000000')
+          )
+          await ctx.factory.waitTx(tx, 'lpManager.addLiquidity.busd')
         },
     }}
 }

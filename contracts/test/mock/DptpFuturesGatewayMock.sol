@@ -5,21 +5,23 @@ import "../../protocol/DptpFuturesGateway.sol";
 
 contract DptpFuturesGatewayMock is DptpFuturesGateway {
     function calculateMarginFees(
-        address _collateralToken,
+        address[] memory _path,
         address _indexToken,
         bool _isLong,
         uint256 _sizeDelta,
-        uint256 _amountIn,
+        uint256 _amountInToken,
+        uint256 _amountInUsd,
         uint256 _leverage,
         bool _isLimitOrder
     ) public returns (uint256) {
         return
             _calculateMarginFees(
                 msg.sender,
-                _collateralToken,
+                _path,
                 _indexToken,
                 _isLong,
-                _amountIn,
+                _amountInToken,
+                _amountInUsd,
                 _leverage,
                 _isLimitOrder
             );

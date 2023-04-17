@@ -39,6 +39,12 @@ interface IVault {
         address _receiver
     ) external returns (uint256);
 
+    function swapWithoutFees(
+        address _tokenIn,
+        address _tokenOut,
+        address _receiver
+    ) external returns (uint256);
+
     function increasePosition(
         address _account,
         address _collateralToken,
@@ -233,6 +239,12 @@ interface IVault {
         address _collateralToken,
         address _indexToken,
         bool _isLong
+    ) external view returns (uint256);
+
+    function getSwapFee(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _amountIn
     ) external view returns (uint256);
 
     // pool info

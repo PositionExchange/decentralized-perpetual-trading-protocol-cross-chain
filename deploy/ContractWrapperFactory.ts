@@ -73,6 +73,7 @@ export class ContractWrapperFactory {
         contractName = contractId
       }
         const address = await this.db.findAddressByKey(contractId)
+        console.log(`ID: ${contractId} Address: ${address}`)
         if (!address) throw new Error(`Contract ${contractId} not found`)
         const contract = await this.hre.ethers.getContractAt(contractName, address)
         return contract as T
