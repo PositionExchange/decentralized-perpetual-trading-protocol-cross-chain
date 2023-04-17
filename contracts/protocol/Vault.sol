@@ -27,7 +27,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     uint256 public constant MIN_LEVERAGE = 10000; // 1x
     uint256 public constant USDG_DECIMALS = 18;
     uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
-//    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
+    //    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
     uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1;
     uint256 public constant MAX_BORROWING_RATE_FACTOR = 10000; // 1%
     uint256 public constant BASIS_POINTS_DIVISOR = 10000;
@@ -186,7 +186,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         // reserve tokens to pay profits on the position
         uint256 reserveDelta = usdToTokenMax(_collateralToken, _sizeDelta);
         _increaseReservedAmount(_collateralToken, reserveDelta);
-
         _increasePositionCollateralAmount(key, collateralDelta);
         _increasePositionReservedAmount(key, reserveDelta);
 
@@ -347,16 +346,27 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _isLong
         );
 
-        bytes32 key = getPositionInfoKey( _trader, _collateralToken, _indexToken, _isLong);
+        bytes32 key = getPositionInfoKey(
+            _trader,
+            _collateralToken,
+            _indexToken,
+            _isLong
+        );
         PositionInfo.Data memory _positionInfo = positionInfo[key];
 
-        uint256 positionAmountUsd = tokenToUsdMin(_collateralToken, _positionInfo.collateralAmount);
+        uint256 positionAmountUsd = tokenToUsdMin(
+            _collateralToken,
+            _positionInfo.collateralAmount
+        );
         if (borrowingFee >= positionAmountUsd) {
             borrowingFee = positionAmountUsd;
         }
         _increaseFeeReserves(_collateralToken, borrowingFee);
         _decreaseReservedAmount(_collateralToken, _positionInfo.reservedAmount);
-        _decreasePoolAmount(_collateralToken, usdToTokenMin(_collateralToken, borrowingFee));
+        _decreasePoolAmount(
+            _collateralToken,
+            usdToTokenMin(_collateralToken, borrowingFee)
+        );
 
         if (_isLong) {
             _decreaseGuaranteedUsd(_collateralToken, _positionSize);
@@ -384,6 +394,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
         _increasePositionCollateralAmount(key, _amountInToken);
         _increasePoolAmount(_collateralToken, _amountInToken);
+        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
     }
 
     function removeCollateral(
@@ -403,6 +414,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
         _decreasePositionCollateralAmount(key, _amountInToken);
         _decreasePoolAmount(_collateralToken, _amountInToken);
+        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         _transferOut(_collateralToken, _amountInToken, msg.sender);
     }
 
@@ -735,61 +747,22 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         onlyWhitelistToken(_tokenOut)
         returns (uint256)
     {
-        require(isSwapEnabled, "Vault: swap is not supported");
-        require(_tokenIn != _tokenOut, "Vault: invalid tokens");
+        return _swap(_tokenIn, _tokenOut, _receiver, true);
+    }
 
-        _updateCumulativeBorrowingRate(_tokenIn, _tokenIn);
-        _updateCumulativeBorrowingRate(_tokenOut, _tokenOut);
-
-        uint256 amountIn = _transferIn(_tokenIn);
-        require(amountIn > 0, "Vault: invalid amountIn");
-
-        uint256 priceIn = getAskPrice(_tokenIn);
-        uint256 priceOut = getBidPrice(_tokenOut);
-
-        uint256 amountOut = amountIn.mul(priceIn).div(priceOut);
-        amountOut = adjustForDecimals(amountOut, _tokenIn, _tokenOut);
-
-        // adjust usdgAmounts by the same usdgAmount as debt is shifted between the assets
-        uint256 usdgAmount = amountIn.mul(priceIn).div(PRICE_PRECISION);
-        usdgAmount = adjustForDecimals(usdgAmount, _tokenIn, usdp);
-
-        uint256 feeBasisPoints = _vaultUtils.getSwapFeeBasisPoints(
-            _tokenIn,
-            _tokenOut,
-            usdgAmount
-        );
-        uint256 amountOutAfterFees = _collectSwapFees(
-            _tokenOut,
-            amountOut,
-            feeBasisPoints
-        );
-
-        _increaseUsdpAmount(_tokenIn, usdgAmount);
-        _decreaseUsdpAmount(_tokenOut, usdgAmount);
-
-        _increasePoolAmount(_tokenIn, amountIn);
-        _decreasePoolAmount(_tokenOut, amountOut);
-
-        // validate buffer amount
-        require(
-            vaultInfo[_tokenOut].poolAmounts >= bufferAmounts[_tokenOut],
-            "Vault: insufficient pool amount"
-        );
-
-        _transferOut(_tokenOut, amountOutAfterFees, _receiver);
-
-        emit Swap(
-            _receiver,
-            _tokenIn,
-            _tokenOut,
-            amountIn,
-            amountOut,
-            amountOutAfterFees,
-            feeBasisPoints
-        );
-
-        return amountOutAfterFees;
+    function swapWithoutFees(
+        address _tokenIn,
+        address _tokenOut,
+        address _receiver
+    )
+        external
+        override
+        onlyWhitelistToken(_tokenIn)
+        onlyWhitelistToken(_tokenOut)
+        returns (uint256)
+    {
+        _validateCaller(msg.sender);
+        return _swap(_tokenIn, _tokenOut, _receiver, false);
     }
 
     function poolAmounts(address token)
@@ -936,6 +909,33 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _getBorrowingFee(_trader, _collateralToken, _indexToken, _isLong);
     }
 
+    function getSwapFee(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _amountIn
+    ) external view returns (uint256) {
+        uint256 priceIn = getAskPrice(_tokenIn);
+        uint256 priceOut = getBidPrice(_tokenOut);
+        uint256 amountOut = _amountIn.mul(priceIn).div(priceOut);
+        amountOut = adjustForDecimals(amountOut, _tokenIn, _tokenOut);
+
+        // adjust usdgAmounts by the same usdgAmount as debt is shifted between the assets
+        uint256 usdgAmount = _amountIn.mul(priceIn).div(PRICE_PRECISION);
+        usdgAmount = adjustForDecimals(usdgAmount, _tokenIn, usdp);
+
+        uint256 feeBasisPoints = _vaultUtils.getSwapFeeBasisPoints(
+            _tokenIn,
+            _tokenOut,
+            usdgAmount
+        );
+
+        uint256 afterFeeAmount = amountOut
+        .mul(BASIS_POINTS_DIVISOR.sub(feeBasisPoints))
+        .div(BASIS_POINTS_DIVISOR);
+
+        return amountOut.sub(afterFeeAmount);
+    }
+
     function getPositionInfoKey(
         address _trader,
         address _collateralToken,
@@ -943,17 +943,85 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         bool _isLong
     ) public view returns (bytes32) {
         return
-        keccak256(
-            abi.encodePacked(
-                _trader,
-                _collateralToken,
-                _indexToken,
-                _isLong
-            )
-        );
+            keccak256(
+                abi.encodePacked(
+                    _trader,
+                    _collateralToken,
+                    _indexToken,
+                    _isLong
+                )
+            );
     }
 
     /* PRIVATE FUNCTIONS */
+    function _swap(
+        address _tokenIn,
+        address _tokenOut,
+        address _receiver,
+        bool _shouldCollectFee
+    ) private returns (uint256) {
+        require(isSwapEnabled, "Vault: swap is not supported");
+        require(_tokenIn != _tokenOut, "Vault: invalid tokens");
+
+        _updateCumulativeBorrowingRate(_tokenIn, _tokenIn);
+        _updateCumulativeBorrowingRate(_tokenOut, _tokenOut);
+
+        uint256 amountIn = _transferIn(_tokenIn);
+        require(amountIn > 0, "Vault: invalid amountIn");
+
+        uint256 priceIn = getAskPrice(_tokenIn);
+        uint256 priceOut = getBidPrice(_tokenOut);
+
+        uint256 amountOut = amountIn.mul(priceIn).div(priceOut);
+        amountOut = adjustForDecimals(amountOut, _tokenIn, _tokenOut);
+
+        uint256 amountOutAfterFees = amountOut;
+        uint256 feeBasisPoints;
+        if (_shouldCollectFee) {
+            // adjust usdgAmounts by the same usdgAmount as debt is shifted between the assets
+            uint256 usdgAmount = amountIn.mul(priceIn).div(PRICE_PRECISION);
+            usdgAmount = adjustForDecimals(usdgAmount, _tokenIn, usdp);
+
+            feeBasisPoints = _vaultUtils.getSwapFeeBasisPoints(
+                _tokenIn,
+                _tokenOut,
+                usdgAmount
+            );
+
+            amountOutAfterFees = _collectSwapFees(
+                _tokenOut,
+                amountOut,
+                feeBasisPoints
+            );
+
+            _increaseUsdpAmount(_tokenIn, usdgAmount);
+            _decreaseUsdpAmount(_tokenOut, usdgAmount);
+        }
+
+        _increasePoolAmount(_tokenIn, amountIn);
+        _decreasePoolAmount(_tokenOut, amountOut);
+
+        // validate buffer amount
+        require(
+            vaultInfo[_tokenOut].poolAmounts >= bufferAmounts[_tokenOut],
+            "Vault: insufficient pool amount"
+        );
+
+        _transferOut(_tokenOut, amountOutAfterFees, _receiver);
+
+        emit Swap(
+            _receiver,
+            _tokenIn,
+            _tokenOut,
+            amountIn,
+            amountOut,
+            amountOutAfterFees,
+            feeBasisPoints
+        );
+
+        return amountOutAfterFees;
+    }
+
     function _updateCumulativeBorrowingRate(
         address _collateralToken,
         address _indexToken
@@ -1410,7 +1478,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) private view returns (bool){
+    ) private view returns (bool) {
         TokenConfiguration.Data memory cTokenCfg = tokenConfigurations[
             _collateralToken
         ];
