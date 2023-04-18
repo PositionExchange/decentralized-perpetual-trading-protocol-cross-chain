@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
@@ -318,10 +319,6 @@ contract DptpFuturesGateway is
         _validateSize(_indexToken, _sizeDeltaToken, false);
         _validateToken(_path[_path.length - 1], _indexToken, _isLong);
 
-        //        ManagerData memory managerConfigData = positionManagerConfigData[
-        //            _path[0]
-        //        ];
-
         uint256 amountInToken = IVault(vault).usdToTokenMin(
             _path[0],
             _amountInUsd.mul(PRICE_DECIMALS)
@@ -343,7 +340,7 @@ contract DptpFuturesGateway is
             _amountInUsd.add(feeInUsd).mul(PRICE_DECIMALS)
         );
 
-        _transferIn(_path[0], amountInToken);
+        _transferIn(_path[0], amountInAfterFeeToken);
         _transferInETH();
 
         CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
@@ -423,7 +420,7 @@ contract DptpFuturesGateway is
 
     function executeIncreasePosition(
         bytes32 _key,
-        uint256 _sizeInToken,
+        uint256 _sizeDeltaInToken,
         bool _isLong
     ) public nonReentrant {
         //        require(positionKeepers[msg.sender], "403");
@@ -433,8 +430,8 @@ contract DptpFuturesGateway is
             return;
         }
         uint256 sizeDelta = IVault(vault).tokenToUsdMinWithAdjustment(
-            request.path[0],
-            _sizeInToken
+            request.indexToken,
+            _sizeDeltaInToken
         );
         _validateMaxGlobalSize(request.indexToken, _isLong, sizeDelta);
 
@@ -496,7 +493,7 @@ contract DptpFuturesGateway is
         delete decreasePositionRequests[_key];
 
         uint256 sizeDelta = IVault(vault).tokenToUsdMinWithAdjustment(
-            request.path[0],
+            request.indexToken,
             _sizeDeltaInToken
         );
         uint256 amountOutTokenAfterFees = _decreasePosition(
@@ -983,7 +980,7 @@ contract DptpFuturesGateway is
             param.sizeDeltaToken,
             param.pip,
             param.isLong,
-            executionFee,
+            param.feeInUsd,
             requestKey
         );
 
@@ -1176,6 +1173,7 @@ contract DptpFuturesGateway is
             _indexToken,
             _isLong
         );
+        borrowingFee = borrowingFee.div(PRICE_DECIMALS);
         uint256 swapFee = _path.length > 1
             ? IVault(vault).getSwapFee(_path[0], _path[1], _amountInToken)
             : 0;
