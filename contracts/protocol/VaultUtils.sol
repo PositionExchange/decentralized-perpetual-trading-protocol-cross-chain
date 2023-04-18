@@ -154,4 +154,10 @@ contract VaultUtils is IVaultUtils, Initializable {
 
         return _size.mul(borrowingRate).div(BORROWING_RATE_PRECISION);
     }
+
+    function setVault(
+        address _vault
+    ) external {
+        vault = IVault(_vault);
+    }
 }
