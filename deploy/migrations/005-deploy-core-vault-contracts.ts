@@ -80,31 +80,35 @@ const migrations: MigrationDefinition = {
           const lpManager = await ctx.factory.getDeployedContract<LpManager>('LpManager')
           const usdp = await ctx.factory.getDeployedContract<USDP>('USDP')
           const futuresGateway = await ctx.factory.getDeployedContract<DptpFuturesGateway>('DptpFuturesGateway')
+          const vaultUtils = await ctx.factory.getDeployedContract<VaultUtils>('VaultUtils')
 
           let tx: Promise<ContractTransaction>;
 
-          // tx = usdp.addVault(vaultAddress)
-          // await ctx.factory.waitTx(tx, 'usdp.addVault')
-          //
-          // tx = lpManager.setVault(vaultAddress)
-          // await ctx.factory.waitTx(tx, 'lpManager.setVault')
-          //
-          // tx = futuresGateway.setVault(vaultAddress)
-          // await ctx.factory.waitTx(tx, 'futuresGateway.setVault')
-          //
-          // tx = weth.mint(deployerAddress, BigNumber.from('1000000000000000000000'))
-          // await ctx.factory.waitTx(tx, 'weth.mint')
-          //
-          // tx = weth.approve(lpManager.address, BigNumber.from('1000000000000000000000'))
-          // await ctx.factory.waitTx(tx, 'weth.approve')
-          //
-          // tx = lpManager.addLiquidity(
-          //     weth.address,
-          //     BigNumber.from('1000000000000000000000'),
-          //     BigNumber.from('0'),
-          //     BigNumber.from('1000000000000000000')
-          // )
-          // await ctx.factory.waitTx(tx, 'lpManager.addLiquidity')
+          tx = usdp.addVault(vaultAddress)
+          await ctx.factory.waitTx(tx, 'usdp.addVault')
+
+          tx = lpManager.setVault(vaultAddress)
+          await ctx.factory.waitTx(tx, 'lpManager.setVault')
+
+          tx = futuresGateway.setVault(vaultAddress)
+          await ctx.factory.waitTx(tx, 'futuresGateway.setVault')
+
+          tx = vaultUtils.setVault(vaultAddress)
+          await ctx.factory.waitTx(tx, 'vaultUtils.setVault')
+
+          tx = weth.mint(deployerAddress, BigNumber.from('1000000000000000000000'))
+          await ctx.factory.waitTx(tx, 'weth.mint')
+
+          tx = weth.approve(lpManager.address, BigNumber.from('1000000000000000000000'))
+          await ctx.factory.waitTx(tx, 'weth.approve')
+
+          tx = lpManager.addLiquidity(
+              weth.address,
+              BigNumber.from('1000000000000000000000'),
+              BigNumber.from('0'),
+              BigNumber.from('0')
+          )
+          await ctx.factory.waitTx(tx, 'lpManager.addLiquidity')
 
           tx = usdt.mint(deployerAddress, BigNumber.from('10000000000000000000000000'))
           await ctx.factory.waitTx(tx, 'usdt.mint')
@@ -116,7 +120,7 @@ const migrations: MigrationDefinition = {
               usdt.address,
               BigNumber.from('10000000000000000000000000'),
               BigNumber.from('0'),
-              BigNumber.from('10000000000000000000000')
+              BigNumber.from('0')
           )
           await ctx.factory.waitTx(tx, 'lpManager.addLiquidity.usdt')
 
@@ -130,7 +134,7 @@ const migrations: MigrationDefinition = {
               busd.address,
               BigNumber.from('10000000000000000000000000'),
               BigNumber.from('0'),
-              BigNumber.from('10000000000000000000000')
+              BigNumber.from('0')
           )
           await ctx.factory.waitTx(tx, 'lpManager.addLiquidity.busd')
         },

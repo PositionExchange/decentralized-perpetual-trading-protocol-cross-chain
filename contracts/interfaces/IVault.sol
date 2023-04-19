@@ -49,7 +49,7 @@ interface IVault {
         address _account,
         address _collateralToken,
         address _indexToken,
-        uint256 _sizeDelta,
+        uint256 _sizeDeltaToken,
         bool _isLong,
         uint256 _feeUsd
     ) external;
@@ -58,7 +58,7 @@ interface IVault {
         address _trader,
         address _collateralToken,
         address _indexToken,
-        uint256 _sizeDelta,
+        uint256 _sizeDeltaToken,
         bool _isLong,
         address _receiver,
         uint256 _amountOutUsd,

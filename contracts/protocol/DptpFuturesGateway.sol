@@ -111,20 +111,8 @@ contract DptpFuturesGateway is
         address indexed account,
         address[] path,
         address indexToken,
-        uint256 sizeDelta,
-        bool isLong,
-        uint256 executionFee,
-        bytes32 key,
-        uint256 blockNumber,
-        uint256 blockTime
-    );
-
-    event CreateDecreaseOrder(
-        address indexed account,
-        address[] path,
-        address indexToken,
         uint256 pip,
-        uint256 sizeDelta,
+        uint256 sizeDeltaToken,
         bool isLong,
         uint256 executionFee,
         bytes32 key,
@@ -332,7 +320,7 @@ contract DptpFuturesGateway is
             amountInToken,
             _amountInUsd,
             _leverage,
-            false
+            true
         );
 
         uint256 amountInAfterFeeToken = IVault(vault).usdToTokenMin(
@@ -382,6 +370,7 @@ contract DptpFuturesGateway is
                 msg.sender,
                 _path,
                 _indexToken,
+                0,
                 _sizeDeltaToken,
                 _isLong,
                 _withdrawETH
@@ -407,7 +396,7 @@ contract DptpFuturesGateway is
         _transferInETH();
 
         return
-            _createDecreaseOrder(
+            _createDecreasePosition(
                 msg.sender,
                 _path,
                 _indexToken,
@@ -429,11 +418,6 @@ contract DptpFuturesGateway is
         if (request.account == address(0)) {
             return;
         }
-        uint256 sizeDelta = IVault(vault).tokenToUsdMinWithAdjustment(
-            request.indexToken,
-            _sizeDeltaInToken
-        );
-        _validateMaxGlobalSize(request.indexToken, _isLong, sizeDelta);
 
         delete increasePositionRequests[_key];
 
@@ -457,7 +441,7 @@ contract DptpFuturesGateway is
             request.account,
             request.path[request.path.length - 1],
             request.indexToken,
-            sizeDelta,
+            _sizeDeltaInToken,
             _isLong,
             feeUsd
         );
@@ -468,7 +452,7 @@ contract DptpFuturesGateway is
             request.path,
             request.indexToken,
             request.amountInToken,
-            sizeDelta,
+            _sizeDeltaInToken,
             _isLong,
             feeUsd
         );
@@ -476,9 +460,9 @@ contract DptpFuturesGateway is
 
     function executeDecreasePosition(
         bytes32 _key,
-        uint256 _amountOutUsdAfterFees,
+        uint256 _amountOutAfterFeesUsd,
         uint256 _feeUsd,
-        uint256 _sizeDeltaInToken,
+        uint256 _sizeDeltaToken,
         bool _isLong
     ) public nonReentrant {
         //        require(positionKeepers[msg.sender], "403");
@@ -494,12 +478,12 @@ contract DptpFuturesGateway is
 
         uint256 sizeDelta = IVault(vault).tokenToUsdMinWithAdjustment(
             request.indexToken,
-            _sizeDeltaInToken
+            _sizeDeltaToken
         );
 
         _executeDecreasePosition(
             sizeDelta,
-            _amountOutUsdAfterFees.mul(PRICE_DECIMALS),
+            _amountOutAfterFeesUsd.mul(PRICE_DECIMALS),
             _feeUsd.mul(PRICE_DECIMALS),
             _isLong,
             request
@@ -509,7 +493,7 @@ contract DptpFuturesGateway is
             request.account,
             request.path,
             request.indexToken,
-            _sizeDeltaInToken,
+            _sizeDeltaToken,
             _isLong,
             executionFee
         );
@@ -893,7 +877,7 @@ contract DptpFuturesGateway is
         address _account,
         address _collateralToken,
         address _indexToken,
-        uint256 _sizeDelta,
+        uint256 _sizeDeltaToken,
         bool _isLong,
         uint256 _feeUsd
     ) internal {
@@ -914,7 +898,7 @@ contract DptpFuturesGateway is
             _account,
             _collateralToken,
             _indexToken,
-            _sizeDelta,
+            _sizeDeltaToken,
             _isLong,
             _feeUsd
         );
@@ -924,7 +908,7 @@ contract DptpFuturesGateway is
         address _account,
         address _collateralToken,
         address _indexToken,
-        uint256 _sizeDelta,
+        uint256 _sizeDeltaToken,
         bool _isLong,
         address _receiver,
         uint256 _amountOutUsd,
@@ -949,7 +933,7 @@ contract DptpFuturesGateway is
                 _account,
                 _collateralToken,
                 _indexToken,
-                _sizeDelta,
+                _sizeDeltaToken,
                 _isLong,
                 _receiver,
                 _amountOutUsd,
@@ -1033,49 +1017,6 @@ contract DptpFuturesGateway is
         address _account,
         address[] memory _path,
         address _indexToken,
-        uint256 _sizeDelta,
-        bool _isLong,
-        bool _withdrawETH
-    ) internal returns (bytes32) {
-        DecreasePositionRequest memory request = DecreasePositionRequest(
-            _account,
-            _path,
-            _indexToken,
-            _withdrawETH
-        );
-
-        (, bytes32 requestKey) = _storeDecreasePositionRequest(request);
-
-        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.CLOSE_POSITION),
-            abi.encode(
-                requestKey,
-                coreManagers[request.path[0]],
-                _sizeDelta,
-                msg.sender
-            )
-        );
-
-        emit CreateDecreasePosition(
-            request.account,
-            request.path,
-            request.indexToken,
-            _sizeDelta,
-            _isLong,
-            executionFee,
-            requestKey,
-            block.number,
-            block.timestamp
-        );
-        return requestKey;
-    }
-
-    function _createDecreaseOrder(
-        address _account,
-        address[] memory _path,
-        address _indexToken,
         uint256 _pip,
         uint256 _sizeDeltaToken,
         bool _isLong,
@@ -1090,20 +1031,34 @@ contract DptpFuturesGateway is
 
         (, bytes32 requestKey) = _storeDecreasePositionRequest(request);
 
-        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.CLOSE_LIMIT_POSITION),
-            abi.encode(
-                requestKey,
-                coreManagers[request.path[0]],
-                _pip,
-                _sizeDeltaToken,
-                msg.sender
-            )
-        );
+        if (_pip == 0) {
+            CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+                pcsId,
+                pscCrossChainGateway,
+                uint8(Method.CLOSE_POSITION),
+                abi.encode(
+                    requestKey,
+                    coreManagers[request.path[0]],
+                    _sizeDeltaToken,
+                    msg.sender
+                )
+            );
+        } else {
+            CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+                pcsId,
+                pscCrossChainGateway,
+                uint8(Method.CLOSE_LIMIT_POSITION),
+                abi.encode(
+                    requestKey,
+                    coreManagers[request.path[0]],
+                    _pip,
+                    _sizeDeltaToken,
+                    msg.sender
+                )
+            );
+        }
 
-        emit CreateDecreaseOrder(
+        emit CreateDecreasePosition(
             request.account,
             request.path,
             request.indexToken,
