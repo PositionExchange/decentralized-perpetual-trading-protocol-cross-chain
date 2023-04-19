@@ -49,6 +49,7 @@ interface IVault {
         address _account,
         address _collateralToken,
         address _indexToken,
+        uint256 _entryPip,
         uint256 _sizeDeltaToken,
         bool _isLong,
         uint256 _feeUsd
@@ -58,6 +59,7 @@ interface IVault {
         address _trader,
         address _collateralToken,
         address _indexToken,
+        uint256 _entryPip,
         uint256 _sizeDeltaToken,
         bool _isLong,
         address _receiver,
