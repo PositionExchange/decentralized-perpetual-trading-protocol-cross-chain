@@ -496,45 +496,14 @@ contract DptpFuturesGateway is
             request.indexToken,
             _sizeDeltaInToken
         );
-        uint256 amountOutTokenAfterFees = _decreasePosition(
-            request.account,
-            request.path[0],
-            request.indexToken,
+
+        _executeDecreasePosition(
             sizeDelta,
-            _isLong,
-            address(this),
             _amountOutUsdAfterFees.mul(PRICE_DECIMALS),
-            _feeUsd.mul(PRICE_DECIMALS)
+            _feeUsd.mul(PRICE_DECIMALS),
+            _isLong,
+            request
         );
-
-        if (amountOutTokenAfterFees > 0) {
-            if (request.path.length > 1) {
-                IERC20Upgradeable(request.path[0]).safeTransfer(
-                    vault,
-                    amountOutTokenAfterFees
-                );
-                amountOutTokenAfterFees = _swap(
-                    request.path,
-                    address(this),
-                    true
-                );
-            }
-
-            if (request.withdrawETH) {
-                _transferOutETH(
-                    amountOutTokenAfterFees,
-                    payable(request.account)
-                );
-            } else {
-                _transferOut(
-                    request.path[request.path.length - 1],
-                    amountOutTokenAfterFees,
-                    payable(request.account)
-                );
-            }
-        }
-
-        _transferOutETH(executionFee, payable(msg.sender));
 
         emit ExecuteDecreasePosition(
             request.account,
@@ -544,6 +513,78 @@ contract DptpFuturesGateway is
             _isLong,
             executionFee
         );
+    }
+
+    function _executeDecreasePosition(
+        uint256 _sizeDelta,
+        uint256 _amountOutUsdAfterFees,
+        uint256 _feeUsd,
+        bool _isLong,
+        DecreasePositionRequest memory _request
+    ) private {
+
+        (uint256 amountOutTokenAfterFees,uint256 reduceCollateralAmount) = _decreasePosition(
+            _request.account,
+            _request.path[0],
+            _request.indexToken,
+            _sizeDelta,
+            _isLong,
+            address(this),
+            _amountOutUsdAfterFees,
+            _feeUsd
+        );
+
+        if (amountOutTokenAfterFees == 0){
+            if (reduceCollateralAmount == 0) {
+                return;
+            }
+
+            IVault(vault).validateTokens(_request.path[0], _request.indexToken, _isLong);
+            CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+                pcsId,
+                pscCrossChainGateway,
+                uint8(Method.REMOVE_MARGIN),
+                abi.encode(
+                    _request.path[0],
+                    _request.indexToken,
+                    coreManagers[_request.indexToken],
+                    reduceCollateralAmount,
+                    0,
+                    msg.sender,
+                    false
+                )
+            );
+
+        }
+
+        if (amountOutTokenAfterFees > 0) {
+            if (_request.path.length > 1) {
+                IERC20Upgradeable(_request.path[0]).safeTransfer(
+                    vault,
+                    amountOutTokenAfterFees
+                );
+                amountOutTokenAfterFees = _swap(
+                    _request.path,
+                    address(this),
+                    true
+                );
+            }
+
+            if (_request.withdrawETH) {
+                _transferOutETH(
+                    amountOutTokenAfterFees,
+                    payable(_request.account)
+                );
+            } else {
+                _transferOut(
+                    _request.path[_request.path.length - 1],
+                    amountOutTokenAfterFees,
+                    payable(_request.account)
+                );
+            }
+        }
+
+        _transferOutETH(executionFee, payable(msg.sender));
     }
 
     function createCancelOrderRequest(
@@ -665,7 +706,8 @@ contract DptpFuturesGateway is
                 coreManagers[_indexToken],
                 _amountInUsd,
                 0,
-                msg.sender
+                msg.sender,
+                true
             )
         );
     }
@@ -819,7 +861,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaInToken,
         bool _isHigherPrice,
         bool _isLong
-    ) external nonReentrant {
+    ) external {
         address indexToken = indexTokens[_positionManager];
         // delete untriggered tp or sl order
         delete decreasePositionRequests[
@@ -887,7 +929,7 @@ contract DptpFuturesGateway is
         address _receiver,
         uint256 _amountOutUsd,
         uint256 _feeUsd
-    ) internal returns (uint256) {
+    ) internal returns (uint256, uint256) {
         //        if (!_isLong && _sizeDelta > 0) {
         //            uint256 markPrice = _isLong
         //                ? IVault(vault).getMinPrice(_indexToken)
