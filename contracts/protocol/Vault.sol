@@ -233,7 +233,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _receiver,
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd
-    ) external override nonReentrant returns (uint256) {
+    ) external override nonReentrant returns (uint256, uint256) {
         _validateCaller(msg.sender);
 
         return
@@ -258,7 +258,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _receiver,
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd
-    ) private returns (uint256) {
+    ) private returns (uint256, uint256 reduceCollateralAmount) {
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         uint256 borrowingFee = _getBorrowingFee(
             _trader,
@@ -277,9 +277,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _updatePositionEntryBorrowingRate(key, _collateralToken);
 
         if (borrowingFee > _amountOutUsdAfterFees) {
+            reduceCollateralAmount = borrowingFee.sub(_amountOutUsdAfterFees);
             _decreasePositionCollateralAmount(
                 key,
-                borrowingFee.sub(_amountOutUsdAfterFees)
+                reduceCollateralAmount
             );
             _amountOutUsdAfterFees = 0;
         } else {
@@ -302,7 +303,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         uint256 _amountOutUsd = _amountOutUsdAfterFees.add(_feeUsd);
         if (_amountOutUsd == 0) {
-            return 0;
+            return (0, reduceCollateralAmount);
         }
 
         if (_isLong) {
@@ -324,7 +325,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         // else transfer _amountOutUsdAfterFees
 
         _transferOut(_collateralToken, amountOutTokenAfterFees, _receiver);
-        return amountOutTokenAfterFees;
+        return (amountOutTokenAfterFees, reduceCollateralAmount);
     }
 
     // TODO: refactor later using _decreasePosition function
