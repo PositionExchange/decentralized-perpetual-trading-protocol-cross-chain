@@ -409,6 +409,7 @@ contract DptpFuturesGateway is
 
     function executeIncreasePosition(
         bytes32 _key,
+        uint256 _entryPip,
         uint256 _sizeDeltaInToken,
         bool _isLong
     ) public nonReentrant {
@@ -441,6 +442,7 @@ contract DptpFuturesGateway is
             request.account,
             request.path[request.path.length - 1],
             request.indexToken,
+            _entryPip,
             _sizeDeltaInToken,
             _isLong,
             feeUsd
@@ -462,32 +464,46 @@ contract DptpFuturesGateway is
         bytes32 _key,
         uint256 _amountOutAfterFeesUsd,
         uint256 _feeUsd,
+        uint256 _entryPip,
         uint256 _sizeDeltaToken,
         bool _isLong
     ) public nonReentrant {
         //        require(positionKeepers[msg.sender], "403");
 
         DecreasePositionRequest memory request = decreasePositionRequests[_key];
-        // if the request was already executed or cancelled, return true so that the
-        // executeDecreasePositions loop will continue executing the next request
         if (request.account == address(0)) {
             return;
         }
-
         delete decreasePositionRequests[_key];
 
-        uint256 sizeDelta = IVault(vault).tokenToUsdMinWithAdjustment(
-            request.indexToken,
-            _sizeDeltaToken
-        );
+        address collateralToken = request.path[0];
+        uint256 amountOutTokenAfterFees;
+        uint256 reduceCollateralAmount;
+        {
+            address account = request.account;
+            address indexToken = request.indexToken;
+            uint256 entryPip = _entryPip;
+            uint256 sizeDeltaToken = _sizeDeltaToken;
+            bool isLong = _isLong;
+            uint256 amountOutAfterFeesUsd = _amountOutAfterFeesUsd;
+            uint256 feeUsd = _feeUsd;
+            (
+                amountOutTokenAfterFees,
+                reduceCollateralAmount
+            ) = _decreasePosition(
+                account,
+                collateralToken,
+                indexToken,
+                entryPip,
+                sizeDeltaToken,
+                isLong,
+                address(this),
+                amountOutAfterFeesUsd.mul(PRICE_DECIMALS),
+                feeUsd.mul(PRICE_DECIMALS)
+            );
+        }
 
-        _executeDecreasePosition(
-            sizeDelta,
-            _amountOutAfterFeesUsd.mul(PRICE_DECIMALS),
-            _feeUsd.mul(PRICE_DECIMALS),
-            _isLong,
-            request
-        );
+        _transferOutETH(executionFee, payable(msg.sender));
 
         emit ExecuteDecreasePosition(
             request.account,
@@ -497,78 +513,46 @@ contract DptpFuturesGateway is
             _isLong,
             executionFee
         );
-    }
 
-    function _executeDecreasePosition(
-        uint256 _sizeDelta,
-        uint256 _amountOutUsdAfterFees,
-        uint256 _feeUsd,
-        bool _isLong,
-        DecreasePositionRequest memory _request
-    ) private {
-
-        (uint256 amountOutTokenAfterFees,uint256 reduceCollateralAmount) = _decreasePosition(
-            _request.account,
-            _request.path[0],
-            _request.indexToken,
-            _sizeDelta,
-            _isLong,
-            address(this),
-            _amountOutUsdAfterFees,
-            _feeUsd
-        );
-
-        if (amountOutTokenAfterFees == 0){
+        if (amountOutTokenAfterFees == 0) {
             if (reduceCollateralAmount == 0) {
                 return;
             }
-
-            IVault(vault).validateTokens(_request.path[0], _request.indexToken, _isLong);
             CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
                 pcsId,
                 pscCrossChainGateway,
                 uint8(Method.REMOVE_MARGIN),
                 abi.encode(
-                    _request.path[0],
-                    _request.indexToken,
-                    coreManagers[_request.indexToken],
+                    collateralToken,
+                    request.indexToken,
+                    coreManagers[request.indexToken],
                     reduceCollateralAmount,
                     0,
                     msg.sender,
                     false
                 )
             );
-
+            return;
         }
 
-        if (amountOutTokenAfterFees > 0) {
-            if (_request.path.length > 1) {
-                IERC20Upgradeable(_request.path[0]).safeTransfer(
-                    vault,
-                    amountOutTokenAfterFees
-                );
-                amountOutTokenAfterFees = _swap(
-                    _request.path,
-                    address(this),
-                    true
-                );
-            }
-
-            if (_request.withdrawETH) {
-                _transferOutETH(
-                    amountOutTokenAfterFees,
-                    payable(_request.account)
-                );
-            } else {
-                _transferOut(
-                    _request.path[_request.path.length - 1],
-                    amountOutTokenAfterFees,
-                    payable(_request.account)
-                );
-            }
+        if (request.path.length > 1) {
+            IERC20Upgradeable(collateralToken).safeTransfer(
+                vault,
+                amountOutTokenAfterFees
+            );
+            amountOutTokenAfterFees = _swap(request.path, address(this), true);
         }
 
-        _transferOutETH(executionFee, payable(msg.sender));
+        if (request.withdrawETH) {
+            _transferOutETH(amountOutTokenAfterFees, payable(request.account));
+            return;
+        }
+
+        _transferOut(
+            request.path[request.path.length - 1],
+            amountOutTokenAfterFees,
+            payable(request.account)
+        );
     }
 
     function createCancelOrderRequest(
@@ -866,6 +850,7 @@ contract DptpFuturesGateway is
             TPSLRequestMap[triggeredTPSLKey],
             _amountOutUsdAfterFees,
             _feeUsd,
+            0, // TODO: Add _entryPip
             _sizeDeltaInToken,
             _isLong
         );
@@ -877,10 +862,14 @@ contract DptpFuturesGateway is
         address _account,
         address _collateralToken,
         address _indexToken,
+        uint256 _entryPip,
         uint256 _sizeDeltaToken,
         bool _isLong,
         uint256 _feeUsd
     ) internal {
+        uint32 basisPoint = positionManagerConfigData[_indexToken].basicPoint;
+        require(basisPoint > 0, "invalid basis point");
+        _entryPip = _entryPip.mul(PRICE_DECIMALS).div(basisPoint);
         //        if (!_isLong && _sizeDelta > 0) {
         //            uint256 markPrice = _isLong
         //                ? IVault(vault).getMaxPrice(_indexToken)
@@ -898,6 +887,7 @@ contract DptpFuturesGateway is
             _account,
             _collateralToken,
             _indexToken,
+            _entryPip,
             _sizeDeltaToken,
             _isLong,
             _feeUsd
@@ -908,12 +898,16 @@ contract DptpFuturesGateway is
         address _account,
         address _collateralToken,
         address _indexToken,
+        uint256 _entryPip,
         uint256 _sizeDeltaToken,
         bool _isLong,
         address _receiver,
         uint256 _amountOutUsd,
         uint256 _feeUsd
     ) internal returns (uint256, uint256) {
+        uint32 basisPoint = positionManagerConfigData[_indexToken].basicPoint;
+        require(basisPoint > 0, "invalid basis point");
+        _entryPip = _entryPip.mul(PRICE_DECIMALS).div(basisPoint);
         //        if (!_isLong && _sizeDelta > 0) {
         //            uint256 markPrice = _isLong
         //                ? IVault(vault).getMinPrice(_indexToken)
@@ -933,6 +927,7 @@ contract DptpFuturesGateway is
                 _account,
                 _collateralToken,
                 _indexToken,
+                _entryPip,
                 _sizeDeltaToken,
                 _isLong,
                 _receiver,
@@ -1450,5 +1445,5 @@ contract DptpFuturesGateway is
     mapping(address => address) public coreManagers;
     // mapping positionManager with indexToken
     mapping(address => address) public indexTokens;
-    mapping(bytes32 => bytes32) TPSLRequestMap;
+    mapping(bytes32 => bytes32) public TPSLRequestMap;
 }

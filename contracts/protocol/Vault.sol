@@ -159,6 +159,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _account,
         address _collateralToken,
         address _indexToken,
+        uint256 _entryPip,
         uint256 _sizeDeltaToken,
         bool _isLong,
         uint256 _feeUsd
@@ -182,8 +183,18 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _validate(collateralDeltaUsd >= _feeUsd, 29);
 
         _increaseFeeReserves(_collateralToken, _feeUsd);
-        _increaseReservedAmount(_collateralToken, _sizeDeltaToken);
-        _increasePositionReservedAmount(key, _sizeDeltaToken);
+        _increaseReservedAmount(
+            _collateralToken,
+            _sizeDeltaToken,
+            _entryPip,
+            _isLong
+        );
+        _increasePositionReservedAmount(
+            key,
+            _sizeDeltaToken,
+            _entryPip,
+            _isLong
+        );
         _increasePositionCollateralAmount(key, collateralDeltaToken);
 
         uint256 sizeDelta = tokenToUsdMin(_collateralToken, _sizeDeltaToken);
@@ -223,6 +234,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _trader,
         address _collateralToken,
         address _indexToken,
+        uint256 _entryPip,
         uint256 _sizeDeltaToken,
         bool _isLong,
         address _receiver,
@@ -236,6 +248,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
                 _trader,
                 _collateralToken,
                 _indexToken,
+                _entryPip,
                 _sizeDeltaToken,
                 _isLong,
                 _receiver,
@@ -248,6 +261,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _trader,
         address _collateralToken,
         address _indexToken,
+        uint256 _entryPip,
         uint256 _sizeDeltaToken,
         bool _isLong,
         address _receiver,
@@ -273,10 +287,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         if (borrowingFee > _amountOutAfterFeesUsd) {
             reduceCollateralAmount = borrowingFee.sub(_amountOutAfterFeesUsd);
-            _decreasePositionCollateralAmount(
-                key,
-                reduceCollateralAmount
-            );
+            _decreasePositionCollateralAmount(key, reduceCollateralAmount);
             _amountOutAfterFeesUsd = 0;
         } else {
             _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.sub(borrowingFee);
@@ -286,9 +297,18 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         // Add fee to feeReserves open
         _increaseFeeReserves(_collateralToken, _feeUsd);
 
-        uint256 reserveDelta = usdToTokenMin(_collateralToken, _sizeDeltaToken);
-        _decreaseReservedAmount(_collateralToken, reserveDelta);
-        _decreasePositionReservedAmount(key, reserveDelta);
+        _decreaseReservedAmount(
+            _collateralToken,
+            _sizeDeltaToken,
+            _entryPip,
+            _isLong
+        );
+        _decreasePositionReservedAmount(
+            key,
+            _sizeDeltaToken,
+            _entryPip,
+            _isLong
+        );
 
         uint256 sizeDelta = tokenToUsdMin(_collateralToken, _sizeDeltaToken);
         if (_isLong) {
@@ -314,12 +334,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _collateralToken,
             _amountOutAfterFeesUsd
         );
-
-        // TODO: Consider to update position info in core chain when borrowingFee greater than _amountOut
-        // If not update, must compare _amountOutUsdAfterFees with remaining position collateral amount
-        // Case _amountOutUsdAfterFees greater than collateral, must transfer out collateral amount,
-        // else transfer _amountOutUsdAfterFees
-
         _transferOut(_collateralToken, amountOutAfterFeesToken, _receiver);
         return (amountOutAfterFeesToken, reduceCollateralAmount);
     }
@@ -1173,9 +1187,33 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         emit DecreasePoolAmount(_token, _amount);
     }
 
+    function _increaseReservedAmount(
+        address _token,
+        uint256 _amount,
+        uint256 _entryPip,
+        bool _isLong
+    ) private {
+        uint256 reservedDelta = _isLong
+            ? _amount
+            : _entryPip.mul(_amount).div(10**12);
+        _increaseReservedAmount(_token, reservedDelta);
+    }
+
     function _increaseReservedAmount(address _token, uint256 _amount) private {
         vaultInfo[_token].addReservedAmount(_amount);
         emit IncreaseReservedAmount(_token, _amount);
+    }
+
+    function _decreaseReservedAmount(
+        address _token,
+        uint256 _amount,
+        uint256 _entryPip,
+        bool _isLong
+    ) private {
+        uint256 reservedDelta = _isLong
+            ? _amount
+            : _entryPip.mul(_amount).div(10**12);
+        _decreaseReservedAmount(_token, reservedDelta);
     }
 
     function _decreaseReservedAmount(address _token, uint256 _amount) private {
@@ -1197,11 +1235,35 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         emit DecreasePositionCollateral(_amount);
     }
 
+    function _increasePositionReservedAmount(
+        bytes32 _key,
+        uint256 _amount,
+        uint256 _entryPip,
+        bool _isLong
+    ) private {
+        uint256 reservedDelta = _isLong
+            ? _amount
+            : _entryPip.mul(_amount).div(10**12);
+        _increasePositionReservedAmount(_key, reservedDelta);
+    }
+
     function _increasePositionReservedAmount(bytes32 _key, uint256 _amount)
         private
     {
         positionInfo[_key].addReservedAmount(_amount);
         emit IncreasePositionReserves(_amount);
+    }
+
+    function _decreasePositionReservedAmount(
+        bytes32 _key,
+        uint256 _amount,
+        uint256 _entryPip,
+        bool _isLong
+    ) private {
+        uint256 reservedDelta = _isLong
+            ? _amount
+            : _entryPip.mul(_amount).div(10**12);
+        _decreasePositionReservedAmount(_key, reservedDelta);
     }
 
     function _decreasePositionReservedAmount(bytes32 _key, uint256 _amount)
