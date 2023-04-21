@@ -260,36 +260,49 @@ contract DptpFuturesGateway is
         return _createIncreasePosition(params);
     }
 
-    //    function createIncreasePositionETH(
-    //        address[] memory _path,
-    //        address _indexToken,
-    //        uint256 _amountInUsd,
-    //        uint256 _sizeDeltaToken,
-    //        uint16 _leverage,
-    //        bool _isLong
-    //    ) external payable nonReentrant returns (bytes32) {
-    //        require(msg.value >= executionFee, "fee");
-    //        require(_path.length == 1 || _path.length == 2, "len");
-    //        require(_path[0] == weth, "path");
-    //        _validateSize(_path[0], _sizeDeltaToken, false);
-    //
-    //        uint256 amountInToken = msg.value.sub(executionFee);
-    //        _transferInETH();
-    //
-    //        CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
-    //            msg.sender,
-    //            _path,
-    //            _indexToken,
-    //            amountInToken,
-    //            _amountInUsd,
-    //            _sizeDeltaToken,
-    //            0,
-    //            _leverage,
-    //            _isLong,
-    //            false
-    //        );
-    //        return _createIncreasePosition(params);
-    //    }
+    function createIncreasePositionETH(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _sizeDeltaToken,
+        uint16 _leverage,
+        bool _isLong
+    ) external payable nonReentrant returns (bytes32) {
+        //            require(msg.value >= executionFee, "fee");
+        //            require(_path.length == 1 || _path.length == 2, "len");
+        //            require(_path[0] == weth, "path");
+        //            _validateSize(_path[0], _sizeDeltaToken, false);
+        //
+        //            uint256 amountInToken = msg.value.sub(executionFee);
+        //            _transferInETH();
+        //
+        //            CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
+        //                msg.sender,
+        //                _path,
+        //                _indexToken,
+        //                amountInToken,
+        //                _amountInUsd,
+        //                _sizeDeltaToken,
+        //                0,
+        //                _leverage,
+        //                _isLong,
+        //                false
+        //            );
+        //            return _createIncreasePosition(params);
+        return 0;
+    }
+
+    function createIncreaseOrderRequestETH(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _pip,
+        uint256 _sizeDeltaToken,
+        uint16 _leverage,
+        bool _isLong
+    ) external payable nonReentrant returns (bytes32) {
+        return 0;
+    }
 
     function createIncreaseOrderRequest(
         address[] memory _path,
@@ -411,17 +424,14 @@ contract DptpFuturesGateway is
 
     function executeIncreasePosition(
         bytes32 _key,
-        uint256 _entryPip,
+        uint256 _entryPrice,
         uint256 _sizeDeltaInToken,
         bool _isLong
     ) public nonReentrant {
         //        require(positionKeepers[msg.sender], "403");
 
         IncreasePositionRequest memory request = increasePositionRequests[_key];
-        if (request.account == address(0)) {
-            return;
-        }
-
+        require(request.account != address(0), "404");
         delete increasePositionRequests[_key];
 
         if (request.amountInToken > 0) {
@@ -440,11 +450,14 @@ contract DptpFuturesGateway is
         }
 
         uint256 feeUsd = request.feeUsd.mul(PRICE_DECIMALS);
+        uint32 basicPoint = positionManagerConfigData[request.indexToken]
+            .basicPoint;
+        uint256 entryPip = _entryPrice.mul(basicPoint).div(10**18);
         _increasePosition(
             request.account,
             request.path[request.path.length - 1],
             request.indexToken,
-            _entryPip,
+            entryPip,
             _sizeDeltaInToken,
             _isLong,
             feeUsd
@@ -466,16 +479,14 @@ contract DptpFuturesGateway is
         bytes32 _key,
         uint256 _amountOutAfterFeesUsd,
         uint256 _feeUsd,
-        uint256 _entryPip,
+        uint256 _entryPrice,
         uint256 _sizeDeltaToken,
         bool _isLong
     ) public nonReentrant {
         //        require(positionKeepers[msg.sender], "403");
 
         DecreasePositionRequest memory request = decreasePositionRequests[_key];
-        if (request.account == address(0)) {
-            return;
-        }
+        require(request.account != address(0), "404");
         delete decreasePositionRequests[_key];
 
         address collateralToken = request.path[0];
@@ -484,7 +495,9 @@ contract DptpFuturesGateway is
         {
             address account = request.account;
             address indexToken = request.indexToken;
-            uint256 entryPip = _entryPip;
+            uint32 basicPoint = positionManagerConfigData[indexToken]
+                .basicPoint;
+            uint256 entryPip = _entryPrice.mul(basicPoint).div(10**18);
             uint256 sizeDeltaToken = _sizeDeltaToken;
             bool isLong = _isLong;
             uint256 amountOutAfterFeesUsd = _amountOutAfterFeesUsd;
@@ -1032,7 +1045,7 @@ contract DptpFuturesGateway is
                 uint8(Method.CLOSE_POSITION),
                 abi.encode(
                     requestKey,
-                    coreManagers[request.path[0]],
+                    coreManagers[request.indexToken],
                     _sizeDeltaToken,
                     msg.sender
                 )
@@ -1044,7 +1057,7 @@ contract DptpFuturesGateway is
                 uint8(Method.CLOSE_LIMIT_POSITION),
                 abi.encode(
                     requestKey,
-                    coreManagers[request.path[0]],
+                    coreManagers[request.indexToken],
                     _pip,
                     _sizeDeltaToken,
                     msg.sender
@@ -1208,7 +1221,7 @@ contract DptpFuturesGateway is
         address _account,
         address _indexToken,
         bool _isHigherPip
-    ) internal returns (bytes32) {
+    ) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_account, _indexToken, _isHigherPip));
     }
 
@@ -1340,76 +1353,76 @@ contract DptpFuturesGateway is
             .stepBaseSize = _stepBaseSize;
     }
 
-    function setManagerTakerTollRatio(
-        address _positionManager,
-        uint24 _takerTollRatio
-    ) public onlyOwner {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
-        positionManagerConfigData[_positionManager]
-            .takerTollRatio = _takerTollRatio;
-    }
-
-    function setManagerMakerTollRatio(
-        address _positionManager,
-        uint24 _makerTollRatio
-    ) public onlyOwner {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
-        positionManagerConfigData[_positionManager]
-            .makerTollRatio = _makerTollRatio;
-    }
-
-    function setManagerBaseBasicPoint(
-        address _positionManager,
-        uint40 _baseBasicPoint
-    ) public onlyOwner {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
-        positionManagerConfigData[_positionManager]
-            .baseBasicPoint = _baseBasicPoint;
-    }
-
-    function setManagerBasicPoint(address _positionManager, uint32 _basicPoint)
-        public
-        onlyOwner
-    {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
-        positionManagerConfigData[_positionManager].basicPoint = _basicPoint;
-    }
-
-    function setManagerContractPrice(
-        address _positionManager,
-        uint16 _contractPrice
-    ) public onlyOwner {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
-        positionManagerConfigData[_positionManager]
-            .contractPrice = _contractPrice;
-    }
-
-    function setManagerAssetRFI(
-        address _positionManager,
-        uint8 _assetRfiPercent
-    ) public onlyOwner {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
-        positionManagerConfigData[_positionManager]
-            .assetRfiPercent = _assetRfiPercent;
-    }
-
-    function setMinimumOrderQuantity(
-        address _positionManager,
-        uint80 _minimumOrderQuantity
-    ) public onlyOwner {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
-        positionManagerConfigData[_positionManager]
-            .minimumOrderQuantity = _minimumOrderQuantity;
-    }
-
-    function setStepBaseSize(address _positionManager, uint32 _stepBaseSize)
-        public
-        onlyOwner
-    {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
-        positionManagerConfigData[_positionManager]
-            .stepBaseSize = _stepBaseSize;
-    }
+    //    function setManagerTakerTollRatio(
+    //        address _positionManager,
+    //        uint24 _takerTollRatio
+    //    ) public onlyOwner {
+    //        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+    //        positionManagerConfigData[_positionManager]
+    //            .takerTollRatio = _takerTollRatio;
+    //    }
+    //
+    //    function setManagerMakerTollRatio(
+    //        address _positionManager,
+    //        uint24 _makerTollRatio
+    //    ) public onlyOwner {
+    //        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+    //        positionManagerConfigData[_positionManager]
+    //            .makerTollRatio = _makerTollRatio;
+    //    }
+    //
+    //    function setManagerBaseBasicPoint(
+    //        address _positionManager,
+    //        uint40 _baseBasicPoint
+    //    ) public onlyOwner {
+    //        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+    //        positionManagerConfigData[_positionManager]
+    //            .baseBasicPoint = _baseBasicPoint;
+    //    }
+    //
+    //    function setManagerBasicPoint(address _positionManager, uint32 _basicPoint)
+    //        public
+    //        onlyOwner
+    //    {
+    //        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+    //        positionManagerConfigData[_positionManager].basicPoint = _basicPoint;
+    //    }
+    //
+    //    function setManagerContractPrice(
+    //        address _positionManager,
+    //        uint16 _contractPrice
+    //    ) public onlyOwner {
+    //        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+    //        positionManagerConfigData[_positionManager]
+    //            .contractPrice = _contractPrice;
+    //    }
+    //
+    //    function setManagerAssetRFI(
+    //        address _positionManager,
+    //        uint8 _assetRfiPercent
+    //    ) public onlyOwner {
+    //        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+    //        positionManagerConfigData[_positionManager]
+    //            .assetRfiPercent = _assetRfiPercent;
+    //    }
+    //
+    //    function setMinimumOrderQuantity(
+    //        address _positionManager,
+    //        uint80 _minimumOrderQuantity
+    //    ) public onlyOwner {
+    //        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+    //        positionManagerConfigData[_positionManager]
+    //            .minimumOrderQuantity = _minimumOrderQuantity;
+    //    }
+    //
+    //    function setStepBaseSize(address _positionManager, uint32 _stepBaseSize)
+    //        public
+    //        onlyOwner
+    //    {
+    //        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+    //        positionManagerConfigData[_positionManager]
+    //            .stepBaseSize = _stepBaseSize;
+    //    }
 
     function setPosiChainId(uint256 _posiChainId) external onlyOwner {
         pcsId = _posiChainId;
