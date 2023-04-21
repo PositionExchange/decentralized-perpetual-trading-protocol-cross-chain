@@ -284,10 +284,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         if (borrowingFee > _amountOutAfterFeesUsd) {
             reduceCollateralAmount = borrowingFee.sub(_amountOutAfterFeesUsd);
-            _decreasePositionCollateralAmount(key, reduceCollateralAmount);
+            _decreasePositionCollateralAmount(key, usdToTokenMin(_collateralToken,reduceCollateralAmount));
             _amountOutAfterFeesUsd = 0;
         } else {
-            _decreasePositionCollateralAmount(key, _amountOutAfterFeesUsd);
+            _decreasePositionCollateralAmount(key, usdToTokenMin(_collateralToken,_amountOutAfterFeesUsd));
             _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.sub(borrowingFee);
         }
         _feeUsd = _feeUsd.add(borrowingFee);

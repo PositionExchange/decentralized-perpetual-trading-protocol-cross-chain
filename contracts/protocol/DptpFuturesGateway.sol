@@ -832,16 +832,6 @@ contract DptpFuturesGateway is
         bool _isLong
     ) external {
         address indexToken = indexTokens[_positionManager];
-        // delete untriggered tp or sl order
-        delete decreasePositionRequests[
-            TPSLRequestMap[
-                _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
-            ]
-        ];
-        delete TPSLRequestMap[
-            _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
-        ];
-
         bytes32 triggeredTPSLKey = _getTPSLRequestKey(
             _account,
             indexToken,
@@ -855,6 +845,14 @@ contract DptpFuturesGateway is
             _sizeDeltaInToken,
             _isLong
         );
+        delete decreasePositionRequests[
+            TPSLRequestMap[
+            _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
+            ]
+        ];
+        delete TPSLRequestMap[
+            _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
+        ];
         delete decreasePositionRequests[TPSLRequestMap[triggeredTPSLKey]];
         delete TPSLRequestMap[triggeredTPSLKey];
     }
