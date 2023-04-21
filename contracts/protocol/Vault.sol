@@ -27,6 +27,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     uint256 public constant MIN_LEVERAGE = 10000; // 1x
     uint256 public constant USDG_DECIMALS = 18;
     uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
+    // TODO: MUST UPDATE MIN_BORROWING_RATE_INTERVAL BEFORE DEPLOY MAINNET
     //    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
     uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1;
     uint256 public constant MAX_BORROWING_RATE_FACTOR = 10000; // 1%
@@ -286,6 +287,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _decreasePositionCollateralAmount(key, reduceCollateralAmount);
             _amountOutAfterFeesUsd = 0;
         } else {
+            _decreasePositionCollateralAmount(key, _amountOutAfterFeesUsd);
             _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.sub(borrowingFee);
         }
         _feeUsd = _feeUsd.add(borrowingFee);
@@ -955,6 +957,14 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
                     _isLong
                 )
             );
+    }
+
+    function getUtilisation(address _token) public view returns (uint256) {
+        VaultInfo.Data memory _vaultInfo = vaultInfo[_token];
+        uint256 poolAmount = _vaultInfo.poolAmounts;
+        if (poolAmount == 0) { return 0; }
+        uint256 reservedAmounts = _vaultInfo.reservedAmounts;
+        return reservedAmounts.mul(BORROWING_RATE_PRECISION).div(poolAmount);
     }
 
     /* PRIVATE FUNCTIONS */
