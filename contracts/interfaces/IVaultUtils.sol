@@ -30,4 +30,9 @@ interface IVaultUtils {
         uint256 _size,
         uint256 _entryBorrowingRate
     ) external view returns (uint256);
+
+    function updateCumulativeBorrowingRate(
+        address _collateralToken,
+        address _indexToken)
+    external returns (bool);
 }

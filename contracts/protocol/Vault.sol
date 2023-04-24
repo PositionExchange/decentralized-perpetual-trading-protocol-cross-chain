@@ -140,8 +140,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     event IncreaseFeeReserves(address token, uint256 amount);
     event IncreasePositionReserves(uint256 amount);
     event DecreasePositionReserves(uint256 amount);
-    event IncreasePositionCollateral(uint256 amount);
-    event DecreasePositionCollateral(uint256 amount);
 
     event WhitelistCallerChanged(address account, bool oldValue, bool newValue);
     event UpdateBorrowingRate(address token, uint256 borrowingRate);
@@ -185,7 +183,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _validate(collateralDeltaUsd >= _feeUsd, 29);
 
         _increaseFeeReserves(_collateralToken, _feeUsd);
-        _increasePositionCollateralAmount(key, collateralDeltaToken);
 
         uint256 reservedAmountDelta = _increasePositionReservedAmount(
             key,
@@ -285,16 +282,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         if (borrowingFee > _amountOutAfterFeesUsd) {
             reduceCollateralAmount = borrowingFee.sub(_amountOutAfterFeesUsd);
-            _decreasePositionCollateralAmount(
-                key,
-                usdToTokenMin(_collateralToken, reduceCollateralAmount)
-            );
             _amountOutAfterFeesUsd = 0;
         } else {
-            _decreasePositionCollateralAmount(
-                key,
-                usdToTokenMin(_collateralToken, _amountOutAfterFeesUsd)
-            );
             _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.sub(borrowingFee);
         }
         _feeUsd = _feeUsd.add(borrowingFee);
@@ -346,6 +335,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _collateralToken,
         address _indexToken,
         uint256 _positionSize,
+        uint256 _positionMargin,
         bool _isLong
     ) external override nonReentrant {
         _validateCaller(msg.sender);
@@ -369,7 +359,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         uint256 positionAmountUsd = tokenToUsdMin(
             _collateralToken,
-            _positionInfo.collateralAmount
+            _positionMargin
         );
         if (borrowingFee >= positionAmountUsd) {
             borrowingFee = positionAmountUsd;
@@ -405,7 +395,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _indexToken,
             _isLong
         );
-        _increasePositionCollateralAmount(key, _amountInToken);
         _increasePoolAmount(_collateralToken, _amountInToken);
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
     }
@@ -425,7 +414,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _indexToken,
             _isLong
         );
-        _decreasePositionCollateralAmount(key, _amountInToken);
         _decreasePoolAmount(_collateralToken, _amountInToken);
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         _transferOut(_collateralToken, _amountInToken, msg.sender);
@@ -1040,6 +1028,11 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _collateralToken,
         address _indexToken
     ) private {
+        bool shouldUpdate = _vaultUtils.updateCumulativeBorrowingRate(_collateralToken, _indexToken);
+        if (!shouldUpdate) {
+            return;
+        }
+
         if (lastBorrowingRateTimes[_collateralToken] == 0) {
             lastBorrowingRateTimes[_collateralToken] = block
                 .timestamp
@@ -1204,20 +1197,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     function _decreaseReservedAmount(address _token, uint256 _amount) private {
         vaultInfo[_token].subReservedAmount(_amount);
         emit DecreaseReservedAmount(_token, _amount);
-    }
-
-    function _increasePositionCollateralAmount(bytes32 _key, uint256 _amount)
-        private
-    {
-        positionInfo[_key].addCollateralAmount(_amount);
-        emit IncreasePositionCollateral(_amount);
-    }
-
-    function _decreasePositionCollateralAmount(bytes32 _key, uint256 _amount)
-        private
-    {
-        positionInfo[_key].subCollateralAmount(_amount);
-        emit DecreasePositionCollateral(_amount);
     }
 
     function _increasePositionReservedAmount(
