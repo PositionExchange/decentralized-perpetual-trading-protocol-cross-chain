@@ -84,23 +84,23 @@ const migrations: MigrationDefinition = {
 
           let tx: Promise<ContractTransaction>;
 
-          tx = usdp.addVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'usdp.addVault')
-
-          tx = lpManager.setVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'lpManager.setVault')
-
-          tx = futuresGateway.setVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'futuresGateway.setVault')
-
-          tx = vaultUtils.setVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'vaultUtils.setVault')
-
-          tx = weth.mint(deployerAddress, BigNumber.from('1000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'weth.mint')
-
-          tx = weth.approve(lpManager.address, BigNumber.from('1000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'weth.approve')
+          // tx = usdp.addVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'usdp.addVault')
+          //
+          // tx = lpManager.setVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'lpManager.setVault')
+          //
+          // tx = futuresGateway.setVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'futuresGateway.setVault')
+          //
+          // tx = vaultUtils.setVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'vaultUtils.setVault')
+          //
+          // tx = weth.mint(deployerAddress, BigNumber.from('1000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'weth.mint')
+          //
+          // tx = weth.approve(lpManager.address, BigNumber.from('1000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'weth.approve')
 
           tx = lpManager.addLiquidity(
               weth.address,
