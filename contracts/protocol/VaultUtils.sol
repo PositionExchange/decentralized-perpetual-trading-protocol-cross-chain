@@ -160,4 +160,8 @@ contract VaultUtils is IVaultUtils, Initializable {
     ) external {
         vault = IVault(_vault);
     }
+
+    function updateCumulativeBorrowingRate(address /* _collateralToken */, address /* _indexToken */) public override returns (bool) {
+        return true;
+    }
 }

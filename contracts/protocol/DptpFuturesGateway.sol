@@ -633,6 +633,7 @@ contract DptpFuturesGateway is
         address _collateralToken,
         address _indexToken,
         uint256 _positionSize,
+        uint256 _positionMargin,
         bool _isLong
     ) public nonReentrant {
         IVault(vault).liquidatePosition(
@@ -640,6 +641,7 @@ contract DptpFuturesGateway is
             _collateralToken,
             _indexToken,
             _positionSize,
+            _positionMargin,
             _isLong
         );
     }

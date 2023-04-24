@@ -72,6 +72,7 @@ interface IVault {
         address _collateralToken,
         address _indexToken,
         uint256 _positionSize,
+        uint256 _positionMargin,
         bool _isLong
     ) external;
 
