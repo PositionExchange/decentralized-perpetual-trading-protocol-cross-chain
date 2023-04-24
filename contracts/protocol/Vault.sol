@@ -34,6 +34,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     uint256 public constant BASIS_POINTS_DIVISOR = 10000;
     uint256 public constant PRICE_PRECISION = 10**30;
     uint256 public constant DEAFULT_DECIMALS = 18;
+    uint256 public constant WEI_DECIMALS = 10**18;
 
     IVaultPriceFeed private _priceFeed;
     IVaultUtils private _vaultUtils;
@@ -158,7 +159,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _account,
         address _collateralToken,
         address _indexToken,
-        uint256 _entryPip,
+        uint256 _entryPrice,
         uint256 _sizeDeltaToken,
         bool _isLong,
         uint256 _feeUsd
@@ -187,7 +188,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 reservedAmountDelta = _increasePositionReservedAmount(
             key,
             _sizeDeltaToken,
-            _entryPip,
+            _entryPrice,
             _isLong
         );
         _increaseReservedAmount(_collateralToken, reservedAmountDelta);
@@ -229,7 +230,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _trader,
         address _collateralToken,
         address _indexToken,
-        uint256 _entryPip,
+        uint256 _entryPrice,
         uint256 _sizeDeltaToken,
         bool _isLong,
         address _receiver,
@@ -243,7 +244,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
                 _trader,
                 _collateralToken,
                 _indexToken,
-                _entryPip,
+                _entryPrice,
                 _sizeDeltaToken,
                 _isLong,
                 _receiver,
@@ -256,7 +257,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _trader,
         address _collateralToken,
         address _indexToken,
-        uint256 _entryPip,
+        uint256 _entryPrice,
         uint256 _sizeDeltaToken,
         bool _isLong,
         address _receiver,
@@ -295,7 +296,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             uint256 reservedAmountDelta = _decreasePositionReservedAmount(
                 key,
                 _sizeDeltaToken,
-                _entryPip,
+                _entryPrice,
                 _isLong
             );
             _decreaseReservedAmount(_collateralToken, reservedAmountDelta);
@@ -1202,10 +1203,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     function _increasePositionReservedAmount(
         bytes32 _key,
         uint256 _amount,
-        uint256 _entryPip,
+        uint256 _entryPrice,
         bool _isLong
     ) private returns (uint256 delta) {
-        delta = _isLong ? _amount : _entryPip.mul(_amount).div(10**12);
+        delta = _isLong ? _amount : _entryPrice.mul(_amount).div(WEI_DECIMALS);
         _increasePositionReservedAmount(_key, delta);
     }
 
@@ -1219,7 +1220,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     function _decreasePositionReservedAmount(
         bytes32 _key,
         uint256 _amount,
-        uint256 _entryPip,
+        uint256 _entryPrice,
         bool _isLong
     ) private returns (uint256 delta) {
         if (_isLong) {
@@ -1228,13 +1229,13 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             return delta;
         }
 
-        if (_entryPip == 0) {
+        if (_entryPrice == 0) {
             delta = positionInfo[_key].reservedAmount;
             _decreasePositionReservedAmount(_key, delta);
             return delta;
         }
 
-        delta = _entryPip.mul(_amount).div(10**12);
+        delta = _entryPrice.mul(_amount).div(WEI_DECIMALS);
         _decreasePositionReservedAmount(_key, delta);
     }
 
