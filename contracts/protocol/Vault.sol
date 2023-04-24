@@ -170,10 +170,11 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         bytes32 key = getPositionInfoKey(
             _account,
-            _collateralToken,
+            //            _collateralToken,
             _indexToken,
             _isLong
         );
+        _setCollateralToken(key, _collateralToken);
         _updatePositionEntryBorrowingRate(key, _collateralToken);
 
         uint256 collateralDeltaToken = _transferIn(_collateralToken);
@@ -276,7 +277,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         bytes32 key = getPositionInfoKey(
             _trader,
-            _collateralToken,
+            //            _collateralToken,
             _indexToken,
             _isLong
         );
@@ -284,10 +285,16 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         if (borrowingFee > _amountOutAfterFeesUsd) {
             reduceCollateralAmount = borrowingFee.sub(_amountOutAfterFeesUsd);
-            _decreasePositionCollateralAmount(key, usdToTokenMin(_collateralToken,reduceCollateralAmount));
+            _decreasePositionCollateralAmount(
+                key,
+                usdToTokenMin(_collateralToken, reduceCollateralAmount)
+            );
             _amountOutAfterFeesUsd = 0;
         } else {
-            _decreasePositionCollateralAmount(key, usdToTokenMin(_collateralToken,_amountOutAfterFeesUsd));
+            _decreasePositionCollateralAmount(
+                key,
+                usdToTokenMin(_collateralToken, _amountOutAfterFeesUsd)
+            );
             _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.sub(borrowingFee);
         }
         _feeUsd = _feeUsd.add(borrowingFee);
@@ -354,7 +361,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         bytes32 key = getPositionInfoKey(
             _trader,
-            _collateralToken,
+            //            _collateralToken,
             _indexToken,
             _isLong
         );
@@ -394,7 +401,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         bytes32 key = getPositionInfoKey(
             _account,
-            _collateralToken,
+            //            _collateralToken,
             _indexToken,
             _isLong
         );
@@ -414,7 +421,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         bytes32 key = getPositionInfoKey(
             _account,
-            _collateralToken,
+            //            _collateralToken,
             _indexToken,
             _isLong
         );
@@ -944,25 +951,18 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     function getPositionInfoKey(
         address _trader,
-        address _collateralToken,
         address _indexToken,
         bool _isLong
     ) public view returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    _trader,
-                    _collateralToken,
-                    _indexToken,
-                    _isLong
-                )
-            );
+        return keccak256(abi.encodePacked(_trader, _indexToken, _isLong));
     }
 
     function getUtilisation(address _token) public view returns (uint256) {
         VaultInfo.Data memory _vaultInfo = vaultInfo[_token];
         uint256 poolAmount = _vaultInfo.poolAmounts;
-        if (poolAmount == 0) { return 0; }
+        if (poolAmount == 0) {
+            return 0;
+        }
         uint256 reservedAmounts = _vaultInfo.reservedAmounts;
         return reservedAmounts.mul(BORROWING_RATE_PRECISION).div(poolAmount);
     }
@@ -1080,6 +1080,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
     }
 
+    function _setCollateralToken(bytes32 _key, address _collateralToken)
+        private
+    {
+        positionInfo[_key].setCollateralToken(_collateralToken);
+    }
+
     function _getBorrowingFee(
         address _trader,
         address _collateralToken,
@@ -1088,7 +1094,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     ) private view returns (uint256) {
         bytes32 _key = getPositionInfoKey(
             _trader,
-            _collateralToken,
+            //            _collateralToken,
             _indexToken,
             _isLong
         );

@@ -5,6 +5,7 @@ library PositionInfo {
         uint256 collateralAmount;
         uint256 reservedAmount;
         uint128 entryBorrowingRates;
+        address collateralToken;
     }
 
     function setEntryBorrowingRates(Data storage _self, uint256 _rate) internal {
@@ -33,5 +34,13 @@ library PositionInfo {
             "Vault: reservedAmount exceeded"
         );
         _self.reservedAmount = _self.reservedAmount - _amount;
+    }
+
+    function setCollateralToken(Data storage _self, address _token) internal {
+        if (_self.collateralToken == address(0)) {
+            _self.collateralToken = _token;
+            return;
+        }
+        require(_self.collateralToken == _token);
     }
 }
