@@ -9,6 +9,7 @@ const DATA_STORE_FILE = {
     'production': './deployData_mainnet.db',
     'okex_test': './deployData_okex_testnet.db',
     'okex_main': './deployData_okex_mainnet.db',
+    'arbitrumGoerli': './deployData_arb_goerli.db',
 }
 
 export function loadDb(stage: Stage) {

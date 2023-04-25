@@ -73,6 +73,14 @@ contract DptpFuturesGateway is
         bool hasCollateralInETH;
     }
 
+    struct AddCollateralRequest {
+        address account;
+        address collateralToken;
+        address indexToken;
+        uint256 amountInToken;
+        bool isLong;
+    }
+
     enum SetTPSLOption {
         BOTH,
         ONLY_HIGHER,
@@ -175,6 +183,16 @@ contract DptpFuturesGateway is
 
     uint256 public maxTimeDelay;
     uint256 public executionFee;
+
+    // mapping indexToken with positionManager
+    mapping(address => address) public coreManagers;
+    // mapping positionManager with indexToken
+    mapping(address => address) public indexTokens;
+    mapping(bytes32 => bytes32) public TPSLRequestMap;
+
+    mapping(address => uint256) public addCollateralIndex;
+    mapping(bytes32 => AddCollateralRequest) public addCollateralRequests;
+    bytes32[] public addCollateralRequestKeys;
 
     function initialize(
         uint256 _pcsId,
@@ -712,7 +730,11 @@ contract DptpFuturesGateway is
             request.isLong,
             request.amountInToken
         );
-        emit CollateralAdded(request.account, request.collateralToken, request.amountInToken);
+        emit CollateralAdded(
+            request.account,
+            request.collateralToken,
+            request.amountInToken
+        );
     }
 
     function executeRemoveCollateral(
@@ -862,7 +884,7 @@ contract DptpFuturesGateway is
         );
         delete decreasePositionRequests[
             TPSLRequestMap[
-            _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
+                _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
             ]
         ];
         delete TPSLRequestMap[
@@ -872,12 +894,15 @@ contract DptpFuturesGateway is
         delete TPSLRequestMap[triggeredTPSLKey];
     }
 
-    function refund(
-        bytes32 _key,
-        Method _method
-    ) external payable nonReentrant{
+    function refund(bytes32 _key, Method _method)
+        external
+        payable
+        nonReentrant
+    {
         if (_method == Method.OPEN_LIMIT || _method == Method.OPEN_MARKET) {
-            IncreasePositionRequest memory request = increasePositionRequests[_key];
+            IncreasePositionRequest memory request = increasePositionRequests[
+                _key
+            ];
             require(request.account != address(0), "Refund: request not found");
             delete increasePositionRequests[_key];
             _transferOut(
@@ -1146,9 +1171,10 @@ contract DptpFuturesGateway is
         return (index, key);
     }
 
-    function _storeAddCollateralRequest(
-        AddCollateralRequest memory _request
-    ) internal returns (uint256, bytes32) {
+    function _storeAddCollateralRequest(AddCollateralRequest memory _request)
+        internal
+        returns (uint256, bytes32)
+    {
         address account = _request.account;
         uint256 index = addCollateralIndex[account].add(1);
         addCollateralIndex[account] = index;
@@ -1459,21 +1485,21 @@ contract DptpFuturesGateway is
     //        positionManagerConfigData[_positionManager]
     //            .stepBaseSize = _stepBaseSize;
     //    }
-
-    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
-        pcsId = _posiChainId;
-    }
-
-    function setPosiChainCrosschainGatewayContract(address _address)
-        external
-        onlyOwner
-    {
-        pscCrossChainGateway = _address;
-    }
-
-    function setPositionKeeper(address _address) external onlyOwner {
-        positionKeepers[_address] = true;
-    }
+    //
+    //    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
+    //        pcsId = _posiChainId;
+    //    }
+    //
+    //    function setPosiChainCrosschainGatewayContract(address _address)
+    //        external
+    //        onlyOwner
+    //    {
+    //        pscCrossChainGateway = _address;
+    //    }
+    //
+    //    function setPositionKeeper(address _address) external onlyOwner {
+    //        positionKeepers[_address] = true;
+    //    }
 
     function setCoreManager(address _token, address _manager)
         external
@@ -1489,21 +1515,4 @@ contract DptpFuturesGateway is
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
-    // mapping indexToken with positionManager
-    mapping(address => address) public coreManagers;
-    // mapping positionManager with indexToken
-    mapping(address => address) public indexTokens;
-    mapping(bytes32 => bytes32) public TPSLRequestMap;
-
-    struct AddCollateralRequest {
-        address account;
-        address collateralToken;
-        address indexToken;
-        uint256 amountInToken;
-        bool isLong;
-    }
-
-    mapping(address => uint256) public addCollateralIndex;
-    mapping(bytes32 => AddCollateralRequest) public addCollateralRequests;
-    bytes32[] public addCollateralRequestKeys;
 }

@@ -4,7 +4,7 @@ import {
   DptpFuturesGateway,
   LpManager,
   MockToken,
-  PLP,
+  PLP, RewardRouter,
   USDP,
   Vault,
   VaultPriceFeed,
@@ -74,7 +74,6 @@ const migrations: MigrationDefinition = {
           const deployerAddress = (await ctx.factory.hre.ethers.getSigners())[0].address
           const vaultAddress = ctx.db.findAddressByKey('Vault')
 
-          const wethC = await ctx.factory.getDeployedContract<Vault>('Vault')
           const weth = await ctx.factory.getDeployedContract<WETH>('WETH')
           const usdt = await ctx.factory.getDeployedContract<MockToken>( 'USDT', 'MockToken')
           const busd = await ctx.factory.getDeployedContract<MockToken>('BUSD', 'MockToken')
@@ -82,62 +81,66 @@ const migrations: MigrationDefinition = {
           const usdp = await ctx.factory.getDeployedContract<USDP>('USDP')
           const futuresGateway = await ctx.factory.getDeployedContract<DptpFuturesGateway>('DptpFuturesGateway')
           const vaultUtils = await ctx.factory.getDeployedContract<VaultUtils>('VaultUtils')
+          const rewardRouter = await ctx.factory.getDeployedContract<RewardRouter>('RewardRouter')
 
           let tx: Promise<ContractTransaction>;
 
-          tx = usdp.addVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'usdp.addVault')
+          // tx = usdp.addVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'usdp.addVault')
+          //
+          // tx = lpManager.setVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'lpManager.setVault')
+          //
+          // tx = futuresGateway.setVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'futuresGateway.setVault')
+          //
+          // tx = vaultUtils.setVault(vaultAddress)
+          // await ctx.factory.waitTx(tx, 'vaultUtils.setVault')
 
-          tx = lpManager.setVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'lpManager.setVault')
+          tx = rewardRouter.setGov(vaultAddress)
+          await ctx.factory.waitTx(tx, 'rewardRouter.setGov')
 
-          tx = futuresGateway.setVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'futuresGateway.setVault')
-
-          tx = vaultUtils.setVault(vaultAddress)
-          await ctx.factory.waitTx(tx, 'vaultUtils.setVault')
-
-          tx = weth.mint(deployerAddress, BigNumber.from('1000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'weth.mint')
-
-          tx = weth.approve(lpManager.address, BigNumber.from('1000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'weth.approve')
-
-          tx = lpManager.addLiquidity(
-              weth.address,
-              BigNumber.from('1000000000000000000000'),
-              BigNumber.from('0'),
-              BigNumber.from('0')
-          )
-          await ctx.factory.waitTx(tx, 'lpManager.addLiquidity')
-
-          tx = usdt.mint(deployerAddress, BigNumber.from('10000000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'usdt.mint')
-
-          tx = usdt.approve(lpManager.address, BigNumber.from('10000000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'usdt.approve')
-
-          tx = lpManager.addLiquidity(
-              usdt.address,
-              BigNumber.from('10000000000000000000000000'),
-              BigNumber.from('0'),
-              BigNumber.from('0')
-          )
-          await ctx.factory.waitTx(tx, 'lpManager.addLiquidity.usdt')
-
-          tx = busd.mint(deployerAddress, BigNumber.from('10000000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'busd.mint')
-
-          tx = busd.approve(lpManager.address, BigNumber.from('10000000000000000000000000'))
-          await ctx.factory.waitTx(tx, 'busd.approve')
-
-          tx = lpManager.addLiquidity(
-              busd.address,
-              BigNumber.from('10000000000000000000000000'),
-              BigNumber.from('0'),
-              BigNumber.from('0')
-          )
-          await ctx.factory.waitTx(tx, 'lpManager.addLiquidity.busd')
+          // tx = weth.mint(deployerAddress, BigNumber.from('1000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'weth.mint')
+          //
+          // tx = weth.approve(lpManager.address, BigNumber.from('1000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'weth.approve')
+          //
+          // tx = lpManager.addLiquidity(
+          //     weth.address,
+          //     BigNumber.from('1000000000000000000000'),
+          //     BigNumber.from('0'),
+          //     BigNumber.from('0')
+          // )
+          // await ctx.factory.waitTx(tx, 'lpManager.addLiquidity')
+          //
+          // tx = usdt.mint(deployerAddress, BigNumber.from('10000000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'usdt.mint')
+          //
+          // tx = usdt.approve(lpManager.address, BigNumber.from('10000000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'usdt.approve')
+          //
+          // tx = lpManager.addLiquidity(
+          //     usdt.address,
+          //     BigNumber.from('10000000000000000000000000'),
+          //     BigNumber.from('0'),
+          //     BigNumber.from('0')
+          // )
+          // await ctx.factory.waitTx(tx, 'lpManager.addLiquidity.usdt')
+          //
+          // tx = busd.mint(deployerAddress, BigNumber.from('10000000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'busd.mint')
+          //
+          // tx = busd.approve(lpManager.address, BigNumber.from('10000000000000000000000000'))
+          // await ctx.factory.waitTx(tx, 'busd.approve')
+          //
+          // tx = lpManager.addLiquidity(
+          //     busd.address,
+          //     BigNumber.from('10000000000000000000000000'),
+          //     BigNumber.from('0'),
+          //     BigNumber.from('0')
+          // )
+          // await ctx.factory.waitTx(tx, 'lpManager.addLiquidity.busd')
         },
     }}
 }

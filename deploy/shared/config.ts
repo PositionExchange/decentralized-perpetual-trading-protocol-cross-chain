@@ -26,6 +26,19 @@ export const stageConfig: StageConfig<AvailableStageConfig,any> = {
       ],
       native_token: BNB.forChain(97)
     }
+  },
+  'arbitrumGoerli': {
+    421613: {
+      whitelist: [
+        // BNB.forChain(421613),
+        // BUSD.forChain(421613),
+        DAI.forChain(421613),
+        USDT.forChain(421613),
+        WETH.forChain(421613),
+        BTC.forChain(421613),
+      ],
+      native_token: WETH.forChain(421613)
+    }
   }
 }
 

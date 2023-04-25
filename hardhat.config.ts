@@ -8,6 +8,7 @@ import "@openzeppelin/hardhat-defender"
 import "hardhat-docgen"
 import {task} from "hardhat/config";
 import {
+    ARB_API_KEY,
     BSC_MAINNET_URL,
     BSC_TESTNET_URL, GANACHE_QC_URL, OKEX_CHAIN_MAINNET_URL, OKEX_CHAIN_TESTNET_URL,
     POSI_CHAIN_DEVNET_URL,
@@ -74,6 +75,11 @@ module.exports = {
             chainId: 66,
             accounts: PRIV_MAINNET_ACCOUNT ? [PRIV_MAINNET_ACCOUNT] : [],
         },
+        arbitrumGoerli: {
+            url: "https://goerli-rollup.arbitrum.io/rpc",
+            chainId: 421613,
+            accounts: PRIV_TESTNET_ACCOUNT ? [PRIV_TESTNET_ACCOUNT] : [],
+        },
     },
 
     solidity: {
@@ -130,7 +136,8 @@ module.exports = {
         apiKey: {
             posi_testnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             bscTestnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
-            bsc: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6'
+            bsc: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
+            arbitrumGoerli: ARB_API_KEY
         },
         customChains: [
             {
@@ -140,7 +147,7 @@ module.exports = {
                     apiURL: "https://apex-testnet.posichain.org/contract-verifier/verify",
                     browserURL: "http://explorer-testnet.posichain.org"
                 }
-            },
+            }
         ]
     },
     defender: {
