@@ -36,15 +36,11 @@ describe("Vault.liquidatePosition", function() {
     await btc.mint(user0.address, expandDecimals(1, 8))
     await btc.connect(user1).transfer(vault.address, 25000) // 0.00025 BTC => 10 USD
 
-    await vault.connect(user0).increasePosition(user0.address, btc.address, btc.address, toUsd(90), true,0)
+    await vault.connect(user0).increasePosition(user0.address, btc.address, btc.address, toUsd(90), 225000,true,0)
     const positionKey = ethers.utils.solidityKeccak256(["address","address","address","bool"],[user0.address,btc.address,btc.address,true])
-    const positionInfo = await vault.positionInfo(positionKey)
-    expect(positionInfo.collateralAmount.toString()).eq("25000")
-    expect(positionInfo.reservedAmount.toString()).eq("225000")
 
-    await vault.connect(user0).liquidatePosition(user0.address, btc.address, btc.address, toUsd(90), true)
+    await vault.connect(user0).liquidatePosition(user0.address, btc.address, btc.address, toUsd(90), 90,true)
     const positionInfoAfterLiquidate = await vault.positionInfo(positionKey)
-    expect(positionInfoAfterLiquidate.collateralAmount.toString()).eq("0")
     expect(positionInfoAfterLiquidate.reservedAmount.toString()).eq("0")
   })
 

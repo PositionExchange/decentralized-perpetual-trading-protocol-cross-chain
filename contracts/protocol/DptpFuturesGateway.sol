@@ -658,16 +658,24 @@ contract DptpFuturesGateway is
             _amountInUsd.mul(PRICE_DECIMALS)
         );
         _transferIn(_collateralToken, amountInToken);
+
+        AddCollateralRequest memory request = AddCollateralRequest(
+            msg.sender,
+            _collateralToken,
+            _indexToken,
+            amountInToken,
+            _isLong
+        );
+
+        (, bytes32 requestKey) = _storeAddCollateralRequest(request);
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
             uint8(Method.ADD_MARGIN),
             abi.encode(
-                _collateralToken,
-                _indexToken,
+                requestKey,
                 coreManagers[_indexToken],
                 _amountInUsd,
-                amountInToken,
                 msg.sender
             )
         );
@@ -696,23 +704,18 @@ contract DptpFuturesGateway is
         );
     }
 
-    function executeAddCollateral(
-        address _account,
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong,
-        uint256 _amountInToken
-    ) external nonReentrant {
+    function executeAddCollateral(bytes32 _key) external nonReentrant {
         //        require(positionKeepers[msg.sender], "403");
-
+        AddCollateralRequest memory request = addCollateralRequests[_key];
+        delete addCollateralRequests[_key];
         IVault(vault).addCollateral(
-            _account,
-            _collateralToken,
-            _indexToken,
-            _isLong,
-            _amountInToken
+            request.account,
+            request.collateralToken,
+            request.indexToken,
+            request.isLong,
+            request.amountInToken
         );
-        emit CollateralAdded(_account, _collateralToken, _amountInToken);
+        emit CollateralAdded(request.account, request.collateralToken, request.amountInToken);
     }
 
     function executeRemoveCollateral(
@@ -870,6 +873,31 @@ contract DptpFuturesGateway is
         ];
         delete decreasePositionRequests[TPSLRequestMap[triggeredTPSLKey]];
         delete TPSLRequestMap[triggeredTPSLKey];
+    }
+
+    function refund(
+        bytes32 _key,
+        Method _method
+    ) external payable nonReentrant{
+        require(request.account != address(0), "Refund: request not found");
+        if (_method == Method.OPEN_LIMIT || _method == Method.OPEN_MARKET) {
+            IncreasePositionRequest memory request = increasePositionRequests[_key];
+            delete increasePositionRequests[_key];
+            _transferOut(
+                request.path[0],
+                request.amountInToken,
+                payable(request.account)
+            );
+        }
+        if (_method == Method.ADD_MARGIN) {
+            AddCollateralRequest memory request = addCollateralRequests[_key];
+            delete addCollateralRequests[_key];
+            _transferOut(
+                request.collateralToken,
+                request.amountInToken,
+                payable(request.account)
+            );
+        }
     }
 
     function _increasePosition(
@@ -1122,6 +1150,20 @@ contract DptpFuturesGateway is
 
         decreasePositionRequests[key] = _request;
         decreasePositionRequestKeys.push(key);
+
+        return (index, key);
+    }
+
+    function _storeAddCollateralRequest(
+        AddCollateralRequest memory _request
+    ) internal returns (uint256, bytes32) {
+        address account = _request.account;
+        uint256 index = addCollateralIndex[account].add(1);
+        addCollateralIndex[account] = index;
+        bytes32 key = getRequestKey(account, index);
+
+        addCollateralRequests[key] = _request;
+        addCollateralRequestKeys.push(key);
 
         return (index, key);
     }
@@ -1460,4 +1502,16 @@ contract DptpFuturesGateway is
     // mapping positionManager with indexToken
     mapping(address => address) public indexTokens;
     mapping(bytes32 => bytes32) public TPSLRequestMap;
+
+    struct AddCollateralRequest {
+        address account;
+        address collateralToken;
+        address indexToken;
+        uint256 amountInToken;
+        bool isLong;
+    }
+
+    mapping(address => uint256) public addCollateralIndex;
+    mapping(bytes32 => AddCollateralRequest) public addCollateralRequests;
+    bytes32[] public addCollateralRequestKeys;
 }
