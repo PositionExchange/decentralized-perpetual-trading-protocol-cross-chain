@@ -11,7 +11,7 @@ export interface MigrationDefinition {
     }
 }
 
-export type Stage = "production" | "staging" | "test" | "dev" | "okex_test" | "okex_main"
+export type Stage = "production" | "staging" | "test" | "dev" | "okex_test" | "okex_main" | "arbitrumGoerli"
 export type Network = "bsc_testnet" | "bsc_mainnet" | "qc"
 
 export interface MigrationContext {

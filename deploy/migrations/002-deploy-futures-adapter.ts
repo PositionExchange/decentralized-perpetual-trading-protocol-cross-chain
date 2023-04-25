@@ -23,6 +23,11 @@ const migrations: MigrationDefinition = {
                     myBlockchainId: 97,
                     timeHorizon: 86400
                 })
+            } else if (context.stage == "arbitrumGoerli") {
+                await context.factory.createFuturesAdapter({
+                    myBlockchainId: 421613,
+                    timeHorizon: 86400
+                })
             } else {
                 await context.factory.createFuturesAdapter({
                     myBlockchainId: 930000,
