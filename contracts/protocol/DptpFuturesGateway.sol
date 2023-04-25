@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
@@ -28,6 +27,7 @@ contract DptpFuturesGateway is
     using AddressUpgradeable for address;
 
     uint256 constant PRICE_DECIMALS = 10**12;
+    uint256 constant WEI_DECIMALS = 10**18;
 
     struct ManagerData {
         // fee = quoteAssetAmount / tollRatio (means if fee = 0.001% then tollRatio = 100000)
@@ -450,14 +450,11 @@ contract DptpFuturesGateway is
         }
 
         uint256 feeUsd = request.feeUsd.mul(PRICE_DECIMALS);
-        uint32 basicPoint = positionManagerConfigData[request.indexToken]
-            .basicPoint;
-        uint256 entryPip = _entryPrice.mul(basicPoint).div(10**18);
         _increasePosition(
             request.account,
             request.path[request.path.length - 1],
             request.indexToken,
-            entryPip,
+            _entryPrice,
             _sizeDeltaInToken,
             _isLong,
             feeUsd
@@ -497,7 +494,7 @@ contract DptpFuturesGateway is
             address indexToken = request.indexToken;
             uint32 basicPoint = positionManagerConfigData[indexToken]
                 .basicPoint;
-            uint256 entryPip = _entryPrice.mul(basicPoint).div(10**18);
+            uint256 entryPrice = _entryPrice;
             uint256 sizeDeltaToken = _sizeDeltaToken;
             bool isLong = _isLong;
             uint256 amountOutAfterFeesUsd = _amountOutAfterFeesUsd;
@@ -509,7 +506,7 @@ contract DptpFuturesGateway is
                 account,
                 collateralToken,
                 indexToken,
-                entryPip,
+                entryPrice,
                 sizeDeltaToken,
                 isLong,
                 address(this),
@@ -879,9 +876,9 @@ contract DptpFuturesGateway is
         bytes32 _key,
         Method _method
     ) external payable nonReentrant{
-        require(request.account != address(0), "Refund: request not found");
         if (_method == Method.OPEN_LIMIT || _method == Method.OPEN_MARKET) {
             IncreasePositionRequest memory request = increasePositionRequests[_key];
+            require(request.account != address(0), "Refund: request not found");
             delete increasePositionRequests[_key];
             _transferOut(
                 request.path[0],
@@ -891,6 +888,7 @@ contract DptpFuturesGateway is
         }
         if (_method == Method.ADD_MARGIN) {
             AddCollateralRequest memory request = addCollateralRequests[_key];
+            require(request.account != address(0), "Refund: request not found");
             delete addCollateralRequests[_key];
             _transferOut(
                 request.collateralToken,
@@ -904,14 +902,11 @@ contract DptpFuturesGateway is
         address _account,
         address _collateralToken,
         address _indexToken,
-        uint256 _entryPip,
+        uint256 _entryPrice,
         uint256 _sizeDeltaToken,
         bool _isLong,
         uint256 _feeUsd
     ) internal {
-        uint32 basisPoint = positionManagerConfigData[_indexToken].basicPoint;
-        require(basisPoint > 0, "invalid basis point");
-        _entryPip = _entryPip.mul(PRICE_DECIMALS).div(basisPoint);
         //        if (!_isLong && _sizeDelta > 0) {
         //            uint256 markPrice = _isLong
         //                ? IVault(vault).getMaxPrice(_indexToken)
@@ -929,7 +924,7 @@ contract DptpFuturesGateway is
             _account,
             _collateralToken,
             _indexToken,
-            _entryPip,
+            _entryPrice,
             _sizeDeltaToken,
             _isLong,
             _feeUsd
@@ -940,16 +935,13 @@ contract DptpFuturesGateway is
         address _account,
         address _collateralToken,
         address _indexToken,
-        uint256 _entryPip,
+        uint256 _entryPrice,
         uint256 _sizeDeltaToken,
         bool _isLong,
         address _receiver,
         uint256 _amountOutUsd,
         uint256 _feeUsd
     ) internal returns (uint256, uint256) {
-        uint32 basisPoint = positionManagerConfigData[_indexToken].basicPoint;
-        require(basisPoint > 0, "invalid basis point");
-        _entryPip = _entryPip.mul(PRICE_DECIMALS).div(basisPoint);
         //        if (!_isLong && _sizeDelta > 0) {
         //            uint256 markPrice = _isLong
         //                ? IVault(vault).getMinPrice(_indexToken)
@@ -969,7 +961,7 @@ contract DptpFuturesGateway is
                 _account,
                 _collateralToken,
                 _indexToken,
-                _entryPip,
+                _entryPrice,
                 _sizeDeltaToken,
                 _isLong,
                 _receiver,
