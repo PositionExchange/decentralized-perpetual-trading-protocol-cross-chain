@@ -876,9 +876,9 @@ contract DptpFuturesGateway is
         bytes32 _key,
         Method _method
     ) external payable nonReentrant{
-        require(request.account != address(0), "Refund: request not found");
         if (_method == Method.OPEN_LIMIT || _method == Method.OPEN_MARKET) {
             IncreasePositionRequest memory request = increasePositionRequests[_key];
+            require(request.account != address(0), "Refund: request not found");
             delete increasePositionRequests[_key];
             _transferOut(
                 request.path[0],
@@ -888,6 +888,7 @@ contract DptpFuturesGateway is
         }
         if (_method == Method.ADD_MARGIN) {
             AddCollateralRequest memory request = addCollateralRequests[_key];
+            require(request.account != address(0), "Refund: request not found");
             delete addCollateralRequests[_key];
             _transferOut(
                 request.collateralToken,
