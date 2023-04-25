@@ -149,6 +149,13 @@ contract DptpFuturesGateway is
     event CollateralAdded(address account, address token, uint256 tokenAmount);
     event CollateralRemove(address account, address token, uint256 tokenAmount);
 
+    event Refund(
+        address token,
+        address account,
+        uint256 amount,
+        bytes32 failedTxHash
+    );
+
     uint256 public pcsId;
     address public pscCrossChainGateway;
 
@@ -874,27 +881,35 @@ contract DptpFuturesGateway is
 
     function refund(
         bytes32 _key,
+        bytes32 _txHash,
         Method _method
-    ) external payable nonReentrant{
+    ) external nonReentrant{
+
+        require(!_isRefundedHash(_txHash), "already refunded");
+        refundedTxHash[_txHash] = true;
+
         if (_method == Method.OPEN_LIMIT || _method == Method.OPEN_MARKET) {
             IncreasePositionRequest memory request = increasePositionRequests[_key];
-            require(request.account != address(0), "Refund: request not found");
+            require(request.account != address(0), "refund: request not found");
             delete increasePositionRequests[_key];
             _transferOut(
                 request.path[0],
                 request.amountInToken,
                 payable(request.account)
             );
+            emit Refund(request.path[0], request.account, request.amountInToken, _txHash);
         }
+
         if (_method == Method.ADD_MARGIN) {
             AddCollateralRequest memory request = addCollateralRequests[_key];
-            require(request.account != address(0), "Refund: request not found");
+            require(request.account != address(0), "refund: request not found");
             delete addCollateralRequests[_key];
             _transferOut(
                 request.collateralToken,
                 request.amountInToken,
                 payable(request.account)
             );
+            emit Refund(request.collateralToken, request.account, request.amountInToken, _txHash);
         }
     }
 
@@ -1340,6 +1355,10 @@ contract DptpFuturesGateway is
         }
     }
 
+    function _isRefundedHash(bytes32 _txHash) public view returns (bool) {
+        return refundedTxHash[_txHash];
+    }
+
     //******************************************************************************************************************
     // ONLY OWNER FUNCTIONS
     //******************************************************************************************************************
@@ -1506,4 +1525,5 @@ contract DptpFuturesGateway is
     mapping(address => uint256) public addCollateralIndex;
     mapping(bytes32 => AddCollateralRequest) public addCollateralRequests;
     bytes32[] public addCollateralRequestKeys;
+    mapping(bytes32 => bool) refundedTxHash;
 }
