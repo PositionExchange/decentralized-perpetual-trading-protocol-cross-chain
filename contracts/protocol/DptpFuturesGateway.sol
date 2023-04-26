@@ -79,6 +79,7 @@ contract DptpFuturesGateway is
         address indexToken;
         uint256 amountInToken;
         bool isLong;
+        address[] path;
     }
 
     enum SetTPSLOption {
@@ -651,41 +652,44 @@ contract DptpFuturesGateway is
         uint256 _positionMargin,
         bool _isLong
     ) public nonReentrant {
-        IVault(vault).liquidatePosition(
-            _trader,
-            _collateralToken,
-            _indexToken,
-            _positionSize,
-            _positionMargin,
-            _isLong
-        );
+//        IVault(vault).liquidatePosition(
+//            _trader,
+//            _collateralToken,
+//            _indexToken,
+//            _positionSize,
+//            _positionMargin,
+//            _isLong
+//        );
     }
 
     function createAddCollateralRequest(
-        address _collateralToken,
+        address[] memory _path,
         address _indexToken,
         uint256 _amountInToken,
         bool _isLong
     ) external nonReentrant {
-        IVault(vault).validateTokens(_collateralToken, _indexToken, _isLong);
+        address collateralToken = _path[_path.length - 1];
 
-        _transferIn(_collateralToken, _amountInToken);
+        IVault(vault).validateTokens(collateralToken, _indexToken, _isLong);
+
+        _transferIn(collateralToken, _amountInToken);
 
         AddCollateralRequest memory request = AddCollateralRequest(
             msg.sender,
-            _collateralToken,
+            _path[0], // TODO: Remove this
             _indexToken,
             _amountInToken,
-            _isLong
+            _isLong,
+            _path
         );
-
         (, bytes32 requestKey) = _storeAddCollateralRequest(request);
 
         {
-            uint256 amountInUsd = IVault(vault).tokenToUsdMinWithAdjustment(
-                _collateralToken,
-                _amountInToken
-            );
+            uint256 swapFee = getSwapFee(_path, _amountInToken);
+            uint256 amountInUsd = IVault(vault)
+                .tokenToUsdMinWithAdjustment(collateralToken, _amountInToken)
+                .div(PRICE_DECIMALS)
+                .sub(swapFee);
             CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
                 pcsId,
                 pscCrossChainGateway,
@@ -700,77 +704,130 @@ contract DptpFuturesGateway is
         }
     }
 
-    function createRemoveCollateralRequest(
-        address _collateralToken,
-        address _indexToken,
-        uint256 _amountInToken,
-        bool _isLong
-    ) external nonReentrant {
-        IVault(vault).validateTokens(_collateralToken, _indexToken, _isLong);
-
-        uint256 amountInUsd = IVault(vault).tokenToUsdMinWithAdjustment(
-            _collateralToken,
-            _amountInToken
-        );
-
-        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.REMOVE_MARGIN),
-            abi.encode(
-                _collateralToken,
-                _indexToken,
-                coreManagers[_indexToken],
-                amountInUsd,
-                _amountInToken,
-                msg.sender,
-                true
-            )
-        );
-    }
-
     function executeAddCollateral(bytes32 _key) external nonReentrant {
         //        require(positionKeepers[msg.sender], "403");
         AddCollateralRequest memory request = addCollateralRequests[_key];
+        require(request.account != address(0), "404");
         delete addCollateralRequests[_key];
+
+        address collateralToken = request.path[0];
+
+        if (request.amountInToken > 0) {
+            uint256 amountInToken = request.amountInToken;
+
+            if (request.path.length > 1) {
+                IERC20Upgradeable(collateralToken).safeTransfer(
+                    vault,
+                    amountInToken
+                );
+                amountInToken = _swap(request.path, address(this), false);
+            }
+
+            IERC20Upgradeable(request.path[request.path.length - 1])
+                .safeTransfer(vault, amountInToken);
+        }
+
         IVault(vault).addCollateral(
             request.account,
-            request.collateralToken,
+            collateralToken,
             request.indexToken,
             request.isLong,
             request.amountInToken
         );
         emit CollateralAdded(
             request.account,
-            request.collateralToken,
+            collateralToken,
             request.amountInToken
         );
     }
 
-    function executeRemoveCollateral(
-        address _account,
-        address _collateralToken,
+    function createRemoveCollateralRequest(
+        address[] memory _path,
         address _indexToken,
-        bool _isLong,
-        uint256 _amountOutUsd
+        uint256 _amountInToken,
+        bool _isLong
     ) external nonReentrant {
+        address collateralToken = _path[_path.length - 1];
+
+        IVault(vault).validateTokens(collateralToken, _indexToken, _isLong);
+
+        {
+            AddCollateralRequest memory request = AddCollateralRequest(
+                msg.sender,
+                _path[0], //TODO: Remove this
+                _indexToken,
+                _amountInToken,
+                _isLong,
+                _path
+            );
+            (, bytes32 requestKey) = _storeAddCollateralRequest(request);
+        }
+
+        {
+            uint256 swapFee = getSwapFee(_path, _amountInToken);
+            uint256 amountInUsd = IVault(vault)
+                .tokenToUsdMinWithAdjustment(collateralToken, _amountInToken)
+                .div(PRICE_DECIMALS)
+                .sub(swapFee);
+
+            CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+                pcsId,
+                pscCrossChainGateway,
+                uint8(Method.REMOVE_MARGIN),
+                abi.encode(
+                    collateralToken,
+                    _indexToken,
+                    coreManagers[_indexToken],
+                    amountInUsd,
+                    _amountInToken,
+                    msg.sender,
+                    true
+                )
+            );
+        }
+    }
+
+    function executeRemoveCollateral(bytes32 _key, uint256 _amountOutUsd)
+        external
+        nonReentrant
+    {
         //        require(positionKeepers[msg.sender], "403");
         if (_amountOutUsd == 0) {
             return;
         }
+
+        AddCollateralRequest memory request = addCollateralRequests[_key];
+        require(request.account != address(0), "404");
+        delete addCollateralRequests[_key];
+
+        address collateralToken = request.path[0];
+        address receiveToken = request.path[request.path.length - 1];
+
         uint256 amountOutToken = IVault(vault).usdToTokenMin(
-            _collateralToken,
+            collateralToken,
             _amountOutUsd.mul(PRICE_DECIMALS)
         );
+
         IVault(vault).removeCollateral(
-            _account,
-            _collateralToken,
-            _indexToken,
-            _isLong,
+            request.account,
+            collateralToken,
+            request.indexToken,
+            request.isLong,
             amountOutToken
         );
-        _transferOut(_collateralToken, amountOutToken, payable(_account));
-        emit CollateralRemove(_account, _collateralToken, amountOutToken);
+
+        if (request.path.length > 1) {
+            IERC20Upgradeable(collateralToken).safeTransfer(
+                vault,
+                amountOutToken
+            );
+            amountOutToken = _swap(request.path, address(this), false);
+        }
+
+        IERC20Upgradeable(receiveToken).safeTransfer(vault, amountOutToken);
+
+        _transferOut(receiveToken, amountOutToken, payable(request.account));
+        emit CollateralRemove(request.account, receiveToken, amountOutToken);
     }
 
     function setTPSL(
@@ -842,31 +899,31 @@ contract DptpFuturesGateway is
         external
         nonReentrant
     {
-        if (_isHigherPrice) {
-            delete decreasePositionRequests[
-                TPSLRequestMap[
-                    _getTPSLRequestKey(msg.sender, _indexToken, true)
-                ]
-            ];
-            delete TPSLRequestMap[
-                _getTPSLRequestKey(msg.sender, _indexToken, true)
-            ];
-        } else {
-            delete decreasePositionRequests[
-                TPSLRequestMap[
-                    _getTPSLRequestKey(msg.sender, _indexToken, false)
-                ]
-            ];
-            delete TPSLRequestMap[
-                _getTPSLRequestKey(msg.sender, _indexToken, false)
-            ];
-        }
-        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.UNSET_TP_OR_SL),
-            abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
-        );
+//        if (_isHigherPrice) {
+//            delete decreasePositionRequests[
+//                TPSLRequestMap[
+//                    _getTPSLRequestKey(msg.sender, _indexToken, true)
+//                ]
+//            ];
+//            delete TPSLRequestMap[
+//                _getTPSLRequestKey(msg.sender, _indexToken, true)
+//            ];
+//        } else {
+//            delete decreasePositionRequests[
+//                TPSLRequestMap[
+//                    _getTPSLRequestKey(msg.sender, _indexToken, false)
+//                ]
+//            ];
+//            delete TPSLRequestMap[
+//                _getTPSLRequestKey(msg.sender, _indexToken, false)
+//            ];
+//        }
+//        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+//            pcsId,
+//            pscCrossChainGateway,
+//            uint8(Method.UNSET_TP_OR_SL),
+//            abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
+//        );
     }
 
     function triggerTPSL(
@@ -926,7 +983,7 @@ contract DptpFuturesGateway is
             require(request.account != address(0), "Refund: request not found");
             delete addCollateralRequests[_key];
             _transferOut(
-                request.collateralToken,
+                request.path[0],
                 request.amountInToken,
                 payable(request.account)
             );
@@ -1250,9 +1307,7 @@ contract DptpFuturesGateway is
             _isLong
         );
         borrowingFee = borrowingFee.div(PRICE_DECIMALS);
-        uint256 swapFee = _path.length > 1
-            ? IVault(vault).getSwapFee(_path[0], _path[1], _amountInToken)
-            : 0;
+        uint256 swapFee = getSwapFee(_path, _amountInToken);
 
         emit CollectFees(_amountInToken, positionFee, borrowingFee, swapFee);
 
@@ -1287,6 +1342,17 @@ contract DptpFuturesGateway is
         returns (bytes32)
     {
         return keccak256(abi.encodePacked(_account, _index));
+    }
+
+    function getSwapFee(address[] memory _path, uint256 _amountInToken)
+        public
+        view
+        returns (uint256)
+    {
+        return
+            _path.length > 1
+                ? IVault(vault).getSwapFee(_path[0], _path[1], _amountInToken)
+                : 0;
     }
 
     function _getTPSLRequestKey(
@@ -1351,79 +1417,79 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _sizeDelta
     ) internal view {
-        if (_sizeDelta == 0) {
-            return;
-        }
-
-        if (_isLong) {
-            uint256 maxGlobalLongSize = maxGlobalLongSizes[_indexToken];
-            if (
-                maxGlobalLongSize > 0 &&
-                IVault(vault).guaranteedUsd(_indexToken).add(_sizeDelta) >
-                maxGlobalLongSize
-            ) {
-                revert("max longs exceeded");
-            }
-        } else {
-            uint256 maxGlobalShortSize = maxGlobalShortSizes[_indexToken];
-            if (
-                maxGlobalShortSize > 0 &&
-                IVault(vault).globalShortSizes(_indexToken).add(_sizeDelta) >
-                maxGlobalShortSize
-            ) {
-                revert("max shorts exceeded");
-            }
-        }
+//        if (_sizeDelta == 0) {
+//            return;
+//        }
+//
+//        if (_isLong) {
+//            uint256 maxGlobalLongSize = maxGlobalLongSizes[_indexToken];
+//            if (
+//                maxGlobalLongSize > 0 &&
+//                IVault(vault).guaranteedUsd(_indexToken).add(_sizeDelta) >
+//                maxGlobalLongSize
+//            ) {
+//                revert("max longs exceeded");
+//            }
+//        } else {
+//            uint256 maxGlobalShortSize = maxGlobalShortSizes[_indexToken];
+//            if (
+//                maxGlobalShortSize > 0 &&
+//                IVault(vault).globalShortSizes(_indexToken).add(_sizeDelta) >
+//                maxGlobalShortSize
+//            ) {
+//                revert("max shorts exceeded");
+//            }
+//        }
     }
 
     //******************************************************************************************************************
     // ONLY OWNER FUNCTIONS
     //******************************************************************************************************************
 
-    function setExecutionFee(uint256 _executionFee) external onlyOwner {
-        executionFee = _executionFee;
-    }
+//    function setExecutionFee(uint256 _executionFee) external onlyOwner {
+//        executionFee = _executionFee;
+//    }
+//
+//    function setWeth(address _weth) external onlyOwner {
+//        weth = _weth;
+//    }
+//
+//    function setVault(address _vault) external onlyOwner {
+//        vault = _vault;
+//    }
+//
+//    function setFuturesAdapter(address _futuresAdapter) external onlyOwner {
+//        futuresAdapter = _futuresAdapter;
+//    }
 
-    function setWeth(address _weth) external onlyOwner {
-        weth = _weth;
-    }
-
-    function setVault(address _vault) external onlyOwner {
-        vault = _vault;
-    }
-
-    function setFuturesAdapter(address _futuresAdapter) external onlyOwner {
-        futuresAdapter = _futuresAdapter;
-    }
-
-    function setPositionManagerConfigData(
-        address _positionManager,
-        uint24 _takerTollRatio,
-        uint24 _makerTollRatio,
-        uint32 _basicPoint,
-        uint40 _baseBasicPoint,
-        uint16 _contractPrice,
-        uint8 _assetRfiPercent,
-        uint80 _minimumOrderQuantity,
-        uint32 _stepBaseSize
-    ) public onlyOwner {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
-        positionManagerConfigData[_positionManager]
-            .takerTollRatio = _takerTollRatio;
-        positionManagerConfigData[_positionManager]
-            .makerTollRatio = _makerTollRatio;
-        positionManagerConfigData[_positionManager].basicPoint = _basicPoint;
-        positionManagerConfigData[_positionManager]
-            .baseBasicPoint = _baseBasicPoint;
-        positionManagerConfigData[_positionManager]
-            .contractPrice = _contractPrice;
-        positionManagerConfigData[_positionManager]
-            .assetRfiPercent = _assetRfiPercent;
-        positionManagerConfigData[_positionManager]
-            .minimumOrderQuantity = _minimumOrderQuantity;
-        positionManagerConfigData[_positionManager]
-            .stepBaseSize = _stepBaseSize;
-    }
+//    function setPositionManagerConfigData(
+//        address _positionManager,
+//        uint24 _takerTollRatio,
+//        uint24 _makerTollRatio,
+//        uint32 _basicPoint,
+//        uint40 _baseBasicPoint,
+//        uint16 _contractPrice,
+//        uint8 _assetRfiPercent,
+//        uint80 _minimumOrderQuantity,
+//        uint32 _stepBaseSize
+//    ) public onlyOwner {
+//        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+//        positionManagerConfigData[_positionManager]
+//            .takerTollRatio = _takerTollRatio;
+//        positionManagerConfigData[_positionManager]
+//            .makerTollRatio = _makerTollRatio;
+//        positionManagerConfigData[_positionManager].basicPoint = _basicPoint;
+//        positionManagerConfigData[_positionManager]
+//            .baseBasicPoint = _baseBasicPoint;
+//        positionManagerConfigData[_positionManager]
+//            .contractPrice = _contractPrice;
+//        positionManagerConfigData[_positionManager]
+//            .assetRfiPercent = _assetRfiPercent;
+//        positionManagerConfigData[_positionManager]
+//            .minimumOrderQuantity = _minimumOrderQuantity;
+//        positionManagerConfigData[_positionManager]
+//            .stepBaseSize = _stepBaseSize;
+//    }
 
     //    function setManagerTakerTollRatio(
     //        address _positionManager,
