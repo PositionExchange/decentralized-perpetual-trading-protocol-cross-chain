@@ -664,45 +664,55 @@ contract DptpFuturesGateway is
     function createAddCollateralRequest(
         address _collateralToken,
         address _indexToken,
-        uint256 _amountInUsd,
+        uint256 _amountInToken,
         bool _isLong
     ) external nonReentrant {
         IVault(vault).validateTokens(_collateralToken, _indexToken, _isLong);
-        uint256 amountInToken = IVault(vault).usdToTokenMin(
-            _collateralToken,
-            _amountInUsd.mul(PRICE_DECIMALS)
-        );
-        _transferIn(_collateralToken, amountInToken);
+
+        _transferIn(_collateralToken, _amountInToken);
 
         AddCollateralRequest memory request = AddCollateralRequest(
             msg.sender,
             _collateralToken,
             _indexToken,
-            amountInToken,
+            _amountInToken,
             _isLong
         );
 
         (, bytes32 requestKey) = _storeAddCollateralRequest(request);
-        CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.ADD_MARGIN),
-            abi.encode(
-                requestKey,
-                coreManagers[_indexToken],
-                _amountInUsd,
-                msg.sender
-            )
-        );
+
+        {
+            uint256 amountInUsd = IVault(vault).tokenToUsdMinWithAdjustment(
+                _collateralToken,
+                _amountInToken
+            );
+            CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
+                pcsId,
+                pscCrossChainGateway,
+                uint8(Method.ADD_MARGIN),
+                abi.encode(
+                    requestKey,
+                    coreManagers[_indexToken],
+                    amountInUsd,
+                    msg.sender
+                )
+            );
+        }
     }
 
     function createRemoveCollateralRequest(
         address _collateralToken,
         address _indexToken,
-        uint256 _amountInUsd,
+        uint256 _amountInToken,
         bool _isLong
     ) external nonReentrant {
         IVault(vault).validateTokens(_collateralToken, _indexToken, _isLong);
+
+        uint256 amountInUsd = IVault(vault).tokenToUsdMinWithAdjustment(
+            _collateralToken,
+            _amountInToken
+        );
+
         CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
@@ -711,8 +721,8 @@ contract DptpFuturesGateway is
                 _collateralToken,
                 _indexToken,
                 coreManagers[_indexToken],
-                _amountInUsd,
-                0,
+                amountInUsd,
+                _amountInToken,
                 msg.sender,
                 true
             )

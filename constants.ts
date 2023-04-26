@@ -25,7 +25,7 @@ export const POSI_ADDRESS = "0x5ca42204cdaa70d5c773946e69de942b85ca6706"
 export const BUSD = 'BUSD'
 export const POSI = 'POSI'
 
-export const ARB_API_KEY = process.env["PRIV_POSI_CHAIN_DEVNET_ACCOUNT"] || ""
+export const ARB_API_KEY = process.env["ARB_API_KEY"] || ""
 
 // export const BSC_TESTNET_URL = `${process.env["BSC_TESTNET"]}
 // export const ROPSTEN_URL = `${process.env["WEB3_ENDPOINT"]}`
