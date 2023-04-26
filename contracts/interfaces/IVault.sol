@@ -23,15 +23,13 @@ interface IVault {
     function isSwapEnabled() external view returns (bool);
 
     /* Write Functions */
-    function buyUSDP(
-        address _token,
-        address _receiver
-    ) external returns (uint256);
+    function buyUSDP(address _token, address _receiver)
+        external
+        returns (uint256);
 
-    function sellUSDP(
-        address _token,
-        address _receiver
-    ) external returns (uint256);
+    function sellUSDP(address _token, address _receiver)
+        external
+        returns (uint256);
 
     function swap(
         address _tokenIn,
@@ -136,9 +134,8 @@ interface IVault {
 
     function setMaxGlobalShortSize(address _token, uint256 _amount) external;
 
-    function setInPrivateLiquidationMode(
-        bool _inPrivateLiquidationMode
-    ) external;
+    function setInPrivateLiquidationMode(bool _inPrivateLiquidationMode)
+        external;
 
     function setLiquidator(address _liquidator, bool _isActive) external;
 
@@ -152,10 +149,9 @@ interface IVault {
         uint256 _stableBorrowingRateFactor
     ) external;
 
-    function withdrawFees(
-        address _token,
-        address _receiver
-    ) external returns (uint256);
+    function withdrawFees(address _token, address _receiver)
+        external
+        returns (uint256);
 
     /* End Goivernance function */
 
@@ -164,10 +160,10 @@ interface IVault {
 
     function getAskPrice(address _token) external view returns (uint256);
 
-    function getRedemptionAmount(
-        address _token,
-        uint256 _usdpAmount
-    ) external view returns (uint256);
+    function getRedemptionAmount(address _token, uint256 _usdpAmount)
+        external
+        view
+        returns (uint256);
 
     function taxBasisPoints() external view returns (uint256);
 
@@ -203,15 +199,20 @@ interface IVault {
 
     function stableBorrowingRateFactor() external view returns (uint256);
 
-    function lastBorrowingRateTimes(address _token) external view returns (uint256);
+    function lastBorrowingRateTimes(address _token)
+        external
+        view
+        returns (uint256);
 
-    function globalShortAveragePrices(
-        address _token
-    ) external view returns (uint256);
+    function globalShortAveragePrices(address _token)
+        external
+        view
+        returns (uint256);
 
-    function maxGlobalShortSizes(
-        address _token
-    ) external view returns (uint256);
+    function maxGlobalShortSizes(address _token)
+        external
+        view
+        returns (uint256);
 
     function tokenDecimals(address _token) external view returns (uint256);
 
@@ -231,11 +232,15 @@ interface IVault {
 
     function getMinPrice(address _token) external view returns (uint256);
 
-    function cumulativeBorrowingRates(
-        address _token
-    ) external view returns (uint256);
+    function cumulativeBorrowingRates(address _token)
+        external
+        view
+        returns (uint256);
 
-    function getNextBorrowingRate(address _token) external view returns (uint256);
+    function getNextBorrowingRate(address _token)
+        external
+        view
+        returns (uint256);
 
     function getBorrowingFee(
         address _trader,
@@ -253,9 +258,10 @@ interface IVault {
     // pool info
     function usdpAmount(address _token) external view returns (uint256);
 
-    function getTargetUsdpAmount(
-        address _token
-    ) external view returns (uint256);
+    function getTargetUsdpAmount(address _token)
+        external
+        view
+        returns (uint256);
 
     function getFeeBasisPoints(
         address _token,
@@ -265,20 +271,25 @@ interface IVault {
         bool _increment
     ) external view returns (uint256);
 
-    function usdToTokenMin(
-        address _token,
-        uint256 _usdAmount
-    ) external view returns (uint256);
+    function usdToTokenMin(address _token, uint256 _usdAmount)
+        external
+        view
+        returns (uint256);
 
-    function tokenToUsdMin(
-        address _token,
-        uint256 _tokenAmount
-    ) external view returns (uint256);
+    function tokenToUsdMin(address _token, uint256 _tokenAmount)
+        external
+        view
+        returns (uint256);
 
-    function tokenToUsdMinWithAdjustment(
-        address _token,
-        uint256 _tokenAmount
-    ) external view returns (uint256);
+    function tokenToUsdMinWithAdjustment(address _token, uint256 _tokenAmount)
+        external
+        view
+        returns (uint256);
+
+    function usdToTokenMinWithAdjustment(address _token, uint256 _usdAmount)
+        external
+        view
+        returns (uint256);
 
     function validateTokens(
         address _collateralToken,
