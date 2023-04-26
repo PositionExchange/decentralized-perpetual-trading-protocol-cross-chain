@@ -517,10 +517,8 @@ contract DptpFuturesGateway is
             bool isLong = _isLong;
             uint256 amountOutAfterFeesUsd = _amountOutAfterFeesUsd;
             uint256 feeUsd = _feeUsd;
-            (
-                amountOutTokenAfterFees,
-                reduceCollateralAmount
-            ) = _decreasePosition(
+
+            amountOutTokenAfterFees = _decreasePosition(
                 account,
                 collateralToken,
                 indexToken,
@@ -545,23 +543,6 @@ contract DptpFuturesGateway is
         );
 
         if (amountOutTokenAfterFees == 0) {
-            if (reduceCollateralAmount == 0) {
-                return;
-            }
-            CrosschainFunctionCallInterface(futuresAdapter).crossBlockchainCall(
-                pcsId,
-                pscCrossChainGateway,
-                uint8(Method.REMOVE_MARGIN),
-                abi.encode(
-                    collateralToken,
-                    request.indexToken,
-                    coreManagers[request.indexToken],
-                    reduceCollateralAmount,
-                    0,
-                    msg.sender,
-                    false
-                )
-            );
             return;
         }
 
@@ -722,9 +703,7 @@ contract DptpFuturesGateway is
                 _indexToken,
                 coreManagers[_indexToken],
                 amountInUsd,
-                _amountInToken,
-                msg.sender,
-                true
+                msg.sender
             )
         );
     }
@@ -976,7 +955,7 @@ contract DptpFuturesGateway is
         address _receiver,
         uint256 _amountOutUsd,
         uint256 _feeUsd
-    ) internal returns (uint256, uint256) {
+    ) internal returns (uint256) {
         //        if (!_isLong && _sizeDelta > 0) {
         //            uint256 markPrice = _isLong
         //                ? IVault(vault).getMinPrice(_indexToken)
