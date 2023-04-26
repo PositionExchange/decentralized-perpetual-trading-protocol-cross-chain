@@ -172,6 +172,14 @@ const migrations: MigrationDefinition = {
 
             await sendTxn(feePosiTracker.setHandler(gmxVester.address, true), "feePosiTracker.setHandler(gmxVester)")
             await sendTxn(stakedPlpTracker.setHandler(glpVester.address, true), "stakedPlpTracker.setHandler(glpVester)")
+        },
+
+        'deploy-reward-reader': async ()=>{
+
+
+          const reward_reader = await deployContract("RewardReader", []);
+
+
         }
       }
     }
