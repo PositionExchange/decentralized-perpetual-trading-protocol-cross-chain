@@ -65,7 +65,7 @@ interface IVault {
         address _receiver,
         uint256 _amountOutUsd,
         uint256 _feeUsd
-    ) external returns (uint256, uint256);
+    ) external returns (uint256);
 
     function liquidatePosition(
         address _trader,
