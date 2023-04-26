@@ -5,7 +5,7 @@ import {ContractTransaction} from "ethers";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
-    "deploy dptp futures gateway": async () => {
+    'deploy dptp futures gateway': async () => {
       const vault = await ctx.factory.db.findAddressByKey("Vault");
       const weth = await ctx.factory.db.findAddressByKey("WETH");
       const futuresAdapter = await ctx.factory.db.findAddressByKey(

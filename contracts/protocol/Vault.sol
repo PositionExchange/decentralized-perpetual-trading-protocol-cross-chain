@@ -673,7 +673,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             feeBasisPoints
         );
         uint256 mintAmount = amountAfterFees.mul(price).div(PRICE_PRECISION);
-        mintAmount = adjustForDecimals(mintAmount, _token, usdp);
+        mintAmount = adjustForDecimals(mintAmount, usdp, _token);
 
         _increaseUsdpAmount(_token, mintAmount);
         _increasePoolAmount(_token, amountAfterFees);
@@ -1028,7 +1028,10 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _collateralToken,
         address _indexToken
     ) private {
-        bool shouldUpdate = _vaultUtils.updateCumulativeBorrowingRate(_collateralToken, _indexToken);
+        bool shouldUpdate = _vaultUtils.updateCumulativeBorrowingRate(
+            _collateralToken,
+            _indexToken
+        );
         if (!shouldUpdate) {
             return;
         }
@@ -1435,6 +1438,15 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             return 0;
         }
         return usdToToken(_token, _usdAmount, getMinPrice(_token));
+    }
+
+    function usdToTokenMinWithAdjustment(address _token, uint256 _usdAmount)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 tokenAmount = usdToTokenMin(_token, _usdAmount);
+        return adjustForDecimals(tokenAmount, _token, usdp);
     }
 
     function usdToTokenMin(address _token, uint256 _usdAmount)
