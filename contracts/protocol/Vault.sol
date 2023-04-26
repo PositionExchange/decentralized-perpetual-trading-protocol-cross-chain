@@ -673,7 +673,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             feeBasisPoints
         );
         uint256 mintAmount = amountAfterFees.mul(price).div(PRICE_PRECISION);
-        mintAmount = adjustForDecimals(mintAmount, usdp, _token);
+        mintAmount = adjustForDecimals(mintAmount, usdp, _token); //TODO: Check for BTC pair, still not correct.
 
         _increaseUsdpAmount(_token, mintAmount);
         _increasePoolAmount(_token, amountAfterFees);
