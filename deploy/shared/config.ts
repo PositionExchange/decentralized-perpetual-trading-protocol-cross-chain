@@ -1,4 +1,4 @@
-import { BNB, BUSD, WETH, DAI, USDT, BTC, POSI } from "./tokens"
+import {BNB, BUSD, WETH, DAI, USDT, BTC, POSI, LINK, USDC} from "./tokens"
 import { Token } from "./types"
 
 export interface StageConfig<K extends string,T> {
@@ -30,12 +30,12 @@ export const stageConfig: StageConfig<AvailableStageConfig,any> = {
   'arbitrumGoerli': {
     421613: {
       whitelist: [
-        // BNB.forChain(421613),
-        // BUSD.forChain(421613),
         DAI.forChain(421613),
         USDT.forChain(421613),
+        USDC.forChain(421613),
         WETH.forChain(421613),
         BTC.forChain(421613),
+        LINK.forChain(421613),
       ],
       native_token: WETH.forChain(421613)
     }

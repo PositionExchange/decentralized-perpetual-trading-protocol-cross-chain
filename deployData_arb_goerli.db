@@ -4,8 +4,10 @@
 {"address":"yes","key":"0x598AEdA864c9B0c483a56c88cF09Bb43ACfa7c14:verified","_id":"5EfnuJSIxpZMAvew"}
 {"address":"yes","key":"0x6FEE344250b35F51e849Fa29BbAbf6f76F1a1a24:verified","_id":"5vLq4MQOiINYvDI6"}
 {"address":"0xF943F07407A251De4A8ADAf1B5896948065F52DA","key":"FeePlpDistributor","_id":"6TCwDf1xSFyuAAI9"}
+{"address":"0x77641ef1aEE85F4c273157C66A9c0B9068F9a81e","key":"USDC","_id":"854A4nzwsrNzHt7K"}
 {"address":"0x381548E0e7815127A39eecD9AB8994286f2DA803","key":"VaultUtils","_id":"A8NOTToOY4IqIzL5"}
 {"address":"yes","key":"0xcAd1F972c98fc7818288846b656f24FF6D84c2f0:verified","_id":"BA2xHTBhSBQnXqEl"}
+{"address":"0x74c0348CC6027b0c60C27c2c6b8Cf32C5510b569","key":"LINK","_id":"CM8N0WUi8hHHU7XN"}
 {"address":"0x2Bc7C591869bE9aE52Fa0d178dFE83CdC078c71b","key":"GatewayUtils","_id":"Cki8ekDJTQMockLy"}
 {"address":"0x72286b7395456181Fd0f1616D9B7bF9212457aaB","key":"FeePosiTracker","_id":"Co3HTUTWFhkZY6Ww"}
 {"address":"0xbC442C3CE3ebDbd44e66CF14aA22095Cc9378ff8","key":"FeePlpTracker","_id":"FDxYiMNR62PH68vL"}
@@ -44,5 +46,5 @@
 {"address":"0xf5c8edab6cb777a259637c99fbf3eb970bab8157","key":"FuturesAdapter","_id":"u5j8Ze5hvzn3Ngla"}
 {"address":"0x2F17eed46c4D0e78697F152259323fE7C32bDA56","key":"DptpFuturesGateway","_id":"vMHRRgJfEQLhnW3f"}
 {"address":"0x5F26E7D302FEa1F8A1827E5d208040138c69B281","key":"vestedPLP","_id":"yAqqwsPjhoUG8u9U"}
-{"address":"yes","key":"0xC6d655d39d9499C212685A731B9612e49a94477a:verified","_id":"zE8pJoOXenIumd3H"}
 {"address":"yes","key":"0x495ed57a04cF51E64E6738A64F973C55f3187Dcb:verified","_id":"z6p1q6fgr8sQZax0"}
+{"address":"yes","key":"0xC6d655d39d9499C212685A731B9612e49a94477a:verified","_id":"zE8pJoOXenIumd3H"}
