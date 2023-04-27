@@ -7,7 +7,10 @@ library PositionInfo {
         address collateralToken;
     }
 
-    function setEntryBorrowingRates(Data storage _self, uint256 _rate) internal {
+    function setEntryBorrowingRates(
+        Data storage _self,
+        uint256 _rate
+    ) internal {
         _self.entryBorrowingRates = uint128(_rate);
     }
 
