@@ -56,5 +56,6 @@ export interface CreateDptpFuturesGateway {
     futuresAdapter: string,
     vault: string,
     weth: string,
+    gatewayUtils: string,
     executionFee: number,
 }

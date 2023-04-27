@@ -415,7 +415,6 @@ export class ContractWrapperFactory {
 
     }
 
-
   async createDptpFuturesGateway(args: CreateDptpFuturesGateway) {
     const contractName = "DptpFuturesGateway";
     const factory = await this.hre.ethers.getContractFactory(contractName);
@@ -435,6 +434,7 @@ export class ContractWrapperFactory {
           args.futuresAdapter,
           args.vault,
           args.weth,
+          args.gatewayUtils,
           args.executionFee,
       ];
       const instance = await this.hre.upgrades.deployProxy(
@@ -449,4 +449,33 @@ export class ContractWrapperFactory {
       await this.verifyProxy(address);
     }
   }
+
+    async createGatewayUtils(vault: string) {
+        const contractName = 'GatewayUtils';
+        const factory = await this.hre.ethers.getContractFactory(contractName);
+        const contractAddress = await this.db.findAddressByKey(contractName);
+        if (contractAddress) {
+            const upgraded = await this.hre.upgrades.upgradeProxy(
+                contractAddress,
+                factory
+            );
+            console.log(`Starting verify upgrade ${contractName}`);
+            await this.verifyImplContract(upgraded.deployTransaction);
+            console.log(`Upgrade ${contractName}`);
+        } else {
+            const contractArgs = [
+                vault,
+            ];
+            const instance = await this.hre.upgrades.deployProxy(
+                factory,
+                contractArgs
+            );
+            console.log(`wait for deploy ${contractName}`);
+            await instance.deployed();
+            const address = instance.address.toString();
+            console.log(`Address ${contractName}: ${address}`);
+            await this.db.saveAddressByKey(contractName, address);
+            await this.verifyProxy(address);
+        }
+    }
 }

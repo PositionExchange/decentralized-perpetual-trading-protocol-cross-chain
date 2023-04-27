@@ -14,16 +14,6 @@ contract DptpFuturesGatewayMock is DptpFuturesGateway {
         uint256 _leverage,
         bool _isLimitOrder
     ) public returns (uint256) {
-        return
-            _calculateMarginFees(
-                msg.sender,
-                _path,
-                _indexToken,
-                _isLong,
-                _amountInToken,
-                _amountInUsd,
-                _leverage,
-                _isLimitOrder
-            );
+        return 0;
     }
 }
