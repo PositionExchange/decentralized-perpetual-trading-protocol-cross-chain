@@ -10,20 +10,12 @@ interface IGatewayUtils {
         uint256 _amountInUsd,
         uint256 _leverage,
         bool _isLimitOrder
-    )
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        );
+    ) external view returns (uint256, uint256, uint256, uint256);
 
-    function getSwapFee(address[] memory _path, uint256 _amountInToken)
-        external
-        view
-        returns (uint256);
+    function getSwapFee(
+        address[] memory _path,
+        uint256 _amountInToken
+    ) external view returns (uint256);
 
     function validateIncreasePosition(
         uint256 _msgValue,

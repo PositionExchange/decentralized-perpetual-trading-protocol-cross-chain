@@ -26,9 +26,13 @@ const migrations: MigrationDefinition = {
     },
 
     "re-config after deploy new gateway": async () => {
-      const managerBTC = "0xe727a7e1f6bdcd9470a3577e264b9eb4e377f990";
+      const managerBTC = "0x7f0c33141b6f14120fFc16B0c983C2079BE4C0cD";
+      const managerETH = "0xd7e32166C10db109E6A2Ece447ad547c1Af7B6BB";
+      const managerLINK = "0xe09Bae5E39b60Af879E34b179043d730f7Be20b7";
+
       const wbtc = await ctx.factory.db.findAddressByKey("BTC");
       const weth = await ctx.factory.db.findAddressByKey("WETH");
+      const link = await ctx.factory.db.findAddressByKey("LINK");
 
       const futuresGateway =
         await ctx.factory.getDeployedContract<DptpFuturesGateway>(
@@ -40,8 +44,11 @@ const migrations: MigrationDefinition = {
       tx = futuresGateway.setCoreManager(wbtc, managerBTC);
       await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.btc");
 
-      tx = futuresGateway.setCoreManager(weth, managerBTC);
+      tx = futuresGateway.setCoreManager(weth, managerETH);
       await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.eth");
+
+      tx = futuresGateway.setCoreManager(link, managerLINK);
+      await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.link");
 
       tx = futuresGateway.setPositionKeeper(
         "0x9AC215Dcbd4447cE0aa830Ed17f3d99997a10F5F"

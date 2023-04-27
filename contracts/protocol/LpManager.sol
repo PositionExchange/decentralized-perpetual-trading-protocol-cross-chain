@@ -76,9 +76,7 @@ contract LpManager is ILpManager, Ownable {
         aumDeduction = _aumDeduction;
     }
 
-    function setVault(
-        address _vault
-    ) external onlyOwner {
+    function setVault(address _vault) external onlyOwner {
         vault = IVault(_vault);
     }
 

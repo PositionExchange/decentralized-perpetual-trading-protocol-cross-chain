@@ -20,8 +20,10 @@ const priceFeedBNBTestNet = {
 const priceFeedARBTestNet = {
   'BTC_USD': '0x6550bc2301936011c1334555e62A87705A81C12C',
   'ETH_USD': '0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08',
+  'LINK_USD': '0xd28Ba6CA3bB72bF371b80a2a0a33cBcf9073C954',
   'USDT_USD': '0x0a023a3423D9b27A0BE48c768CCF2dD7877fEf5E',
-  'DAI_USD': '0x103b53E977DA6E4Fa92f76369c8b7e20E7fb7fe1'
+  'DAI_USD': '0x103b53E977DA6E4Fa92f76369c8b7e20E7fb7fe1',
+  'USDC_USD': '0x1692Bdd32F31b831caAc1b0c9fAF68613682813b'
 };
 export const BNB = new MultiChainToken<IExtraTokenConfig>('BNB', 'BNB', 18, 
 {
@@ -281,3 +283,46 @@ export const POSI = new MultiChainToken<IExtraTokenConfig>('POSI', 'POSI', 18, {
 }
 )
 
+export const LINK = new MultiChainToken<IExtraTokenConfig>('LINK', 'LINK', 18, {
+      421613: '0x74c0348CC6027b0c60C27c2c6b8Cf32C5510b569'
+    },
+    {
+      421613: {
+        vaultTokenConfig: {
+          mintProfitBps: 0,
+          tokenWeight: 100,
+          maxUsdpAmount: 100 * 1e6,
+          isStableToken: false,
+          isShortable: true
+        },
+        priceFeedConfig: {
+          chainLinkPriceFeed: priceFeedARBTestNet['LINK_USD'],
+          priceFeedDecimals: 8,
+          spreadBasisPoints: 10,
+          isStrictStable: false
+        }
+      }
+    }
+)
+
+export const USDC = new MultiChainToken<IExtraTokenConfig>('USDC', 'USDC', 18, {
+      421613: '0x77641ef1aEE85F4c273157C66A9c0B9068F9a81e'
+    },
+    {
+      421613: {
+        vaultTokenConfig: {
+          mintProfitBps: 0,
+          tokenWeight: 100,
+          maxUsdpAmount: 100 * 1e6,
+          isStableToken: true,
+          isShortable: false
+        },
+        priceFeedConfig: {
+          chainLinkPriceFeed: priceFeedARBTestNet['USDC_USD'],
+          priceFeedDecimals: 8,
+          spreadBasisPoints: 10,
+          isStrictStable: true
+        }
+      }
+    }
+)

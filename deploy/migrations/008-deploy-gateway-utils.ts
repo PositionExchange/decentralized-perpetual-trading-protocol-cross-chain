@@ -1,6 +1,6 @@
 import { MigrationContext, MigrationDefinition } from "../types";
 import { GatewayUtils, WETH } from "../../typeChain";
-import { BTCBUSD, ETHBUSD } from "../config_production";
+import {BTCBUSD, ETHBUSD, LINKBUSD} from "../config_production";
 import { ContractTransaction } from "ethers";
 
 const migrations: MigrationDefinition = {
@@ -13,6 +13,7 @@ const migrations: MigrationDefinition = {
     "re-config after deploy new gateway utils": async () => {
       const wbtc = await ctx.factory.db.findAddressByKey("BTC");
       const weth = await ctx.factory.db.findAddressByKey("WETH");
+      const link = await ctx.factory.db.findAddressByKey("LINK");
 
       const gatewayUtils = await ctx.factory.getDeployedContract<GatewayUtils>(
         "GatewayUtils"
@@ -33,7 +34,7 @@ const migrations: MigrationDefinition = {
       );
       await ctx.factory.waitTx(
         tx,
-        "gatewayUtils.setPositionManagerConfigData.btc"
+        "gatewayUtils.setPositionManagerConfigData.wbtc"
       );
 
       tx = gatewayUtils.setPositionManagerConfigData(
@@ -49,7 +50,23 @@ const migrations: MigrationDefinition = {
       );
       await ctx.factory.waitTx(
         tx,
-        "gatewayUtils.setPositionManagerConfigData.eth"
+        "gatewayUtils.setPositionManagerConfigData.weth"
+      );
+
+      tx = gatewayUtils.setPositionManagerConfigData(
+        link,
+        LINKBUSD.takerTollRatio,
+        LINKBUSD.makerTollRatio,
+        LINKBUSD.basisPoint,
+        LINKBUSD.baseBasisPoint,
+        LINKBUSD.contractPrice,
+        LINKBUSD.assetRfiPercent,
+        LINKBUSD.minimumOrderQuantity,
+        LINKBUSD.stepBaseSize
+      );
+      await ctx.factory.waitTx(
+        tx,
+        "gatewayUtils.setPositionManagerConfigData.link"
       );
     },
   }),

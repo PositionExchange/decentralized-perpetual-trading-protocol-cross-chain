@@ -33,6 +33,6 @@ interface IVaultUtils {
 
     function updateCumulativeBorrowingRate(
         address _collateralToken,
-        address _indexToken)
-    external returns (bool);
+        address _indexToken
+    ) external returns (bool);
 }

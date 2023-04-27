@@ -39,6 +39,7 @@
     "@openzeppelin/contracts-upgradeable": "^4.7.3",
     "@openzeppelin/hardhat-defender": "^1.7.1",
     "@openzeppelin/hardhat-upgrades": "^1.20.0",
+    "@positionex/position-helper": "^1.0.3",
     "@remix-project/remixd": "^0.6.9",
     "@symblox/hardhat-abi-gen": "^0.2.0",
     "@typechain/ethers-v5": "^10.2.0",
