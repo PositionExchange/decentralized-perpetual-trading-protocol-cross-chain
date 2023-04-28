@@ -104,6 +104,21 @@ contract GatewayUtils is
         totalFeeUsd = positionFeeUsd.add(borrowingFeeUsd).add(swapFeeUsd);
     }
 
+    function getPositionFee(
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _leverage,
+        bool _isLimitOrder
+    ) external view override returns (uint256) {
+        return
+            _getPositionFee(
+                _indexToken,
+                _amountInUsd,
+                _leverage,
+                _isLimitOrder
+            );
+    }
+
     function getSwapFee(address[] memory _path, uint256 _amountInToken)
         external
         view
@@ -244,6 +259,10 @@ contract GatewayUtils is
 
     function setFuturXGateway(address _futurXGateway) external onlyOwner {
         futurXGateway = _futurXGateway;
+    }
+
+    function setVault(address _vault) external onlyOwner {
+        vault = _vault;
     }
 
     function _getSwapFee(address[] memory _path, uint256 _amountInToken)

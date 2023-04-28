@@ -269,6 +269,16 @@ interface IVault {
         bool _increment
     ) external view returns (uint256);
 
+    function adjustDecimalToUsd(
+        uint256 _amount,
+        address _token
+    ) external view returns (uint256);
+
+    function adjustDecimalToToken(
+        uint256 _amount,
+        address _token
+    ) external view returns (uint256);
+
     function usdToTokenMin(
         address _token,
         uint256 _usdAmount

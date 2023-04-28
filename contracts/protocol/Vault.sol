@@ -664,7 +664,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             feeBasisPoints
         );
         uint256 mintAmount = amountAfterFees.mul(price).div(PRICE_PRECISION);
-        mintAmount = adjustForDecimals(mintAmount, usdp, _token); //TODO: Check for BTC pair, still not correct.
+        mintAmount = adjustForDecimals(mintAmount, _token, usdp); //TODO: Check for BTC pair, still not correct.
 
         _increaseUsdpAmount(_token, mintAmount);
         _increasePoolAmount(_token, amountAfterFees);
@@ -811,6 +811,20 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _token
     ) public view override returns (uint256) {
         return _priceFeed.getPrice(_token, false);
+    }
+
+    function adjustDecimalToUsd(
+        uint256 _amount,
+        address _token
+    ) public view returns (uint256) {
+        return adjustForDecimals(_amount, _token, usdp);
+    }
+
+    function adjustDecimalToToken(
+        uint256 _amount,
+        address _token
+    ) public view returns (uint256) {
+        return adjustForDecimals(_amount, usdp, _token);
     }
 
     /// @notice Adjusts the amount for the decimals of the token
@@ -1092,6 +1106,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         }
         uint256 prevBalance = tokenBalances[_token];
         require(prevBalance >= _amount, "Vault: insufficient amount");
+        _amount = adjustDecimalToToken(_amount, _token);
         IERC20(_token).safeTransfer(_receiver, _amount);
         tokenBalances[_token] = IERC20(_token).balanceOf(address(this));
     }
