@@ -78,7 +78,7 @@ contract GatewayUtils is
         override
         returns (
             uint256 positionFeeUsd,
-            uint256 borrowingFeeUsd,
+            uint256 borrowFeeUsd,
             uint256 swapFeeUsd,
             uint256 totalFeeUsd
         )
@@ -91,17 +91,31 @@ contract GatewayUtils is
             _isLimitOrder
         );
 
-        borrowingFeeUsd = IVault(vault).getBorrowingFee(
+        borrowFeeUsd = _getBorrowFee(
             _trader,
             _path[_path.length - 1],
             _indexToken,
             _isLong
         );
-        borrowingFeeUsd = borrowingFeeUsd.div(PRICE_DECIMALS);
 
         swapFeeUsd = _getSwapFee(_path, _amountInToken);
 
-        totalFeeUsd = positionFeeUsd.add(borrowingFeeUsd).add(swapFeeUsd);
+        totalFeeUsd = positionFeeUsd.add(borrowFeeUsd).add(swapFeeUsd);
+    }
+
+    function getPositionFee(
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _leverage,
+        bool _isLimitOrder
+    ) external view override returns (uint256) {
+        return
+            _getPositionFee(
+                _indexToken,
+                _amountInUsd,
+                _leverage,
+                _isLimitOrder
+            );
     }
 
     function getSwapFee(address[] memory _path, uint256 _amountInToken)
@@ -246,15 +260,35 @@ contract GatewayUtils is
         futurXGateway = _futurXGateway;
     }
 
+    function setVault(address _vault) external onlyOwner {
+        vault = _vault;
+    }
+
     function _getSwapFee(address[] memory _path, uint256 _amountInToken)
         internal
         view
-        returns (uint256)
+        returns (uint256 swapFee)
     {
-        return
-            _path.length > 1
-                ? IVault(vault).getSwapFee(_path[0], _path[1], _amountInToken)
-                : 0;
+        if (_path.length == 1) {
+            return 0;
+        }
+        swapFee = IVault(vault).getSwapFee(_path[0], _path[1], _amountInToken);
+        swapFee = swapFee.div(PRICE_DECIMALS);
+    }
+
+    function _getBorrowFee(
+        address _account,
+        address _collateral,
+        address _indexToken,
+        bool _isLong
+    ) internal view returns (uint256 borrowingFeeUsd) {
+        borrowingFeeUsd = IVault(vault).getBorrowingFee(
+            _account,
+            _collateral,
+            _indexToken,
+            _isLong
+        );
+        borrowingFeeUsd = borrowingFeeUsd.div(PRICE_DECIMALS);
     }
 
     function _getPositionFee(

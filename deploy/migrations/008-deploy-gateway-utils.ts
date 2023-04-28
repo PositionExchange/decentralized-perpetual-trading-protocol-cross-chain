@@ -1,6 +1,6 @@
 import { MigrationContext, MigrationDefinition } from "../types";
 import { GatewayUtils, WETH } from "../../typeChain";
-import {BTCBUSD, ETHBUSD, LINKBUSD} from "../config_production";
+import { BTCBUSD, ETHBUSD, LINKBUSD } from "../config_production";
 import { ContractTransaction } from "ethers";
 
 const migrations: MigrationDefinition = {
@@ -11,6 +11,7 @@ const migrations: MigrationDefinition = {
     },
 
     "re-config after deploy new gateway utils": async () => {
+      const vault = await ctx.factory.db.findAddressByKey("Vault");
       const wbtc = await ctx.factory.db.findAddressByKey("BTC");
       const weth = await ctx.factory.db.findAddressByKey("WETH");
       const link = await ctx.factory.db.findAddressByKey("LINK");
@@ -20,6 +21,9 @@ const migrations: MigrationDefinition = {
       );
 
       let tx: Promise<ContractTransaction>;
+
+      tx = gatewayUtils.setVault(vault);
+      await ctx.factory.waitTx(tx, "gatewayUtils.setVault");
 
       tx = gatewayUtils.setPositionManagerConfigData(
         wbtc,
