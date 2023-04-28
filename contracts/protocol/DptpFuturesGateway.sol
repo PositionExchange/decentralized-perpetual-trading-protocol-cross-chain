@@ -271,7 +271,7 @@ contract DptpFuturesGateway is
             _amountInUsd,
             _leverage,
             _isLong,
-            true
+            false
         );
 
         uint256 amountInAfterFeeToken = _usdToTokenMinWithAdjustment(
@@ -373,7 +373,7 @@ contract DptpFuturesGateway is
             _amountInUsd,
             _leverage,
             _isLong,
-            false
+            true
         );
 
         uint256 amountInAfterFeeToken = _usdToTokenMinWithAdjustment(
