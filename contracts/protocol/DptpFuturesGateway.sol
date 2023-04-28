@@ -107,6 +107,19 @@ contract DptpFuturesGateway is
     event CollateralAdded(address account, address token, uint256 tokenAmount);
     event CollateralRemove(address account, address token, uint256 tokenAmount);
 
+    event CollateralAddCreated(
+        address account,
+        address paidToken,
+        uint256 tokenAmount,
+        uint256 usdAmount
+    );
+    event CollateralRemoveCreated(
+        address account,
+        address collateralToken,
+        uint256 tokenAmount,
+        uint256 usdAmount
+    );
+
     struct IncreasePositionRequest {
         address account;
         address[] path;
@@ -701,11 +714,12 @@ contract DptpFuturesGateway is
         uint256 _amountInToken,
         bool _isLong
     ) external nonReentrant {
+        address paidToken = _path[0];
         address collateralToken = _path[_path.length - 1];
 
         _vaultValidateTokens(collateralToken, _indexToken, _isLong);
 
-        _transferIn(collateralToken, _amountInToken);
+        _transferIn(paidToken, _amountInToken);
 
         AddCollateralRequest memory request = AddCollateralRequest(
             msg.sender,
@@ -736,6 +750,12 @@ contract DptpFuturesGateway is
                     amountInUsd,
                     msg.sender
                 )
+            );
+            emit CollateralAddCreated(
+                msg.sender,
+                paidToken,
+                _amountInToken,
+                amountInUsd
             );
         }
     }
@@ -785,7 +805,7 @@ contract DptpFuturesGateway is
         uint256 _amountInToken,
         bool _isLong
     ) external nonReentrant {
-        address collateralToken = _path[_path.length - 1];
+        address collateralToken = _path[0];
 
         _vaultValidateTokens(collateralToken, _indexToken, _isLong);
 
@@ -823,6 +843,12 @@ contract DptpFuturesGateway is
                     msg.sender,
                     true
                 )
+            );
+            emit CollateralRemoveCreated(
+                msg.sender,
+                collateralToken,
+                _amountInToken,
+                amountInUsd
             );
         }
     }
@@ -1017,6 +1043,47 @@ contract DptpFuturesGateway is
         );
         _deleteDecreasePositionRequests(TPSLRequestMap[triggeredTPSLKey]);
         _deleteTPSLRequestMap(triggeredTPSLKey);
+    }
+
+    function createClaimFundRequest(address[] memory _path, address _indexToken)
+        external
+        nonReentrant
+    {
+        _crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.CLAIM_FUND),
+            abi.encode(_path, coreManagers[_indexToken], msg.sender)
+        );
+    }
+
+    function executeClaimFund(address[] memory _path, address _account, uint256 _amountOutUsd)
+        external
+        nonReentrant
+    {
+        // require(positionKeepers[msg.sender], "403");
+        // TODO: Need to validate collateral token from previous position
+        address collateralToken = _path[0];
+        address receiveToken = _path[_path.length - 1];
+
+        uint256 amountOutToken = _usdToTokenMinWithAdjustment(
+            collateralToken,
+            _amountOutUsd.mul(PRICE_DECIMALS)
+        );
+
+        //TODO: Decrease pool amount
+
+        if (_path.length > 1) {
+            IERC20Upgradeable(collateralToken).safeTransfer(
+                vault,
+                amountOutToken
+            );
+            amountOutToken = _swap(_path, address(this), true);
+        }
+
+        IERC20Upgradeable(receiveToken).safeTransfer(vault, amountOutToken);
+
+        _transferOut(receiveToken, amountOutToken, payable(_account));
     }
 
     function refund(bytes32 _key, Method _method)
