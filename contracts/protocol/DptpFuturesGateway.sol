@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
@@ -809,16 +810,14 @@ contract DptpFuturesGateway is
 
         _vaultValidateTokens(collateralToken, _indexToken, _isLong);
 
-        {
-            AddCollateralRequest memory request = AddCollateralRequest(
-                msg.sender,
-                _path,
-                _indexToken,
-                _amountInToken,
-                _isLong
-            );
-            (, bytes32 requestKey) = _storeAddCollateralRequest(request);
-        }
+        AddCollateralRequest memory request = AddCollateralRequest(
+            msg.sender,
+            _path,
+            _indexToken,
+            _amountInToken,
+            _isLong
+        );
+        (, bytes32 requestKey) = _storeAddCollateralRequest(request);
 
         {
             uint256 swapFee = IGatewayUtils(gatewayUtils).getSwapFee(
@@ -835,13 +834,10 @@ contract DptpFuturesGateway is
                 pscCrossChainGateway,
                 uint8(Method.REMOVE_MARGIN),
                 abi.encode(
-                    collateralToken,
-                    _indexToken,
+                    requestKey,
                     coreManagers[_indexToken],
                     amountInUsd,
-                    _amountInToken,
-                    msg.sender,
-                    true
+                    msg.sender
                 )
             );
             emit CollateralRemoveCreated(
@@ -1057,10 +1053,11 @@ contract DptpFuturesGateway is
         );
     }
 
-    function executeClaimFund(address[] memory _path, address _account, uint256 _amountOutUsd)
-        external
-        nonReentrant
-    {
+    function executeClaimFund(
+        address[] memory _path,
+        address _account,
+        uint256 _amountOutUsd
+    ) external nonReentrant {
         // require(positionKeepers[msg.sender], "403");
         // TODO: Need to validate collateral token from previous position
         address collateralToken = _path[0];
@@ -1378,6 +1375,10 @@ contract DptpFuturesGateway is
     }
 
     function _transferIn(address _token, uint256 _tokenAmount) internal {
+        if (_tokenAmount == 0) {
+            return;
+        }
+        _tokenAmount = IVault(vault).adjustDecimalToToken(_tokenAmount, _token);
         IERC20Upgradeable(_token).safeTransferFrom(
             msg.sender,
             address(this),
@@ -1396,6 +1397,10 @@ contract DptpFuturesGateway is
         uint256 _tokenAmount,
         address payable _account
     ) internal {
+        if (_tokenAmount == 0) {
+            return;
+        }
+        _tokenAmount = IVault(vault).adjustDecimalToToken(_tokenAmount, _token);
         IERC20Upgradeable(_token).safeTransfer(_account, _tokenAmount);
     }
 
