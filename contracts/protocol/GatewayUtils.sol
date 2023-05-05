@@ -140,7 +140,8 @@ contract GatewayUtils is
         // TODO: Consider move this to manager config
         require(_leverage > 1, "min leverage");
         validateSize(_indexToken, _sizeDeltaToken, false);
-        validateToken(_path[_path.length - 1], _indexToken, _isLong);
+        address collateralToken = _path[_path.length - 1];
+        _validateToken(collateralToken, _indexToken, _isLong);
         return true;
     }
 
@@ -154,15 +155,16 @@ contract GatewayUtils is
         require(_msgValue == _getExecutionFee(), "fee");
         require(_path.length == 1 || _path.length == 2, "len");
         validateSize(_indexToken, _sizeDeltaToken, false);
-        validateToken(_path[_path.length - 1], _indexToken, _isLong);
+        address collateralToken = _path[0];
+        _validateToken(collateralToken, _indexToken, _isLong);
         return true;
     }
 
-    function validateToken(
+    function _validateToken(
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) public view override returns (bool) {
+    ) internal view returns (bool) {
         bool _isTokenValid = IVault(vault).validateTokens(
             _collateralToken,
             _indexToken,
@@ -273,7 +275,6 @@ contract GatewayUtils is
             return 0;
         }
         swapFee = IVault(vault).getSwapFee(_path[0], _path[1], _amountInToken);
-        swapFee = swapFee.div(PRICE_DECIMALS);
     }
 
     function _getBorrowFee(
@@ -282,13 +283,12 @@ contract GatewayUtils is
         address _indexToken,
         bool _isLong
     ) internal view returns (uint256 borrowingFeeUsd) {
-        borrowingFeeUsd = IVault(vault).getBorrowingFee(
+        return IVault(vault).getBorrowingFee(
             _account,
             _collateral,
             _indexToken,
             _isLong
         );
-        borrowingFeeUsd = borrowingFeeUsd.div(PRICE_DECIMALS);
     }
 
     function _getPositionFee(
