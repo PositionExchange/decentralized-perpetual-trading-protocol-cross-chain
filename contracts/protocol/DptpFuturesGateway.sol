@@ -50,7 +50,8 @@ contract DptpFuturesGateway is
         SET_TPSL,
         UNSET_TP_AND_SL,
         UNSET_TP_OR_SL,
-        OPEN_MARKET_BY_QUOTE
+        OPEN_MARKET_BY_QUOTE,
+        EXECUTE_STORE_POSITION
     }
 
     event CreateIncreasePosition(
@@ -503,6 +504,8 @@ contract DptpFuturesGateway is
             feeUsd
         );
         _transferOutETH(executionFee, payable(msg.sender));
+
+        _excuteExecuteUpdatePositionData(_key);
 
         emit ExecuteIncreasePosition(
             request.account,
@@ -1442,6 +1445,18 @@ contract DptpFuturesGateway is
         returns (uint256)
     {
         return IVault(vault).tokenToUsdMin(_token, _tokenAmount);
+    }
+
+    /// @dev This function is used to execute the cross blockchain call to update position call
+    function _excuteExecuteUpdatePositionData(bytes32 _requestKey) internal {
+        _crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.EXECUTE_STORE_POSITION),
+            abi.encode(
+                _requestKey
+            )
+        );
     }
 
     function _crossBlockchainCall(
