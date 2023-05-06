@@ -332,18 +332,6 @@ contract DptpFuturesGateway is
         return 0;
     }
 
-    function createIncreaseOrderRequestETH(
-        address[] memory _path,
-        address _indexToken,
-        uint256 _amountInUsd,
-        uint256 _pip,
-        uint256 _sizeDeltaToken,
-        uint16 _leverage,
-        bool _isLong
-    ) external payable nonReentrant returns (bytes32) {
-        return 0;
-    }
-
     function createIncreaseOrderRequest(
         address[] memory _path,
         address _indexToken,
@@ -399,6 +387,18 @@ contract DptpFuturesGateway is
         );
 
         return _createIncreasePosition(params);
+    }
+
+    function createIncreaseOrderRequestETH(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _pip,
+        uint256 _sizeDeltaToken,
+        uint16 _leverage,
+        bool _isLong
+    ) external payable nonReentrant returns (bytes32) {
+        return 0;
     }
 
     function createDecreasePositionRequest(
@@ -474,7 +474,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaInToken,
         bool _isLong
     ) public nonReentrant {
-        //        require(positionKeepers[msg.sender], "403");
+        _validateCaller(msg.sender);
 
         IncreasePositionRequest memory request = increasePositionRequests[_key];
         Require._require(request.account != address(0), "404");
@@ -526,7 +526,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         bool _isLong
     ) public nonReentrant {
-        //        require(positionKeepers[msg.sender], "403");
+        _validateCaller(msg.sender);
 
         DecreasePositionRequest memory request = decreasePositionRequests[_key];
         Require._require(request.account != address(0), "404");
@@ -633,7 +633,8 @@ contract DptpFuturesGateway is
         payable
         nonReentrant
     {
-        //        require(positionKeepers[msg.sender], "403");
+        _validateCaller(msg.sender);
+
         if (_isReduce) {
             _deleteDecreasePositionRequests(_key);
             return;
@@ -652,14 +653,15 @@ contract DptpFuturesGateway is
         uint256 _positionMargin,
         bool _isLong
     ) public nonReentrant {
-        //        IVault(vault).liquidatePosition(
-        //            _trader,
-        //            _collateralToken,
-        //            _indexToken,
-        //            _positionSize,
-        //            _positionMargin,
-        //            _isLong
-        //        );
+        _validateCaller(msg.sender);
+        IVault(vault).liquidatePosition(
+            _trader,
+            _collateralToken,
+            _indexToken,
+            _positionSize,
+            _positionMargin,
+            _isLong
+        );
     }
 
     function createAddCollateralRequest(
@@ -692,7 +694,7 @@ contract DptpFuturesGateway is
                 _amountInToken
             );
             uint256 amountInUsd = _tokenToUsdMin(
-                collateralToken,
+                paidToken,
                 _amountInToken
             ).sub(swapFee);
 
@@ -720,7 +722,7 @@ contract DptpFuturesGateway is
     }
 
     function executeAddCollateral(bytes32 _key) external nonReentrant {
-        //        require(positionKeepers[msg.sender], "403");
+        _validateCaller(msg.sender);
 
         AddCollateralRequest memory request = addCollateralRequests[_key];
         Require._require(request.account != address(0), "404");
@@ -809,7 +811,7 @@ contract DptpFuturesGateway is
         external
         nonReentrant
     {
-        //        require(positionKeepers[msg.sender], "403");
+        _validateCaller(msg.sender);
 
         AddCollateralRequest memory request = addCollateralRequests[_key];
         Require._require(request.account != address(0), "404");
@@ -928,31 +930,31 @@ contract DptpFuturesGateway is
         external
         nonReentrant
     {
-        //        if (_isHigherPrice) {
-        //            _deleteDecreasePositionRequests(
-        //                TPSLRequestMap[
-        //                    _getTPSLRequestKey(msg.sender, _indexToken, true)
-        //                ]
-        //            );
-        //            _deleteTPSLRequestMap(
-        //                _getTPSLRequestKey(msg.sender, _indexToken, true)
-        //            );
-        //        } else {
-        //            _deleteDecreasePositionRequests(
-        //                TPSLRequestMap[
-        //                    _getTPSLRequestKey(msg.sender, _indexToken, false)
-        //                ]
-        //            );
-        //            _deleteTPSLRequestMap(
-        //                _getTPSLRequestKey(msg.sender, _indexToken, false)
-        //            );
-        //        }
-        //        _crossBlockchainCall(
-        //            pcsId,
-        //            pscCrossChainGateway,
-        //            uint8(Method.UNSET_TP_OR_SL),
-        //            abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
-        //        );
+        if (_isHigherPrice) {
+            _deleteDecreasePositionRequests(
+                TPSLRequestMap[
+                    _getTPSLRequestKey(msg.sender, _indexToken, true)
+                ]
+            );
+            _deleteTPSLRequestMap(
+                _getTPSLRequestKey(msg.sender, _indexToken, true)
+            );
+        } else {
+            _deleteDecreasePositionRequests(
+                TPSLRequestMap[
+                    _getTPSLRequestKey(msg.sender, _indexToken, false)
+                ]
+            );
+            _deleteTPSLRequestMap(
+                _getTPSLRequestKey(msg.sender, _indexToken, false)
+            );
+        }
+        _crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.UNSET_TP_OR_SL),
+            abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
+        );
     }
 
     function triggerTPSL(
@@ -964,6 +966,8 @@ contract DptpFuturesGateway is
         bool _isHigherPrice,
         bool _isLong
     ) external {
+        _validateCaller(msg.sender);
+
         address indexToken = indexTokens[_positionManager];
         bytes32 triggeredTPSLKey = _getTPSLRequestKey(
             _account,
@@ -1007,7 +1011,8 @@ contract DptpFuturesGateway is
         address _account,
         uint256 _amountOutUsd
     ) external nonReentrant {
-        // require(positionKeepers[msg.sender], "403");
+        _validateCaller(msg.sender);
+
         // TODO: Need to validate collateral token from previous position
         address collateralToken = _path[0];
         address receiveToken = _path[_path.length - 1];
@@ -1032,7 +1037,8 @@ contract DptpFuturesGateway is
         payable
         nonReentrant
     {
-        // TODO: Validate caller
+        _validateCaller(msg.sender);
+
         if (_method == Method.OPEN_LIMIT || _method == Method.OPEN_MARKET) {
             IncreasePositionRequest memory request = increasePositionRequests[
                 _key
@@ -1429,6 +1435,11 @@ contract DptpFuturesGateway is
                 _indexToken,
                 _isLong
             );
+    }
+
+    function _validateCaller(address _account) internal view returns (bool) {
+        Require._require(positionKeepers[_account], "403");
+        return true;
     }
 
     function _usdToTokenMin(address _token, uint256 _usdAmount)

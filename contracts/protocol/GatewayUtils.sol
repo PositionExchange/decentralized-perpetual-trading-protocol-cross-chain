@@ -275,6 +275,7 @@ contract GatewayUtils is
             return 0;
         }
         swapFee = IVault(vault).getSwapFee(_path[0], _path[1], _amountInToken);
+        swapFee = swapFee.mul(PRICE_DECIMALS);
     }
 
     function _getBorrowFee(
