@@ -112,13 +112,16 @@ contract DptpFuturesGateway is
         address account,
         address paidToken,
         uint256 tokenAmount,
-        uint256 usdAmount
+        uint256 usdAmount,
+        uint256 swapFee
     );
     event CollateralRemoveCreated(
+        bytes32 requestKey,
         address account,
         address collateralToken,
         uint256 tokenAmount,
-        uint256 usdAmount
+        uint256 usdAmount,
+        uint256 swapFee
     );
 
     struct IncreasePositionRequest {
@@ -259,10 +262,7 @@ contract DptpFuturesGateway is
         );
 
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
-        uint256 amountInToken = _usdToTokenMin(
-            _path[0],
-            _amountInUsd
-        );
+        uint256 amountInToken = _usdToTokenMin(_path[0], _amountInUsd);
 
         uint256 totalFeeUsd = _collectFees(
             msg.sender,
@@ -362,10 +362,7 @@ contract DptpFuturesGateway is
         );
 
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
-        uint256 amountInToken = _usdToTokenMin(
-            _path[0],
-            _amountInUsd
-        );
+        uint256 amountInToken = _usdToTokenMin(_path[0], _amountInUsd);
 
         uint256 totalFeeUsd = _collectFees(
             msg.sender,
@@ -713,7 +710,8 @@ contract DptpFuturesGateway is
                 msg.sender,
                 paidToken,
                 _amountInToken,
-                amountInUsd
+                amountInUsd,
+                swapFee
             );
         }
     }
@@ -726,35 +724,30 @@ contract DptpFuturesGateway is
 
         _deleteAddCollateralRequests(_key);
 
-        address collateralToken = request.path[0];
+        address paidToken = request.path[0];
+        address collateralToken = request.path[request.path.length - 1];
 
-        if (request.amountInToken > 0) {
-            uint256 amountInToken = request.amountInToken;
-
-            if (request.path.length > 1) {
-                _transferOut(collateralToken, amountInToken, vault);
-                amountInToken = _swap(request.path, address(this), false);
-            }
-
-            _transferOut(
-                request.path[request.path.length - 1],
-                amountInToken,
-                vault
-            );
+        if (request.amountInToken == 0) {
+            return;
         }
+
+        uint256 amountInToken = request.amountInToken;
+
+        if (request.path.length > 1) {
+            _transferOut(paidToken, amountInToken, vault);
+            amountInToken = _swap(request.path, address(this), false);
+        }
+
+        _transferOut(collateralToken, amountInToken, vault);
 
         IVault(vault).addCollateral(
             request.account,
             collateralToken,
             request.indexToken,
             request.isLong,
-            request.amountInToken
+            amountInToken
         );
-        emit CollateralAdded(
-            request.account,
-            collateralToken,
-            request.amountInToken
-        );
+        emit CollateralAdded(request.account, collateralToken, amountInToken);
     }
 
     function createRemoveCollateralRequest(
@@ -799,10 +792,12 @@ contract DptpFuturesGateway is
                 )
             );
             emit CollateralRemoveCreated(
+                requestKey,
                 msg.sender,
                 collateralToken,
                 _amountInToken,
-                amountInUsd
+                amountInUsd,
+                swapFee
             );
         }
     }
@@ -812,23 +807,21 @@ contract DptpFuturesGateway is
         nonReentrant
     {
         //        require(positionKeepers[msg.sender], "403");
-        if (_amountOutUsd == 0) {
-            return;
-        }
 
         AddCollateralRequest memory request = addCollateralRequests[_key];
         Require._require(request.account != address(0), "404");
 
         _deleteAddCollateralRequests(_key);
 
+        if (_amountOutUsd == 0) {
+            return;
+        }
+
         address collateralToken = request.path[0];
         address receiveToken = request.path[request.path.length - 1];
 
         _amountOutUsd = _amountOutUsd.mul(PRICE_DECIMALS);
-        uint256 amountOutToken = _usdToTokenMin(
-            collateralToken,
-            _amountOutUsd
-        );
+        uint256 amountOutToken = _usdToTokenMin(collateralToken, _amountOutUsd);
 
         IVault(vault).removeCollateral(
             request.account,
@@ -1043,13 +1036,21 @@ contract DptpFuturesGateway is
             ];
             require(request.account != address(0), "Refund: request not found");
             _deleteIncreasePositionRequests(_key);
-            _transferOut(request.path[0], request.amountInToken, request.account);
+            _transferOut(
+                request.path[0],
+                request.amountInToken,
+                request.account
+            );
         }
         if (_method == Method.ADD_MARGIN) {
             AddCollateralRequest memory request = addCollateralRequests[_key];
             require(request.account != address(0), "Refund: request not found");
             _deleteAddCollateralRequests(_key);
-            _transferOut(request.path[0], request.amountInToken, request.account);
+            _transferOut(
+                request.path[0],
+                request.amountInToken,
+                request.account
+            );
         }
     }
 
