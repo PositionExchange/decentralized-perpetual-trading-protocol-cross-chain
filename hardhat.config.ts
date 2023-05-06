@@ -76,7 +76,7 @@ module.exports = {
             accounts: PRIV_MAINNET_ACCOUNT ? [PRIV_MAINNET_ACCOUNT] : [],
         },
         arbitrumGoerli: {
-            url: "https://goerli-rollup.arbitrum.io/rpc",
+            url: "https://snowy-dimensional-wave.arbitrum-goerli.quiknode.pro/5fb1a4cbaec64e964facf89b037dabd44bd73b27/",
             chainId: 421613,
             accounts: PRIV_TESTNET_ACCOUNT ? [PRIV_TESTNET_ACCOUNT] : [],
         },

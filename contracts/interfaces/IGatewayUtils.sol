@@ -49,12 +49,6 @@ interface IGatewayUtils {
         bool _isLong
     ) external returns (bool);
 
-    function validateToken(
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) external view returns (bool);
-
     function validateSize(
         address _indexToken,
         uint256 _sizeDelta,
