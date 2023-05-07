@@ -31,5 +31,6 @@ runs:
         git add -A
         git commit -m "Update contract deployment artifacts [ci/cd]"
         git push
+      shell: bash
 
 
