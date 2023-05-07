@@ -234,11 +234,11 @@ export class ContractWrapperFactory {
         const FuturesAdapter = await this.hre.ethers.getContractFactory("FuturesAdapter");
         const futuresAdapterContractAddress = await this.db.findAddressByKey(`FuturesAdapter`);
         if (futuresAdapterContractAddress) {
-            const proposal = await this.hre.defender.proposeUpgrade(futuresAdapterContractAddress, FuturesAdapter);
-            await this.verifyContractUsingDefender(proposal)
-            // const upgraded = await this.hre.upgrades.upgradeProxy(futuresAdapterContractAddress, FuturesAdapter, {unsafeAllowLinkedLibraries: true});
-            // console.log(`Starting verify upgrade futures gateway`)
-            // await this.verifyImplContract(upgraded.deployTransaction)
+            // const proposal = await this.hre.defender.proposeUpgrade(futuresAdapterContractAddress, FuturesAdapter);
+            // await this.verifyContractUsingDefender(proposal)
+            const upgraded = await this.hre.upgrades.upgradeProxy(futuresAdapterContractAddress, FuturesAdapter, {unsafeAllowLinkedLibraries: true});
+            console.log(`Starting verify upgrade futures gateway`)
+            await this.verifyImplContract(upgraded.deployTransaction)
             // console.log(`Proposal created`, proposal.url)
         } else {
             const contractArgs = [
