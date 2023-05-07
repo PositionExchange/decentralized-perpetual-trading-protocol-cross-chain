@@ -26,12 +26,27 @@ jobs:
         network: arbitrumGoerli
         stage: arbitrumGoerli
         task: 'deploy futures adapter'
+      env:
+        PRIV_TESTNET_ACCOUNT: ${{ secrets.PRIV_TESTNET_ACCOUNT }}
+        BSC_TESTNET_URL: ${{ secrets.BSC_TESTNET_URL }}
+        PRIV_MAINNET_ACCOUNT: ${{ secrets.PRIV_MAINNET_ACCOUNT }}
+        DEFENDER_TEAM_API_KEY: ${{ secrets.DEFENDER_TEAM_API_KEY }}
+        DEFENDER_TEAM_API_SECRET_KEY: ${{ secrets.DEFENDER_TEAM_API_SECRET_KEY }}
+        ARB_API_KEY: ${{ secrets.ARB_API_KEY }}
     - name: Deploy dptp futures gateway
       uses: ./.github/actions/deploy_contract
       with:
         network: arbitrumGoerli
         stage: arbitrumGoerli
         task: 'deploy dptp futures gateway'
+      env:
+        PRIV_TESTNET_ACCOUNT: ${{ secrets.PRIV_TESTNET_ACCOUNT }}
+        BSC_TESTNET_URL: ${{ secrets.BSC_TESTNET_URL }}
+        PRIV_MAINNET_ACCOUNT: ${{ secrets.PRIV_MAINNET_ACCOUNT }}
+        DEFENDER_TEAM_API_KEY: ${{ secrets.DEFENDER_TEAM_API_KEY }}
+        DEFENDER_TEAM_API_SECRET_KEY: ${{ secrets.DEFENDER_TEAM_API_SECRET_KEY }}
+        ARB_API_KEY: ${{ secrets.ARB_API_KEY }}
+
 
 
     # Add more migration
