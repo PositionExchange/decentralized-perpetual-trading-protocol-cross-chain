@@ -148,8 +148,15 @@ contract FuturesAdapter is
 
         // Decode _eventData
         // Recall that the cross call event is:
-        // CrossCall(bytes32 _txId, uint256 _timestamp, address _caller,
-        //           uint256 _destBcId, address _destContract, bytes _destFunctionCall)
+        // event CrossCall(
+        //     bytes32 _txId,
+        //     uint256 _timestamp,
+        //     address _caller,
+        //     uint256 _destBcId,
+        //     address _destContract,
+        //     uint8 _destMethodID,
+        //     bytes _destFunctionCall
+        // );
         bytes memory functionCall;
 
         DecodedEventData memory decodedEventData;
@@ -160,10 +167,11 @@ contract FuturesAdapter is
             decodedEventData.caller,
             decodedEventData.destBcId,
             decodedEventData.destContract,
+            ,
             functionCall
         ) = abi.decode(
             _eventData,
-            (bytes32, uint256, address, uint256, address, bytes)
+            (bytes32, uint256, address, uint256, address, uint8, bytes)
         );
 
         require(
