@@ -1,0 +1,34 @@
+name: Deploy Futures Adapter to Arbitrum Goerli
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14
+
+    - name: Deploy Futures Adapter
+      uses: ./.github/actions/deploy_contract
+      with:
+        network: arbitrumGoerli
+        stage: arbitrumGoerli
+        task: 'deploy futures adapter'
+    - name: Deploy dptp futures gateway
+      uses: ./.github/actions/deploy_contract
+      with:
+        network: arbitrumGoerli
+        stage: arbitrumGoerli
+        task: 'deploy dptp futures gateway'
+
+
+    # Add more migration
+

@@ -1,0 +1,42 @@
+name: 'Deploy Contract'
+description: 'Deploy contract with Hardhat'
+
+inputs:
+  network:
+    description: 'The network to deploy the contract on'
+    required: true
+  stage:
+    description: 'The stage for deployment'
+    required: true
+  task:
+    description: 'The task to execute'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      run: npm ci
+      shell: bash
+    - name: Compile contract
+      run: yarn compile
+      shell: bash
+    - name: Deploy contract
+      run: npx hardhat deploy --network ${{ inputs.network }} --stage ${{ inputs.stage }} --task '${{ inputs.task }}'
+      shell: bash
+      env:
+        PRIV_TESTNET_ACCOUNT: ${{ secrets.PRIV_TESTNET_ACCOUNT }}
+        BSC_TESTNET_URL: ${{ secrets.BSC_TESTNET_URL }}
+        PRIV_MAINNET_ACCOUNT: ${{ secrets.PRIV_MAINNET_ACCOUNT }}
+        DEFENDER_TEAM_API_KEY: ${{ secrets.DEFENDER_TEAM_API_KEY }}
+        DEFENDER_TEAM_API_SECRET_KEY: ${{ secrets.DEFENDER_TEAM_API_SECRET_KEY }}
+        ARB_API_KEY: ${{ secrets.ARB_API_KEY }}
+    - name: Commit and push changes
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "github-actions@position.exchange"
+        git add -A
+        git commit -m "Update contract deployment artifacts [ci/cd]"
+        git push
+
+
