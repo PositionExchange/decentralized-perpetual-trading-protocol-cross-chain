@@ -16,7 +16,7 @@ runs:
   using: 'composite'
   steps:
     - name: Install dependencies
-      run: npm ci
+      run: yarn install --frozen-lockfile
       shell: bash
     - name: Compile contract
       run: yarn compile
