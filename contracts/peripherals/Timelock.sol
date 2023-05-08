@@ -462,22 +462,6 @@ contract Timelock is ITimelock {
         );
     }
 
-    function setReferrerTier(
-        address _referralStorage,
-        address _referrer,
-        uint256 _tierId
-    ) external onlyKeeperAndAbove {
-        IReferralStorage(_referralStorage).setReferrerTier(_referrer, _tierId);
-    }
-
-    function govSetCodeOwner(
-        address _referralStorage,
-        bytes32 _code,
-        address _newAccount
-    ) external onlyKeeperAndAbove {
-        IReferralStorage(_referralStorage).govSetCodeOwner(_code, _newAccount);
-    }
-
     function setVaultUtils(
         address _vault,
         IVaultUtils _vaultUtils

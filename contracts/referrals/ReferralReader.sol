@@ -13,7 +13,7 @@ contract ReferralReader {
 
         for (uint256 i = 0; i < _codes.length; i++) {
             bytes32 code = _codes[i];
-            owners[i] = _referralStorage.codeOwners(code);
+            owners[i] = _referralStorage.codes(code);
         }
 
         return owners;
