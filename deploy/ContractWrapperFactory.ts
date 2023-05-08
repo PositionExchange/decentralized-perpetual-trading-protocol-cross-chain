@@ -7,6 +7,7 @@ import {DeployDataStore} from "./DataStore";
 import {verifyContract} from "../scripts/utils";
 import {TransactionResponse} from "@ethersproject/abstract-provider";
 import {HardhatRuntimeEnvironment} from "hardhat/types";
+// @ts-ignore
 import {HardhatDefenderUpgrades} from "@openzeppelin/hardhat-defender";
 import {
     DptpFuturesGateway,
@@ -470,6 +471,29 @@ export class ContractWrapperFactory {
                 factory,
                 contractArgs
             );
+            console.log(`wait for deploy ${contractName}`);
+            await instance.deployed();
+            const address = instance.address.toString();
+            console.log(`Address ${contractName}: ${address}`);
+            await this.db.saveAddressByKey(contractName, address);
+            await this.verifyProxy(address);
+        }
+    }
+
+    async createReferralStorage(vault: string) {
+        const contractName = 'ReferralStorage';
+        const factory = await this.hre.ethers.getContractFactory(contractName);
+        const contractAddress = await this.db.findAddressByKey(contractName);
+        if (contractAddress) {
+            const upgraded = await this.hre.upgrades.upgradeProxy(
+                contractAddress,
+                factory
+            );
+            console.log(`Starting verify upgrade ${contractName}`);
+            await this.verifyImplContract(upgraded.deployTransaction);
+            console.log(`Upgrade ${contractName}`);
+        } else {
+            const instance = await this.hre.upgrades.deployProxy(factory,);
             console.log(`wait for deploy ${contractName}`);
             await instance.deployed();
             const address = instance.address.toString();
