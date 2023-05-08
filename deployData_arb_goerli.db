@@ -31,6 +31,7 @@
 {"address":"yes","key":"0xF3fEA138c07C61781EF1bffd1B88b3fa5C1470Ff:verified","_id":"QRhqXXSFTLGQ4RfC"}
 {"address":"yes","key":"0xca8F6f3d191dA1742b9bc54B75C58281Cf500Df1:verified","_id":"QRz39yU3dPIqQhQa"}
 {"address":"yes","key":"0x817F53709b588104E053b1fC244da4B951906613:verified","_id":"QTUPDUAYVWa2PfOI"}
+{"address":"yes","key":"0x789c6c03C08925CB981973173ca5c7B42a3E5A64:verified","_id":"Qfqo1jbImQi5l7vO"}
 {"address":"0x8557e89E7F86479bA8C55DA4257f7D2FA5030C8a","key":"BUSD","_id":"RACeeMfpdIpN4dS3"}
 {"address":"0x900Db664f23f15afa6cCBE9dC7eD341047BA92bF","key":"StakedPosiDistributor","_id":"T7LTJTCnYcignSOG"}
 {"address":"yes","key":"0x9B1De81E93f43bC09291E3b4eF64490904D214D5:verified","_id":"TGPrNh3jmAKB0jwV"}
@@ -53,6 +54,7 @@
 {"address":"yes","key":"0x774f238719F37F580231F37Ea2D9D5BBCC095F42:verified","_id":"d0LkAgwjYclGaxLT"}
 {"address":"0x471385598B0Bdb63C89082F4166C0577C6C0263a","key":"WETH","_id":"doQogaN4jMmuLNuK"}
 {"address":"0xD5Fc27439996C484AAFe7b4D48C4B1c766B6966D","key":"EsPOSI","_id":"drjrDjgeYiIYZLva"}
+{"address":"yes","key":"0x5B24eA7b38aee39256dcEf6205EBe6E4bD7Ba12f:verified","_id":"egDoyQDEGYHG7ZCR"}
 {"address":"0xd6bd9a3025e7294a9899a6d5fbf999b75b71e699","key":"ChainLinkPriceFeed","_id":"fWwNNhvBTDU1LzBA"}
 {"address":"yes","key":"0xe6bAC7436C36341e47c4F591B9Ce3c934B643da2:verified","_id":"fue3KXPIEdpFF6E1"}
 {"address":"yes","key":"0xB681620857B5988C931DC34cC3f44FdC994B12Ef:verified","_id":"h8rxmm0pjARswo4l"}
@@ -67,6 +69,7 @@
 {"address":"0x7Ee71735371F9be9F0E45c9D2CC766F445Ab4A00","key":"RewardReader","_id":"oZXimvrgLzXGTwTm"}
 {"address":"yes","key":"0x656CecBbB04aB782dD6Aa95Fcbfa1d78258cF6b9:verified","_id":"of48fqDI9zcUTwqd"}
 {"address":"0x1645BEb8a639f29Fa7a9ab03c704e1CB822D588E","key":"VestedPOSI","_id":"ofB7ba1aopwAKzZ8"}
+{"address":"yes","key":"0x147d3FD3664E5be627C1473f0ab2E9Dd7e3Eb672:verified","_id":"ogBWW9KAzarLvCCT"}
 {"address":"0x9Af39d0E0fd660C8aF7D3d90Fa1E21dfc6E165f5","key":"FeePosiDistributor","_id":"p8dm0wohbZuN7yzl"}
 {"address":"0xc2D7f320d0aeb3C90a211f49326BC5bc63eDC0C1","key":"VaultPriceFeed","_id":"pLsav7V8T6FVbVkz"}
 {"address":"yes","key":"0x0E81F396e2a1EA88dcEC131862CCAbb42615a9a9:verified","_id":"pcRd9WS21BZidZJN"}
@@ -92,4 +95,10 @@
 {"address":"yes","key":"0x2776395a74aaCbDC5710B69F3897CC54d1CF39B2:verified","_id":"zO5KmgZ90mzuv1Jk"}
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
+{"address":"yes","key":"0x54A5C20872E502e19D5d580853df3114533237b4:verified","_id":"PYIJNf8q1mNseWWf"}
+{"address":"yes","key":"0x871D5eec7388873bd5ADDb7D8Bc8073cf5EC4a04:verified","_id":"7KCEmcZtbElZkB9j"}
+{"address":"yes","key":"0x2CBDD1E334e94f221c0764F4E3133c5aBC3418D5:verified","_id":"sO0n07bq8Cb1qLRx"}
+{"address":"yes","key":"0xe6bAC7436C36341e47c4F591B9Ce3c934B643da2:verified","_id":"fue3KXPIEdpFF6E1"}
+{"address":"yes","key":"0x656CecBbB04aB782dD6Aa95Fcbfa1d78258cF6b9:verified","_id":"of48fqDI9zcUTwqd"}
+{"address":"yes","key":"0xFC87D5f66A60D5e5e310b9AB0373C905DDAd4F47:verified","_id":"SkYx5QE0X4tgElwD"}
 {"address":"yes","key":"0x7063Ea4f22b0CebC4957C04FF93d4167C04F175d:verified","_id":"PXguC0MukveKhGnj"}

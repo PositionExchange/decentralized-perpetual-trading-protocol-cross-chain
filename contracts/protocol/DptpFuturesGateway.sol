@@ -121,8 +121,7 @@ contract DptpFuturesGateway is
         address account,
         address collateralToken,
         uint256 tokenAmount,
-        uint256 usdAmount,
-        uint256 swapFee
+        uint256 usdAmount
     );
 
     struct IncreasePositionRequest {
@@ -688,37 +687,40 @@ contract DptpFuturesGateway is
 
         (, bytes32 requestKey) = _storeAddCollateralRequest(request);
 
-        {
+        uint256 swapFeeUsd;
+        if (paidToken != collateralToken) {
             uint256 swapFee = IGatewayUtils(gatewayUtils).getSwapFee(
                 _path,
                 _amountInToken
             );
-            uint256 amountInUsd = _tokenToUsdMin(
-                paidToken,
-                _amountInToken
-            ).sub(swapFee);
-
-            _crossBlockchainCall(
-                pcsId,
-                pscCrossChainGateway,
-                uint8(Method.ADD_MARGIN),
-                abi.encode(
-                    requestKey,
-                    coreManagers[_indexToken],
-                    amountInUsd.div(PRICE_DECIMALS),
-                    msg.sender
-                )
-            );
-
-            emit CollateralAddCreated(
-                requestKey,
-                msg.sender,
-                paidToken,
-                _amountInToken,
-                amountInUsd,
-                swapFee
-            );
+            swapFeeUsd = _tokenToUsdMin(collateralToken, swapFee);
         }
+
+        uint256 amountInUsd = _tokenToUsdMin(
+            paidToken,
+            _amountInToken
+        ).sub(swapFeeUsd);
+
+        _crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.ADD_MARGIN),
+            abi.encode(
+                requestKey,
+                coreManagers[_indexToken],
+                amountInUsd.div(PRICE_DECIMALS),
+                msg.sender
+            )
+        );
+
+        emit CollateralAddCreated(
+            requestKey,
+            msg.sender,
+            paidToken,
+            _amountInToken,
+            amountInUsd,
+            swapFeeUsd
+        );
     }
 
     function executeAddCollateral(bytes32 _key) external nonReentrant {
@@ -775,36 +777,29 @@ contract DptpFuturesGateway is
         );
         (, bytes32 requestKey) = _storeAddCollateralRequest(request);
 
-        {
-            uint256 swapFee = IGatewayUtils(gatewayUtils).getSwapFee(
-                _path,
-                _amountInToken
-            );
-            uint256 amountInUsd = _tokenToUsdMin(
-                collateralToken,
-                _amountInToken
-            ).sub(swapFee);
+        uint256 amountInUsd = _tokenToUsdMin(
+            collateralToken,
+            _amountInToken
+        );
 
-            _crossBlockchainCall(
-                pcsId,
-                pscCrossChainGateway,
-                uint8(Method.REMOVE_MARGIN),
-                abi.encode(
-                    requestKey,
-                    coreManagers[_indexToken],
-                    amountInUsd.div(PRICE_DECIMALS),
-                    msg.sender
-                )
-            );
-            emit CollateralRemoveCreated(
+        _crossBlockchainCall(
+            pcsId,
+            pscCrossChainGateway,
+            uint8(Method.REMOVE_MARGIN),
+            abi.encode(
                 requestKey,
-                msg.sender,
-                collateralToken,
-                _amountInToken,
-                amountInUsd,
-                swapFee
-            );
-        }
+                coreManagers[_indexToken],
+                amountInUsd.div(PRICE_DECIMALS),
+                msg.sender
+            )
+        );
+        emit CollateralRemoveCreated(
+            requestKey,
+            msg.sender,
+            collateralToken,
+            _amountInToken,
+            amountInUsd
+        );
     }
 
     function executeRemoveCollateral(bytes32 _key, uint256 _amountOutUsd)
@@ -838,7 +833,7 @@ contract DptpFuturesGateway is
 
         if (request.path.length > 1) {
             _transferOut(collateralToken, amountOutToken, vault);
-            amountOutToken = _swap(request.path, address(this), false);
+            amountOutToken = _swap(request.path, address(this), true);
         }
 
         _transferOut(receiveToken, amountOutToken, request.account);

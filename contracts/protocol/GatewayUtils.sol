@@ -98,7 +98,8 @@ contract GatewayUtils is
             _isLong
         );
 
-        swapFeeUsd = _getSwapFee(_path, _amountInToken);
+        uint256 swapFeeToken = _getSwapFee(_path, _amountInToken);
+        swapFeeUsd = _tokenToUsdMin(_path[_path.length - 1], swapFeeToken);
 
         totalFeeUsd = positionFeeUsd.add(borrowFeeUsd).add(swapFeeUsd);
     }
@@ -118,6 +119,7 @@ contract GatewayUtils is
             );
     }
 
+    // Swap fee is in token
     function getSwapFee(address[] memory _path, uint256 _amountInToken)
         external
         view
@@ -269,13 +271,12 @@ contract GatewayUtils is
     function _getSwapFee(address[] memory _path, uint256 _amountInToken)
         internal
         view
-        returns (uint256 swapFee)
+        returns (uint256)
     {
         if (_path.length == 1) {
             return 0;
         }
-        swapFee = IVault(vault).getSwapFee(_path[0], _path[1], _amountInToken);
-        swapFee = swapFee.mul(PRICE_DECIMALS);
+        return IVault(vault).getSwapFee(_path[0], _path[1], _amountInToken);
     }
 
     function _getBorrowFee(
@@ -284,12 +285,13 @@ contract GatewayUtils is
         address _indexToken,
         bool _isLong
     ) internal view returns (uint256 borrowingFeeUsd) {
-        return IVault(vault).getBorrowingFee(
-            _account,
-            _collateral,
-            _indexToken,
-            _isLong
-        );
+        return
+            IVault(vault).getBorrowingFee(
+                _account,
+                _collateral,
+                _indexToken,
+                _isLong
+            );
     }
 
     function _getPositionFee(
@@ -317,6 +319,14 @@ contract GatewayUtils is
     function _getExecutionFee() internal returns (uint256) {
         //        return IFuturXGateway(futurXGateway).executionFee();
         return 0;
+    }
+
+    function _tokenToUsdMin(address _token, uint256 _tokenAmount)
+        internal
+        view
+        returns (uint256)
+    {
+        return IVault(vault).tokenToUsdMin(_token, _tokenAmount);
     }
 
     /**
