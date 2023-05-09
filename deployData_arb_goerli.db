@@ -11,6 +11,7 @@
 {"address":"yes","key":"0x9f1De0aF0d30d08cBd5B4F77B088f1c8500026e3:verified","_id":"A3i1TYj31wZAMEVw"}
 {"address":"0x381548E0e7815127A39eecD9AB8994286f2DA803","key":"VaultUtils","_id":"A8NOTToOY4IqIzL5"}
 {"address":"yes","key":"0xcAd1F972c98fc7818288846b656f24FF6D84c2f0:verified","_id":"BA2xHTBhSBQnXqEl"}
+{"address":"yes","key":"0xc3427B83bb6D783c1272f6B5cFa96ED785563B12:verified","_id":"BQELajny5OLsSjSG"}
 {"address":"0x74c0348CC6027b0c60C27c2c6b8Cf32C5510b569","key":"LINK","_id":"CM8N0WUi8hHHU7XN"}
 {"address":"0x2Bc7C591869bE9aE52Fa0d178dFE83CdC078c71b","key":"GatewayUtils","_id":"Cki8ekDJTQMockLy"}
 {"address":"0x72286b7395456181Fd0f1616D9B7bF9212457aaB","key":"FeePosiTracker","_id":"Co3HTUTWFhkZY6Ww"}
@@ -27,6 +28,7 @@
 {"address":"yes","key":"0xD95aaF005baE04077e035561B69E8F13842812Db:verified","_id":"PPcC5FVQH8bnjc39"}
 {"address":"yes","key":"0x54A5C20872E502e19D5d580853df3114533237b4:verified","_id":"PYIJNf8q1mNseWWf"}
 {"address":"0xEe2EC0bf1F1D787852651c674540648E52E845A0","key":"BonusPosiDistributor","_id":"PmOi2OsA9OtWSwXe"}
+{"address":"yes","key":"0xF3fEA138c07C61781EF1bffd1B88b3fa5C1470Ff:verified","_id":"QRhqXXSFTLGQ4RfC"}
 {"address":"yes","key":"0xca8F6f3d191dA1742b9bc54B75C58281Cf500Df1:verified","_id":"QRz39yU3dPIqQhQa"}
 {"address":"yes","key":"0x817F53709b588104E053b1fC244da4B951906613:verified","_id":"QTUPDUAYVWa2PfOI"}
 {"address":"0x8557e89E7F86479bA8C55DA4257f7D2FA5030C8a","key":"BUSD","_id":"RACeeMfpdIpN4dS3"}
@@ -52,6 +54,7 @@
 {"address":"0x471385598B0Bdb63C89082F4166C0577C6C0263a","key":"WETH","_id":"doQogaN4jMmuLNuK"}
 {"address":"0xD5Fc27439996C484AAFe7b4D48C4B1c766B6966D","key":"EsPOSI","_id":"drjrDjgeYiIYZLva"}
 {"address":"0xd6bd9a3025e7294a9899a6d5fbf999b75b71e699","key":"ChainLinkPriceFeed","_id":"fWwNNhvBTDU1LzBA"}
+{"address":"yes","key":"0xe6bAC7436C36341e47c4F591B9Ce3c934B643da2:verified","_id":"fue3KXPIEdpFF6E1"}
 {"address":"yes","key":"0xB681620857B5988C931DC34cC3f44FdC994B12Ef:verified","_id":"h8rxmm0pjARswo4l"}
 {"address":"0x0fD182e7cC0557868486155C60Cdfa2e8D033913","key":"BonusPosiTracker","_id":"j7tiHjTw8Vo7KpNu"}
 {"address":"yes","key":"0x19Ca46E39a864A4063aF817bb406EDfD8a6CD227:verified","_id":"jFb51nwHbI2nhO6C"}
@@ -62,10 +65,12 @@
 {"address":"0x6B9F5f7Ec5FfebdED65f2040c413BB3611F5236d","key":"StakedPosiTracker","_id":"mhE9cDFy0vUfe7ed"}
 {"address":"yes","key":"0x5A181DbF2D774718dcF7fc6Bef680f6741Bf9c80:verified","_id":"n5PdZPgcDO5kSYkl"}
 {"address":"0x7Ee71735371F9be9F0E45c9D2CC766F445Ab4A00","key":"RewardReader","_id":"oZXimvrgLzXGTwTm"}
+{"address":"yes","key":"0x656CecBbB04aB782dD6Aa95Fcbfa1d78258cF6b9:verified","_id":"of48fqDI9zcUTwqd"}
 {"address":"0x1645BEb8a639f29Fa7a9ab03c704e1CB822D588E","key":"VestedPOSI","_id":"ofB7ba1aopwAKzZ8"}
 {"address":"0x9Af39d0E0fd660C8aF7D3d90Fa1E21dfc6E165f5","key":"FeePosiDistributor","_id":"p8dm0wohbZuN7yzl"}
 {"address":"0xc2D7f320d0aeb3C90a211f49326BC5bc63eDC0C1","key":"VaultPriceFeed","_id":"pLsav7V8T6FVbVkz"}
 {"address":"yes","key":"0x0E81F396e2a1EA88dcEC131862CCAbb42615a9a9:verified","_id":"pcRd9WS21BZidZJN"}
+{"address":"yes","key":"0x8356aB7278d7A22B09de689cFe8B3537648C662a:verified","_id":"qyfMGRkeRSeqg8v3"}
 {"address":"yes","key":"0xcE92b53E4F0817e80F2A2f2f6ab9bA76BB7894d8:verified","_id":"rdBFJADqWnn6INBF"}
 {"address":"yes","key":"0x2CBDD1E334e94f221c0764F4E3133c5aBC3418D5:verified","_id":"sO0n07bq8Cb1qLRx"}
 {"address":"yes","key":"0x0617FC519ef2DDE047029cd0b3a3267db0730cDA:verified","_id":"sbY1roUsEX2Z6JN5"}
@@ -87,8 +92,4 @@
 {"address":"yes","key":"0x2776395a74aaCbDC5710B69F3897CC54d1CF39B2:verified","_id":"zO5KmgZ90mzuv1Jk"}
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
-{"address":"yes","key":"0x54A5C20872E502e19D5d580853df3114533237b4:verified","_id":"PYIJNf8q1mNseWWf"}
-{"address":"yes","key":"0x871D5eec7388873bd5ADDb7D8Bc8073cf5EC4a04:verified","_id":"7KCEmcZtbElZkB9j"}
-{"address":"yes","key":"0x2CBDD1E334e94f221c0764F4E3133c5aBC3418D5:verified","_id":"sO0n07bq8Cb1qLRx"}
-{"address":"yes","key":"0xe6bAC7436C36341e47c4F591B9Ce3c934B643da2:verified","_id":"fue3KXPIEdpFF6E1"}
-{"address":"yes","key":"0x656CecBbB04aB782dD6Aa95Fcbfa1d78258cF6b9:verified","_id":"of48fqDI9zcUTwqd"}
+{"address":"yes","key":"0x7063Ea4f22b0CebC4957C04FF93d4167C04F175d:verified","_id":"PXguC0MukveKhGnj"}
