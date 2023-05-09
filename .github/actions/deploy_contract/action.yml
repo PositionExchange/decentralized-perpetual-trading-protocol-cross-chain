@@ -1,0 +1,36 @@
+name: 'Deploy Contract'
+description: 'Deploy contract with Hardhat'
+
+inputs:
+  network:
+    description: 'The network to deploy the contract on'
+    required: true
+  stage:
+    description: 'The stage for deployment'
+    required: true
+  task:
+    description: 'The task to execute'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+      shell: bash
+    - name: Compile contract
+      run: yarn compile
+      shell: bash
+    - name: Deploy contract
+      run: npx hardhat deploy --network ${{ inputs.network }} --stage ${{ inputs.stage }} --task '${{ inputs.task }}'
+      shell: bash
+    - name: Commit and push changes
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "github-actions@position.exchange"
+        git add -A
+        git commit -m "Update contract deployment artifacts [ci/cd]"
+        git push
+      shell: bash
+
+
