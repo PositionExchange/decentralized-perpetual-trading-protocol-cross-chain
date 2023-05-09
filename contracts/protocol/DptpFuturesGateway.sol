@@ -1454,7 +1454,8 @@ contract DptpFuturesGateway is
             pscCrossChainGateway,
             uint8(Method.EXECUTE_STORE_POSITION),
             abi.encode(
-                _requestKey
+                _requestKey,
+                uint8(0)
             )
         );
     }
