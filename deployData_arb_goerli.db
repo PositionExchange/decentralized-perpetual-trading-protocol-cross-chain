@@ -28,6 +28,7 @@
 {"address":"yes","key":"0xDeb9d86f18805BD391329B0E7aCCaFd4c332631C:verified","_id":"OfbZm3cG23OQzKbM"}
 {"address":"yes","key":"0x5C0e5Fb9770228a68BecFa5bf98228991569A9D5:verified","_id":"PG08dH9S8qhHTA8D"}
 {"address":"yes","key":"0xD95aaF005baE04077e035561B69E8F13842812Db:verified","_id":"PPcC5FVQH8bnjc39"}
+{"address":"yes","key":"0x7063Ea4f22b0CebC4957C04FF93d4167C04F175d:verified","_id":"PXguC0MukveKhGnj"}
 {"address":"yes","key":"0x54A5C20872E502e19D5d580853df3114533237b4:verified","_id":"PYIJNf8q1mNseWWf"}
 {"address":"0xEe2EC0bf1F1D787852651c674540648E52E845A0","key":"BonusPosiDistributor","_id":"PmOi2OsA9OtWSwXe"}
 {"address":"yes","key":"0xF3fEA138c07C61781EF1bffd1B88b3fa5C1470Ff:verified","_id":"QRhqXXSFTLGQ4RfC"}
@@ -98,7 +99,8 @@
 {"address":"yes","key":"0x2776395a74aaCbDC5710B69F3897CC54d1CF39B2:verified","_id":"zO5KmgZ90mzuv1Jk"}
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
-<<<<<<< HEAD
+{"address":"yes","key":"0x7063Ea4f22b0CebC4957C04FF93d4167C04F175d:verified","_id":"PXguC0MukveKhGnj"}
+{"address":"yes","key":"0x261d610A48E8A5164a31D272981B0F446bADa19C:verified","_id":"HOBx3Zkko03nAto8"}
 {"address":"yes","key":"0x54A5C20872E502e19D5d580853df3114533237b4:verified","_id":"PYIJNf8q1mNseWWf"}
 {"address":"yes","key":"0x871D5eec7388873bd5ADDb7D8Bc8073cf5EC4a04:verified","_id":"7KCEmcZtbElZkB9j"}
 {"address":"yes","key":"0x2CBDD1E334e94f221c0764F4E3133c5aBC3418D5:verified","_id":"sO0n07bq8Cb1qLRx"}
@@ -106,5 +108,3 @@
 {"address":"yes","key":"0x656CecBbB04aB782dD6Aa95Fcbfa1d78258cF6b9:verified","_id":"of48fqDI9zcUTwqd"}
 {"address":"yes","key":"0xFC87D5f66A60D5e5e310b9AB0373C905DDAd4F47:verified","_id":"SkYx5QE0X4tgElwD"}
 {"address":"yes","key":"0x7063Ea4f22b0CebC4957C04FF93d4167C04F175d:verified","_id":"PXguC0MukveKhGnj"}
-=======
->>>>>>> 6579ab1 (feat: update manager address and split exec increase position)
