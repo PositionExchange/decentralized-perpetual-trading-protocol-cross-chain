@@ -59,10 +59,27 @@ describe("ReferralStorage", function() {
         to.be.revertedWith("ReferralStorage: code already exists")
   })
 
-  it("setTraderReferralCode", async () => {
+  it.only("setTraderReferralCode", async () => {
+      const nonUserCode = ethers.utils.formatBytes32String('123_ABC')
+      const userCode = ethers.utils.formatBytes32String('A1B2C3')
+      await referralStorage.connect(user).registerCode(userCode);
+      const refCode = ethers.utils.formatBytes32String('ABC_123')
+      await referralStorage.connect(user1).registerCode(refCode);
+
       expect(await referralStorage.traderReferralCodes(user.address)).eq(HashZero)
-      const code = ethers.utils.formatBytes32String('123_ABC')
-      await referralStorage.connect(user).setTraderReferralCode(code)
-      expect(await referralStorage.traderReferralCodes(user.address)).eq(code)
+      expect(referralStorage.connect(user).setTraderReferralCode(nonUserCode)).
+        to.be.revertedWith("ReferralStorage: referrer not exists")
+
+      expect(referralStorage.connect(user).setTraderReferralCode(userCode)).
+        to.be.revertedWith("ReferralStorage: self referred")
+
+      await referralStorage.setAdmin(admin.address, true)
+      await referralStorage.connect(admin).setReferrerTier(user.address, 2)
+      expect(referralStorage.connect(user).setTraderReferralCode(userCode)).
+        to.be.revertedWith("ReferralStorage: must less than referrer tier")
+      await referralStorage.connect(admin).setReferrerTier(user.address, 1)
+
+      await referralStorage.connect(user).setTraderReferralCode(refCode)
+      expect(await referralStorage.traderReferralCodes(user.address)).eq(refCode)
   })
 })

@@ -102,6 +102,13 @@ contract ReferralStorage is
 
     function setTraderReferralCode(bytes32 _code) external {
         require(traderReferralCodes[msg.sender] == bytes32(0), "ReferralStorage: trader referral code already set");
+        address referrer = codes[_code];
+        require(referrer != address(0), "ReferralStorage: referrer not exists");
+        require(referrer != msg.sender, "ReferralStorage: self referred");
+        require(
+            referrerTiers[msg.sender] <= referrerTiers[referrer],
+            "ReferralStorage: must less than referrer tier"
+        );
         traderReferralCodes[msg.sender] = _code;
         emit SetTraderReferralCode(msg.sender, _code);
     }
