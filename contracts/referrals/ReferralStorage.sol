@@ -109,6 +109,10 @@ contract ReferralStorage is
             referrerTiers[msg.sender] <= referrerTiers[referrer],
             "ReferralStorage: must less than referrer tier"
         );
+        require(
+            traderReferralCodes[referrer] != traderCodes[msg.sender],
+            "ReferralStorage: cannot refer user referrer"
+        );
         traderReferralCodes[msg.sender] = _code;
         emit SetTraderReferralCode(msg.sender, _code);
     }

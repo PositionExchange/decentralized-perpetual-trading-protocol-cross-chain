@@ -59,7 +59,7 @@ describe("ReferralStorage", function() {
         to.be.revertedWith("ReferralStorage: code already exists")
   })
 
-  it.only("setTraderReferralCode", async () => {
+  it("setTraderReferralCode", async () => {
       const nonUserCode = ethers.utils.formatBytes32String('123_ABC')
       const userCode = ethers.utils.formatBytes32String('A1B2C3')
       await referralStorage.connect(user).registerCode(userCode);
@@ -81,5 +81,8 @@ describe("ReferralStorage", function() {
 
       await referralStorage.connect(user).setTraderReferralCode(refCode)
       expect(await referralStorage.traderReferralCodes(user.address)).eq(refCode)
+
+      expect(referralStorage.connect(user1).setTraderReferralCode(userCode)).
+      to.be.revertedWith("ReferralStorage: cannot refer user referrer")
   })
 })
