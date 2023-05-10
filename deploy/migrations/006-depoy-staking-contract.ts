@@ -175,12 +175,13 @@ const migrations: MigrationDefinition = {
         },
 
         'deploy-reward-reader': async ()=>{
-
-
           const reward_reader = await deployContract("RewardReader", []);
-
-
+        },
+        'deploy-reader': async ()=>{
+          const reward_reader = await deployContract("Reader", []);
         }
+
+
       }
     }
 }
