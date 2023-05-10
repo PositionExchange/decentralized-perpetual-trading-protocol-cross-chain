@@ -1057,6 +1057,7 @@ contract DptpFuturesGateway is
                     uint8(Method.EXECUTE_STORE_POSITION),
                     abi.encode(
                         _key,
+                        // Singal 1 is to clear
                         1
                     )
                 );
