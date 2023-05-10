@@ -1081,10 +1081,6 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _feeUsd
     ) internal {
-        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
-            revert("test");
-        }
-
         //        if (!_isLong && _sizeDelta > 0) {
         //            uint256 markPrice = _isLong
         //                ? IVault(vault).getMaxPrice(_indexToken)
@@ -1477,7 +1473,10 @@ contract DptpFuturesGateway is
             pcsId,
             pscCrossChainGateway,
             uint8(Method.EXECUTE_STORE_POSITION),
-            abi.encode(_requestKey)
+            abi.encode(
+                _requestKey,
+                uint8(0)
+            )
         );
     }
 
