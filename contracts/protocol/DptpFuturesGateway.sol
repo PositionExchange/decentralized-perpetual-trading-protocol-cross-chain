@@ -1049,6 +1049,19 @@ contract DptpFuturesGateway is
         _validateCaller(msg.sender);
 
         if (_method == Method.OPEN_LIMIT || _method == Method.OPEN_MARKET) {
+            if(_method == Method.OPEN_MARKET) {
+                // Fire clear pending update position request in process chain
+                _crossBlockchainCall(
+                    pcsId,
+                    pscCrossChainGateway,
+                    uint8(Method.EXECUTE_STORE_POSITION),
+                    abi.encode(
+                        _key,
+                        // Singal 1 is to clear
+                        1
+                    )
+                );
+            }
             IncreasePositionRequest memory request = increasePositionRequests[
                 _key
             ];
