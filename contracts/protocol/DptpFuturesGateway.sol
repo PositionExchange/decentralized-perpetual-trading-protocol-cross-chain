@@ -473,6 +473,24 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaInToken,
         bool _isLong
     ) public nonReentrant {
+        _executeIncreasePosition(_key, _entryPrice, _sizeDeltaInToken, _isLong);
+    }
+
+    function executeIncreaseLimitOrder(
+        bytes32 _key,
+        uint256 _entryPrice,
+        uint256 _sizeDeltaInToken,
+        bool _isLong
+    ) public nonReentrant {
+        _executeIncreasePosition(_key, _entryPrice, _sizeDeltaInToken, _isLong);
+    }
+
+    function _executeIncreasePosition(
+        bytes32 _key,
+        uint256 _entryPrice,
+        uint256 _sizeDeltaInToken,
+        bool _isLong
+    ) internal {
         _validateCaller(msg.sender);
 
         IncreasePositionRequest memory request = increasePositionRequests[_key];
@@ -696,10 +714,9 @@ contract DptpFuturesGateway is
             swapFeeUsd = _tokenToUsdMin(collateralToken, swapFee);
         }
 
-        uint256 amountInUsd = _tokenToUsdMin(
-            paidToken,
-            _amountInToken
-        ).sub(swapFeeUsd);
+        uint256 amountInUsd = _tokenToUsdMin(paidToken, _amountInToken).sub(
+            swapFeeUsd
+        );
 
         _crossBlockchainCall(
             pcsId,
@@ -777,10 +794,7 @@ contract DptpFuturesGateway is
         );
         (, bytes32 requestKey) = _storeAddCollateralRequest(request);
 
-        uint256 amountInUsd = _tokenToUsdMin(
-            collateralToken,
-            _amountInToken
-        );
+        uint256 amountInUsd = _tokenToUsdMin(collateralToken, _amountInToken);
 
         _crossBlockchainCall(
             pcsId,
@@ -1067,6 +1081,10 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _feeUsd
     ) internal {
+        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
+            revert("test");
+        }
+
         //        if (!_isLong && _sizeDelta > 0) {
         //            uint256 markPrice = _isLong
         //                ? IVault(vault).getMaxPrice(_indexToken)
@@ -1459,9 +1477,7 @@ contract DptpFuturesGateway is
             pcsId,
             pscCrossChainGateway,
             uint8(Method.EXECUTE_STORE_POSITION),
-            abi.encode(
-                _requestKey
-            )
+            abi.encode(_requestKey)
         );
     }
 

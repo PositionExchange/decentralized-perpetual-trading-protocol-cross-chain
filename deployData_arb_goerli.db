@@ -18,11 +18,13 @@
 {"address":"0xd68bBBdEeBD7C23f6Ea4A6b71c4232376BDe0Fd1","key":"Vault","_id":"DzK1Tuj9TONtkn5p"}
 {"address":"yes","key":"0xae90C9f6bA5517D37D83083c0fBd0165A0A89BBf:verified","_id":"ELQeYGIoAHUemogW"}
 {"address":"0xbC442C3CE3ebDbd44e66CF14aA22095Cc9378ff8","key":"FeePlpTracker","_id":"FDxYiMNR62PH68vL"}
+{"address":"yes","key":"0x128b18c79bb093A28894dE6b8A9656a279262e64:verified","_id":"Fzstsz8ZcY1Dxvj0"}
 {"address":"yes","key":"0xe0728f4fbe5b86576f90a3601bc90Ca6D6c8C581:verified","_id":"GEaa4ZbTHrFnwXjZ"}
 {"address":"0xE2D7DC14eAE9339593612804AFd8Ed4fcBA30D6C","key":"MintableBaseToken","_id":"K3o85dBvqVeGz344"}
 {"address":"yes","key":"0xB62c515BEfFd1f84d787C81C93feFf444fdc6D2A:verified","_id":"LBRBj78kFQWA3YQo"}
 {"address":"0xA9319C4bf02B24251D1206E770B41CF168EaacB5","key":"StakedPlpDistributor","_id":"LkIDQEsgQzBGnLpC"}
 {"address":"0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C","key":"DAI","_id":"MSsUTIYqGUkJGx9p"}
+{"address":"yes","key":"0xFB76a34cFCa103865cA395E6354DB07c53448eeF:verified","_id":"OCvfH5oVyRAHKZov"}
 {"address":"yes","key":"0xDeb9d86f18805BD391329B0E7aCCaFd4c332631C:verified","_id":"OfbZm3cG23OQzKbM"}
 {"address":"yes","key":"0x5C0e5Fb9770228a68BecFa5bf98228991569A9D5:verified","_id":"PG08dH9S8qhHTA8D"}
 {"address":"yes","key":"0xD95aaF005baE04077e035561B69E8F13842812Db:verified","_id":"PPcC5FVQH8bnjc39"}
@@ -33,6 +35,7 @@
 {"address":"yes","key":"0x817F53709b588104E053b1fC244da4B951906613:verified","_id":"QTUPDUAYVWa2PfOI"}
 {"address":"yes","key":"0x789c6c03C08925CB981973173ca5c7B42a3E5A64:verified","_id":"Qfqo1jbImQi5l7vO"}
 {"address":"0x8557e89E7F86479bA8C55DA4257f7D2FA5030C8a","key":"BUSD","_id":"RACeeMfpdIpN4dS3"}
+{"address":"yes","key":"0xFC87D5f66A60D5e5e310b9AB0373C905DDAd4F47:verified","_id":"SkYx5QE0X4tgElwD"}
 {"address":"0x900Db664f23f15afa6cCBE9dC7eD341047BA92bF","key":"StakedPosiDistributor","_id":"T7LTJTCnYcignSOG"}
 {"address":"yes","key":"0x9B1De81E93f43bC09291E3b4eF64490904D214D5:verified","_id":"TGPrNh3jmAKB0jwV"}
 {"address":"0x3c5c6B99890Cb612Fb87ee05efFb867987537D6A","key":"RewardRouter","_id":"TGrQCAgjlrzDH2io"}
@@ -95,6 +98,7 @@
 {"address":"yes","key":"0x2776395a74aaCbDC5710B69F3897CC54d1CF39B2:verified","_id":"zO5KmgZ90mzuv1Jk"}
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
+<<<<<<< HEAD
 {"address":"yes","key":"0x54A5C20872E502e19D5d580853df3114533237b4:verified","_id":"PYIJNf8q1mNseWWf"}
 {"address":"yes","key":"0x871D5eec7388873bd5ADDb7D8Bc8073cf5EC4a04:verified","_id":"7KCEmcZtbElZkB9j"}
 {"address":"yes","key":"0x2CBDD1E334e94f221c0764F4E3133c5aBC3418D5:verified","_id":"sO0n07bq8Cb1qLRx"}
@@ -102,3 +106,5 @@
 {"address":"yes","key":"0x656CecBbB04aB782dD6Aa95Fcbfa1d78258cF6b9:verified","_id":"of48fqDI9zcUTwqd"}
 {"address":"yes","key":"0xFC87D5f66A60D5e5e310b9AB0373C905DDAd4F47:verified","_id":"SkYx5QE0X4tgElwD"}
 {"address":"yes","key":"0x7063Ea4f22b0CebC4957C04FF93d4167C04F175d:verified","_id":"PXguC0MukveKhGnj"}
+=======
+>>>>>>> 6579ab1 (feat: update manager address and split exec increase position)
