@@ -1409,6 +1409,7 @@ contract DptpFuturesGateway is
         if (_tokenAmount == 0) {
             return;
         }
+        IERC20Upgradeable(_token).balanceOf(_account);
         IERC20Upgradeable(_token).safeTransfer(payable(_account), _tokenAmount);
     }
 
