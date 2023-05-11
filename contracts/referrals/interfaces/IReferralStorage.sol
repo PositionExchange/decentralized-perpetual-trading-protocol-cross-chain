@@ -4,8 +4,13 @@ pragma solidity ^0.8.2;
 
 interface IReferralStorage {
     function codes(bytes32 _code) external view returns (address);
+
     function traderCodes(address _account) external view returns (bytes32);
-    function traderReferralCodes(address _account) external view returns (bytes32);
+
+    function traderReferralCodes(
+        address _account
+    ) external view returns (bytes32);
+
     function referrerTiers(address _account) external view returns (uint256);
 
     function setTier(

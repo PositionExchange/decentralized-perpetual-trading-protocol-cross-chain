@@ -182,6 +182,11 @@ const migrations: MigrationDefinition = {
         },
         'deploy-vault-reader': async ()=>{
           const reward_reader = await deployContract("VaultReader", []);
+        },
+
+        'deploy-vault-utils-splits': async ()=>{
+          if (ctx.stage !=="test")return;
+          const vault_utils_pplit = await deployContract("VaultUtilsSplit", []);
         }
 
 
