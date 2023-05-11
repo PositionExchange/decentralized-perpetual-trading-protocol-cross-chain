@@ -18,13 +18,13 @@
 {"address":"0x74c0348CC6027b0c60C27c2c6b8Cf32C5510b569","key":"LINK","_id":"CM8N0WUi8hHHU7XN"}
 {"address":"0x2Bc7C591869bE9aE52Fa0d178dFE83CdC078c71b","key":"GatewayUtils","_id":"Cki8ekDJTQMockLy"}
 {"address":"0x72286b7395456181Fd0f1616D9B7bF9212457aaB","key":"FeePosiTracker","_id":"Co3HTUTWFhkZY6Ww"}
-{"address":"0xd68bBBdEeBD7C23f6Ea4A6b71c4232376BDe0Fd1","key":"Vault","_id":"DzK1Tuj9TONtkn5p"}
 {"address":"yes","key":"0xae90C9f6bA5517D37D83083c0fBd0165A0A89BBf:verified","_id":"ELQeYGIoAHUemogW"}
 {"address":"0xbC442C3CE3ebDbd44e66CF14aA22095Cc9378ff8","key":"FeePlpTracker","_id":"FDxYiMNR62PH68vL"}
 {"address":"yes","key":"0x128b18c79bb093A28894dE6b8A9656a279262e64:verified","_id":"Fzstsz8ZcY1Dxvj0"}
 {"address":"yes","key":"0xe0728f4fbe5b86576f90a3601bc90Ca6D6c8C581:verified","_id":"GEaa4ZbTHrFnwXjZ"}
 {"address":"yes","key":"0x261d610A48E8A5164a31D272981B0F446bADa19C:verified","_id":"HOBx3Zkko03nAto8"}
 {"address":"0xE2D7DC14eAE9339593612804AFd8Ed4fcBA30D6C","key":"MintableBaseToken","_id":"K3o85dBvqVeGz344"}
+{"address":"yes","key":"0xb69079161968142b5eCDAa4E34849b6CBAcB01ea:verified","_id":"Kc0gpDIN4odMQqoM"}
 {"address":"yes","key":"0xB62c515BEfFd1f84d787C81C93feFf444fdc6D2A:verified","_id":"LBRBj78kFQWA3YQo"}
 {"address":"0xA9319C4bf02B24251D1206E770B41CF168EaacB5","key":"StakedPlpDistributor","_id":"LkIDQEsgQzBGnLpC"}
 {"address":"0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C","key":"DAI","_id":"MSsUTIYqGUkJGx9p"}
@@ -66,6 +66,8 @@
 {"address":"0xd6bd9a3025e7294a9899a6d5fbf999b75b71e699","key":"ChainLinkPriceFeed","_id":"fWwNNhvBTDU1LzBA"}
 {"address":"yes","key":"0xe6bAC7436C36341e47c4F591B9Ce3c934B643da2:verified","_id":"fue3KXPIEdpFF6E1"}
 {"address":"yes","key":"0xB681620857B5988C931DC34cC3f44FdC994B12Ef:verified","_id":"h8rxmm0pjARswo4l"}
+{"address":"0x1D25C415ecAd9a247e0c70717B4787DEDC6dC566","key":"VaultReader","_id":"hZQWe7zTuBScWUOG"}
+{"address":"0x9557EE61535B7907cb56F20351A149e9548ceF60","key":"Vault","_id":"i6OIofltZdFXADUY"}
 {"address":"0x0fD182e7cC0557868486155C60Cdfa2e8D033913","key":"BonusPosiTracker","_id":"j7tiHjTw8Vo7KpNu"}
 {"address":"yes","key":"0x19Ca46E39a864A4063aF817bb406EDfD8a6CD227:verified","_id":"jFb51nwHbI2nhO6C"}
 {"address":"yes","key":"0xaD8fE53f62B3222a668D336ba784fF57bfdf4624:verified","_id":"jrkUiGfitOQXvOFh"}
