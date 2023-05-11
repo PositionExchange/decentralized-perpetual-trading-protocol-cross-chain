@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
@@ -1020,25 +1021,25 @@ contract DptpFuturesGateway is
         address _account,
         uint256 _amountOutUsd
     ) external nonReentrant {
-        _validateCaller(msg.sender);
-
-        // TODO: Need to validate collateral token from previous position
-        address collateralToken = _path[0];
-        address receiveToken = _path[_path.length - 1];
-
-        uint256 amountOutToken = _usdToTokenMin(
-            collateralToken,
-            _amountOutUsd.mul(PRICE_DECIMALS)
-        );
-
-        //TODO: Decrease pool amount
-
-        if (_path.length > 1) {
-            _transferOut(collateralToken, amountOutToken, vault);
-            amountOutToken = _swap(_path, address(this), true);
-        }
-
-        _transferOut(receiveToken, amountOutToken, _account);
+//        _validateCaller(msg.sender);
+//
+//        // TODO: Need to validate collateral token from previous position
+//        address collateralToken = _path[0];
+//        address receiveToken = _path[_path.length - 1];
+//
+//        uint256 amountOutToken = _usdToTokenMin(
+//            collateralToken,
+//            _amountOutUsd.mul(PRICE_DECIMALS)
+//        );
+//
+//        //TODO: Decrease pool amount
+//
+//        if (_path.length > 1) {
+//            _transferOut(collateralToken, amountOutToken, vault);
+//            amountOutToken = _swap(_path, address(this), true);
+//        }
+//
+//        _transferOut(receiveToken, amountOutToken, _account);
     }
 
     function refund(bytes32 _key, Method _method)
@@ -1094,10 +1095,6 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _feeUsd
     ) internal {
-
-        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
-            revert("test");
-        }
         //        if (!_isLong && _sizeDelta > 0) {
         //            uint256 markPrice = _isLong
         //                ? IVault(vault).getMaxPrice(_indexToken)
@@ -1409,7 +1406,6 @@ contract DptpFuturesGateway is
         if (_tokenAmount == 0) {
             return;
         }
-        IERC20Upgradeable(_token).balanceOf(_account);
         IERC20Upgradeable(_token).safeTransfer(payable(_account), _tokenAmount);
     }
 

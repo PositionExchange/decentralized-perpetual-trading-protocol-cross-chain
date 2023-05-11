@@ -385,7 +385,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _collateralToken,
         address _indexToken,
         bool _isLong,
-        uint256 _amountInToken
+        uint256 _amountInToken // TODO: Remove later
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
@@ -394,7 +394,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _indexToken,
             _isLong
         );
-        _increasePoolAmount(_collateralToken, _amountInToken);
+        uint256 amountInToken = _transferIn(_collateralToken);
+        _increasePoolAmount(_collateralToken, amountInToken);
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
     }
 
