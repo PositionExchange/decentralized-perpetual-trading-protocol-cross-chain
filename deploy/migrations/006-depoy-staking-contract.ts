@@ -179,6 +179,9 @@ const migrations: MigrationDefinition = {
         },
         'deploy-reader': async ()=>{
           const reward_reader = await deployContract("Reader", []);
+        },
+        'deploy-vault-reader': async ()=>{
+          const reward_reader = await deployContract("VaultReader", []);
         }
 
 

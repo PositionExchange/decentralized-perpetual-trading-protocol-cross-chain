@@ -42,6 +42,7 @@
     "@positionex/position-helper": "^1.0.3",
     "@remix-project/remixd": "^0.6.9",
     "@symblox/hardhat-abi-gen": "^0.2.0",
+    "@tenderly/hardhat-tenderly": "^1.7.3",
     "@typechain/ethers-v5": "^10.2.0",
     "@typechain/hardhat": "^6.1.5",
     "@types/chai": "^4.3.4",
