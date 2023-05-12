@@ -29,8 +29,8 @@ contract DptpFuturesGateway is
     using SafeCastUpgradeable for uint256;
     using AddressUpgradeable for address;
 
-    uint256 constant PRICE_DECIMALS = 10 ** 12;
-    uint256 constant WEI_DECIMALS = 10 ** 18;
+    uint256 constant PRICE_DECIMALS = 10**12;
+    uint256 constant WEI_DECIMALS = 10**18;
 
     enum SetTPSLOption {
         BOTH,
@@ -646,10 +646,11 @@ contract DptpFuturesGateway is
         );
     }
 
-    function executeCancelIncreaseOrder(
-        bytes32 _key,
-        bool _isReduce
-    ) external payable nonReentrant {
+    function executeCancelIncreaseOrder(bytes32 _key, bool _isReduce)
+        external
+        payable
+        nonReentrant
+    {
         _validateCaller(msg.sender);
 
         if (_isReduce) {
@@ -816,10 +817,10 @@ contract DptpFuturesGateway is
         );
     }
 
-    function executeRemoveCollateral(
-        bytes32 _key,
-        uint256 _amountOutUsd
-    ) external nonReentrant {
+    function executeRemoveCollateral(bytes32 _key, uint256 _amountOutUsd)
+        external
+        nonReentrant
+    {
         _validateCaller(msg.sender);
 
         AddCollateralRequest memory request = addCollateralRequests[_key];
@@ -935,10 +936,10 @@ contract DptpFuturesGateway is
         );
     }
 
-    function unsetTPOrSL(
-        address _indexToken,
-        bool _isHigherPrice
-    ) external nonReentrant {
+    function unsetTPOrSL(address _indexToken, bool _isHigherPrice)
+        external
+        nonReentrant
+    {
         if (_isHigherPrice) {
             _deleteDecreasePositionRequests(
                 TPSLRequestMap[
@@ -1003,16 +1004,16 @@ contract DptpFuturesGateway is
         _deleteTPSLRequestMap(triggeredTPSLKey);
     }
 
-    function createClaimFundRequest(
-        address[] memory _path,
-        address _indexToken
-    ) external nonReentrant {
-//        _crossBlockchainCall(
-//            pcsId,
-//            pscCrossChainGateway,
-//            uint8(Method.CLAIM_FUND),
-//            abi.encode(_path, coreManagers[_indexToken], msg.sender)
-//        );
+    function createClaimFundRequest(address[] memory _path, address _indexToken)
+        external
+        nonReentrant
+    {
+        //        _crossBlockchainCall(
+        //            pcsId,
+        //            pscCrossChainGateway,
+        //            uint8(Method.CLAIM_FUND),
+        //            abi.encode(_path, coreManagers[_indexToken], msg.sender)
+        //        );
     }
 
     function executeClaimFund(
@@ -1020,31 +1021,32 @@ contract DptpFuturesGateway is
         address _account,
         uint256 _amountOutUsd
     ) external nonReentrant {
-//        _validateCaller(msg.sender);
-//
-//        // TODO: Need to validate collateral token from previous position
-//        address collateralToken = _path[0];
-//        address receiveToken = _path[_path.length - 1];
-//
-//        uint256 amountOutToken = _usdToTokenMin(
-//            collateralToken,
-//            _amountOutUsd.mul(PRICE_DECIMALS)
-//        );
-//
-//        //TODO: Decrease pool amount
-//
-//        if (_path.length > 1) {
-//            _transferOut(collateralToken, amountOutToken, vault);
-//            amountOutToken = _swap(_path, address(this), true);
-//        }
-//
-//        _transferOut(receiveToken, amountOutToken, _account);
+        //        _validateCaller(msg.sender);
+        //
+        //        // TODO: Need to validate collateral token from previous position
+        //        address collateralToken = _path[0];
+        //        address receiveToken = _path[_path.length - 1];
+        //
+        //        uint256 amountOutToken = _usdToTokenMin(
+        //            collateralToken,
+        //            _amountOutUsd.mul(PRICE_DECIMALS)
+        //        );
+        //
+        //        //TODO: Decrease pool amount
+        //
+        //        if (_path.length > 1) {
+        //            _transferOut(collateralToken, amountOutToken, vault);
+        //            amountOutToken = _swap(_path, address(this), true);
+        //        }
+        //
+        //        _transferOut(receiveToken, amountOutToken, _account);
     }
 
-    function refund(
-        bytes32 _key,
-        Method _method
-    ) external payable nonReentrant {
+    function refund(bytes32 _key, Method _method)
+        external
+        payable
+        nonReentrant
+    {
         _validateCaller(msg.sender);
 
         if (_method == Method.OPEN_LIMIT || _method == Method.OPEN_MARKET) {
@@ -1156,9 +1158,10 @@ contract DptpFuturesGateway is
             );
     }
 
-    function _createIncreasePosition(
-        CreateIncreasePositionParam memory param
-    ) internal returns (bytes32) {
+    function _createIncreasePosition(CreateIncreasePositionParam memory param)
+        internal
+        returns (bytes32)
+    {
         IncreasePositionRequest memory request = IncreasePositionRequest(
             param.account,
             param.path,
@@ -1363,9 +1366,10 @@ contract DptpFuturesGateway is
         return (index, key);
     }
 
-    function _storeAddCollateralRequest(
-        AddCollateralRequest memory _request
-    ) internal returns (uint256, bytes32) {
+    function _storeAddCollateralRequest(AddCollateralRequest memory _request)
+        internal
+        returns (uint256, bytes32)
+    {
         address account = _request.account;
         uint256 index = addCollateralIndex[account].add(1);
         addCollateralIndex[account] = index;
@@ -1405,19 +1409,19 @@ contract DptpFuturesGateway is
         IERC20Upgradeable(_token).safeTransfer(payable(_account), _tokenAmount);
     }
 
-    function _transferOutETH(
-        uint256 _amountOut,
-        address payable _account
-    ) internal {
+    function _transferOutETH(uint256 _amountOut, address payable _account)
+        internal
+    {
         if (msg.value != 0) {
             IWETH(weth).transfer(_account, _amountOut);
         }
     }
 
-    function _adjustDecimalToToken(
-        address _token,
-        uint256 _tokenAmount
-    ) internal view returns (uint256) {
+    function _adjustDecimalToToken(address _token, uint256 _tokenAmount)
+        internal
+        view
+        returns (uint256)
+    {
         return IVault(vault).adjustDecimalToToken(_token, _tokenAmount);
     }
 
@@ -1461,17 +1465,19 @@ contract DptpFuturesGateway is
         return true;
     }
 
-    function _usdToTokenMin(
-        address _token,
-        uint256 _usdAmount
-    ) internal view returns (uint256) {
+    function _usdToTokenMin(address _token, uint256 _usdAmount)
+        internal
+        view
+        returns (uint256)
+    {
         return IVault(vault).usdToTokenMin(_token, _usdAmount);
     }
 
-    function _tokenToUsdMin(
-        address _token,
-        uint256 _tokenAmount
-    ) internal view returns (uint256) {
+    function _tokenToUsdMin(address _token, uint256 _tokenAmount)
+        internal
+        view
+        returns (uint256)
+    {
         return IVault(vault).tokenToUsdMin(_token, _tokenAmount);
     }
 
@@ -1519,10 +1525,11 @@ contract DptpFuturesGateway is
         TPSLRequestMap[key] = value;
     }
 
-    function getRequestKey(
-        address _account,
-        uint256 _index
-    ) public pure returns (bytes32) {
+    function getRequestKey(address _account, uint256 _index)
+        public
+        pure
+        returns (bytes32)
+    {
         return keccak256(abi.encodePacked(_account, _index));
     }
 
@@ -1571,9 +1578,10 @@ contract DptpFuturesGateway is
         pcsId = _posiChainId;
     }
 
-    function setPosiChainCrosschainGatewayContract(
-        address _address
-    ) external onlyOwner {
+    function setPosiChainCrosschainGatewayContract(address _address)
+        external
+        onlyOwner
+    {
         pscCrossChainGateway = _address;
     }
 
@@ -1581,12 +1589,26 @@ contract DptpFuturesGateway is
         positionKeepers[_address] = true;
     }
 
-    function setCoreManager(
-        address _token,
-        address _manager
-    ) external onlyOwner {
+    function setCoreManager(address _token, address _manager)
+        external
+        onlyOwner
+    {
         coreManagers[_token] = _manager;
         indexTokens[_manager] = _token;
+    }
+
+    function setMaxGlobalShortSize(address _token, uint256 _amount)
+        external
+        onlyOwner
+    {
+        maxGlobalShortSizes[_token] = _amount;
+    }
+
+    function setMaxGlobalLongSize(address _token, uint256 _amount)
+        external
+        onlyOwner
+    {
+        maxGlobalLongSizes[_token] = _amount;
     }
 
     /**

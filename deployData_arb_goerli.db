@@ -76,6 +76,7 @@
 {"address":"0xee09A2509e847f2974096064CfA0e05DFA57C602","key":"StakedPlpTracker","_id":"k13qfSuvrfDlDaV4"}
 {"address":"0xbf3d20e4b16C10A63144bCe84a23CC8B24CbAf2C","key":"PLP","_id":"lsefaJXd3XnlI2VW"}
 {"address":"0x6B9F5f7Ec5FfebdED65f2040c413BB3611F5236d","key":"StakedPosiTracker","_id":"mhE9cDFy0vUfe7ed"}
+{"address":"0xb5936DEB165c21Fd8FDf4dc3fb380Af5129227b5","key":"VaultUtilsSplit","_id":"mz1LdPBP4IHhDoHe"}
 {"address":"yes","key":"0x5A181DbF2D774718dcF7fc6Bef680f6741Bf9c80:verified","_id":"n5PdZPgcDO5kSYkl"}
 {"address":"yes","key":"0x695F2D50e937E31B354a9a16c12432E2B705d54b:verified","_id":"nEvaicmlCwvtD4HP"}
 {"address":"0x7Ee71735371F9be9F0E45c9D2CC766F445Ab4A00","key":"RewardReader","_id":"oZXimvrgLzXGTwTm"}
@@ -107,4 +108,4 @@
 {"address":"yes","key":"0x2776395a74aaCbDC5710B69F3897CC54d1CF39B2:verified","_id":"zO5KmgZ90mzuv1Jk"}
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
-{"address":"0xb5936DEB165c21Fd8FDf4dc3fb380Af5129227b5","key":"VaultUtilsSplit","_id":"mz1LdPBP4IHhDoHe"}
+{"address":"yes","key":"0xF3A3e4ba47A32c1F227c722D8BCb078C3b3C6f2c:verified","_id":"U7aCSVDWtgNV2xqc"}
