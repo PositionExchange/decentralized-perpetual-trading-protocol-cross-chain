@@ -635,10 +635,10 @@ contract DptpFuturesGateway is
             amountOutTokenAfterFees = _swap(_path, address(this), true);
         }
 
-//        if (request.withdrawETH) {
-//            _transferOutETH(amountOutTokenAfterFees, payable(_account));
-//            return;
-//        }
+        //        if (request.withdrawETH) {
+        //            _transferOutETH(amountOutTokenAfterFees, payable(_account));
+        //            return;
+        //        }
 
         _transferOut(
             _path[_path.length - 1],
@@ -887,24 +887,26 @@ contract DptpFuturesGateway is
     function createRemoveCollateralRequest(
         address[] memory _path,
         address _indexToken,
-        uint256 _amountInToken,
+        uint256 _amountOutUsd,
         bool _isLong
     ) external nonReentrant {
         address collateralToken = _path[0];
 
         _validateToken(collateralToken, _indexToken, _isLong);
 
-        _amountInToken = _adjustDecimalToToken(collateralToken, _amountInToken);
+        uint256 amountOutUsdFormatted = _amountOutUsd.mul(PRICE_DECIMALS);
+        uint256 amountOutToken = _usdToTokenMin(
+            collateralToken,
+            amountOutUsdFormatted
+        );
         AddCollateralRequest memory request = AddCollateralRequest(
             msg.sender,
             _path,
             _indexToken,
-            _amountInToken,
+            amountOutToken,
             _isLong
         );
         (, bytes32 requestKey) = _storeAddCollateralRequest(request);
-
-        uint256 amountInUsd = _tokenToUsdMin(collateralToken, _amountInToken);
 
         _crossBlockchainCall(
             pcsId,
@@ -913,7 +915,7 @@ contract DptpFuturesGateway is
             abi.encode(
                 requestKey,
                 coreManagers[_indexToken],
-                amountInUsd.div(PRICE_DECIMALS),
+                _amountOutUsd,
                 msg.sender
             )
         );
@@ -921,8 +923,8 @@ contract DptpFuturesGateway is
             requestKey,
             msg.sender,
             collateralToken,
-            _amountInToken,
-            amountInUsd
+            amountOutToken,
+            amountOutUsdFormatted
         );
     }
 
