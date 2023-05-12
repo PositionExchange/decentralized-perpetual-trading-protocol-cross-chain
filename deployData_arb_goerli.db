@@ -44,6 +44,7 @@
 {"address":"0x900Db664f23f15afa6cCBE9dC7eD341047BA92bF","key":"StakedPosiDistributor","_id":"T7LTJTCnYcignSOG"}
 {"address":"yes","key":"0x9B1De81E93f43bC09291E3b4eF64490904D214D5:verified","_id":"TGPrNh3jmAKB0jwV"}
 {"address":"0x3c5c6B99890Cb612Fb87ee05efFb867987537D6A","key":"RewardRouter","_id":"TGrQCAgjlrzDH2io"}
+{"address":"yes","key":"0xF3A3e4ba47A32c1F227c722D8BCb078C3b3C6f2c:verified","_id":"U7aCSVDWtgNV2xqc"}
 {"address":"0xA32585e3ecF1067F7E444a7ea3c0d6b5B21626F6","key":"LpManager","_id":"UBnhQm1s0SC30KPa"}
 {"address":"0xA8cc0c527a271c7D196f12c23a65DbFB58C033F5","key":"BTC","_id":"UeL3ptJVXKCWnoMU"}
 {"address":"0x915fAD9981813A6D2d59090e9E8C810104d66d39","key":"ReferralStorage","_id":"V9iGIYKGumtXScsy"}
@@ -108,4 +109,4 @@
 {"address":"yes","key":"0x2776395a74aaCbDC5710B69F3897CC54d1CF39B2:verified","_id":"zO5KmgZ90mzuv1Jk"}
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
-{"address":"yes","key":"0xF3A3e4ba47A32c1F227c722D8BCb078C3b3C6f2c:verified","_id":"U7aCSVDWtgNV2xqc"}
+{"address":"yes","key":"0xdC9E489c1cDf4bF3CdE71BaCe69F6f4a01064C39:verified","_id":"ZtxaSSlmyVRgAdP0"}
