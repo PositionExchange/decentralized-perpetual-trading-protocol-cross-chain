@@ -2,10 +2,11 @@ pragma solidity ^0.8.2;
 
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IVault.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract VaultUtils is IVaultUtils, Initializable {
+contract VaultUtils is IVaultUtils, Ownable, Initializable {
     using SafeMath for uint256;
 
     IVault public vault;
@@ -155,7 +156,7 @@ contract VaultUtils is IVaultUtils, Initializable {
         return _size.mul(borrowingRate).div(BORROWING_RATE_PRECISION);
     }
 
-    function setVault(address _vault) external {
+    function setVault(address _vault) onlyOwner external {
         vault = IVault(_vault);
     }
 

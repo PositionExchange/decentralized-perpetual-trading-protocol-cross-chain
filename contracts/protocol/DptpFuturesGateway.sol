@@ -1007,12 +1007,12 @@ contract DptpFuturesGateway is
         address[] memory _path,
         address _indexToken
     ) external nonReentrant {
-        _crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.CLAIM_FUND),
-            abi.encode(_path, coreManagers[_indexToken], msg.sender)
-        );
+//        _crossBlockchainCall(
+//            pcsId,
+//            pscCrossChainGateway,
+//            uint8(Method.CLAIM_FUND),
+//            abi.encode(_path, coreManagers[_indexToken], msg.sender)
+//        );
     }
 
     function executeClaimFund(

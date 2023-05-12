@@ -1,8 +1,7 @@
 import {MigrationContext, MigrationDefinition} from "../types";
-import {ContractWrapperFactory} from "../ContractWrapperFactory";
-import { LpManager, PLP, RewardRouter, USDP, VaultPriceFeed, VaultUtils } from "../../typeChain";
-import { Token } from "../shared/types";
-import { ethers } from "ethers";
+import {LpManager, PLP, RewardRouter, VaultUtilsSplit} from "../../typeChain";
+import {Token} from "../shared/types";
+import {ethers} from "ethers";
 
 //verify contracts/token/posi/POSI.sol:POSI
 //
@@ -185,11 +184,11 @@ const migrations: MigrationDefinition = {
         },
 
         'deploy-vault-utils-splits': async ()=>{
-          if (ctx.stage !=="test")return;
-          const vault_utils_pplit = await deployContract("VaultUtilsSplit", []);
+          const vault_utils_split = await deployContract("VaultUtilsSplit", []);
+          const vaultUtilsSplit = await ctx.factory.getDeployedContract<VaultUtilsSplit>('VaultUtilsSplit')
+          const vaultAddress = await ctx.db.findAddressByKey('Vault')
+          await sendTxn(vaultUtilsSplit.setVault(vaultAddress), "vaultUtilsSplit.setVault")
         }
-
-
       }
     }
 }
