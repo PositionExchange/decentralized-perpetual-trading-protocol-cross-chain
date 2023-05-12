@@ -1,12 +1,15 @@
-pragma solidity ^0.8.2;
+/**
+ * @author Musket
+ */
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.9;
 
-import "../interfaces/IVaultUtils.sol";
-import "../interfaces/IVault.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "../interfaces/IVaultUtils.sol";
+import "../interfaces/IVault.sol";
 
-contract VaultUtils is IVaultUtils, Ownable, Initializable {
+contract VaultUtilsSplit is IVaultUtils, Initializable {
     using SafeMath for uint256;
 
     IVault public vault;
@@ -45,19 +48,47 @@ contract VaultUtils is IVaultUtils, Ownable, Initializable {
             );
     }
 
+    function isStableSwap(
+        address _tokenIn,
+        address _tokenOut
+    ) public view returns (bool) {
+        bool isStableSwap = vault.isStableToken(_tokenIn) &&
+            vault.isStableToken(_tokenOut);
+        return isStableSwap;
+    }
+
+    function baseBps(bool isStableSwap) public view  returns (uint256) {
+        uint256 baseBps = isStableSwap
+            ? vault.stableSwapFeeBasisPoints()
+            : vault.swapFeeBasisPoints();
+        return baseBps;
+    }
+
+    function taxBps(bool isStableSwap) public view  returns (uint256) {
+        uint256 taxBps = isStableSwap
+            ? vault.stableTaxBasisPoints()
+            : vault.taxBasisPoints();
+        return taxBps;
+    }
+
     function getSwapFeeBasisPoints(
         address _tokenIn,
         address _tokenOut,
         uint256 _usdgAmount
     ) public view override returns (uint256) {
-        bool isStableSwap = vault.isStableToken(_tokenIn) &&
-            vault.isStableToken(_tokenOut);
-        uint256 baseBps = isStableSwap
-            ? vault.stableSwapFeeBasisPoints()
-            : vault.swapFeeBasisPoints();
-        uint256 taxBps = isStableSwap
-            ? vault.stableTaxBasisPoints()
-            : vault.taxBasisPoints();
+        bool isStableSwap = isStableSwap(_tokenIn, _tokenOut);
+        //        vault.isStableToken(_tokenIn) &&
+        //            vault.isStableToken(_tokenOut);
+
+        uint256 baseBps = baseBps(isStableSwap);
+        //        isStableSwap
+        //            ? vault.stableSwapFeeBasisPoints()
+        //            : vault.swapFeeBasisPoints();
+
+        uint256 taxBps = taxBps(isStableSwap);
+        //        isStableSwap
+        //            ? vault.stableTaxBasisPoints()
+        //            : vault.taxBasisPoints();
         uint256 feesBasisPoints0 = getFeeBasisPoints(
             _tokenIn,
             _usdgAmount,
@@ -77,6 +108,64 @@ contract VaultUtils is IVaultUtils, Ownable, Initializable {
             feesBasisPoints0 > feesBasisPoints1
                 ? feesBasisPoints0
                 : feesBasisPoints1;
+    }
+
+    function initAmountAndNextAmount(
+        address _token,
+        uint256 _usdgDelta,
+        bool _increment
+    ) public view returns (uint256 initialAmount, uint256 nextAmount) {
+        uint256 initialAmount = vault.usdpAmount(_token);
+        uint256 nextAmount = initialAmount.add(_usdgDelta);
+        if (!_increment) {
+            nextAmount = _usdgDelta > initialAmount
+                ? 0
+                : initialAmount.sub(_usdgDelta);
+        }
+
+        return (initialAmount, nextAmount);
+    }
+
+    function targetAmount(address _token) public view returns (uint256) {
+        return vault.getTargetUsdpAmount(_token);
+    }
+
+    function initialDiff(
+        uint256 initialAmount,
+        uint256 targetAmount
+    ) public view returns (uint256) {
+        uint256 initialDiff = initialAmount > targetAmount
+            ? initialAmount.sub(targetAmount)
+            : targetAmount.sub(initialAmount);
+        return initialDiff;
+    }
+
+    function nextDiff(
+        uint256 nextAmount,
+        uint256 targetAmount
+    ) public view returns (uint256) {
+        uint256 nextDiff = nextAmount > targetAmount
+            ? nextAmount.sub(targetAmount)
+            : targetAmount.sub(nextAmount);
+
+        return nextDiff;
+    }
+
+    function averageDiff(
+        uint256 initialDiff,
+        uint256 nextDiff
+    ) public view returns (uint256) {
+        uint256 averageDiff = initialDiff.add(nextDiff).div(2);
+        return averageDiff;
+    }
+
+    function taxBps(
+        uint256 _taxBasisPoints,
+        uint256 averageDiff,
+        uint256 targetAmount
+    ) public view returns (uint256) {
+        uint256 taxBps = _taxBasisPoints.mul(averageDiff).div(targetAmount);
+        return taxBps;
     }
 
     // cases to consider
@@ -99,27 +188,32 @@ contract VaultUtils is IVaultUtils, Ownable, Initializable {
             return _feeBasisPoints;
         }
 
-        uint256 initialAmount = vault.usdpAmount(_token);
-        uint256 nextAmount = initialAmount.add(_usdgDelta);
-        if (!_increment) {
-            nextAmount = _usdgDelta > initialAmount
-                ? 0
-                : initialAmount.sub(_usdgDelta);
-        }
+        (uint256 initialAmount, uint256 nextAmount) = initAmountAndNextAmount(
+            _token,
+            _usdgDelta,
+            _increment
+        );
 
-        uint256 targetAmount = vault.getTargetUsdpAmount(_token);
+        uint256 targetAmount = targetAmount(_token);
+
         if (targetAmount == 0) {
             return _feeBasisPoints;
         }
 
-        uint256 initialDiff = initialAmount > targetAmount
-            ? initialAmount.sub(targetAmount)
-            : targetAmount.sub(initialAmount);
-        uint256 nextDiff = nextAmount > targetAmount
-            ? nextAmount.sub(targetAmount)
-            : targetAmount.sub(nextAmount);
+        uint256 initialDiff = initialDiff(initialAmount, targetAmount);
+
+        //        uint256 initialDiff = initialAmount > targetAmount
+        //            ? initialAmount.sub(targetAmount)
+        //            : targetAmount.sub(initialAmount);
+
+        uint256 nextDiff = nextDiff(nextAmount, targetAmount);
+
+        //        uint256 nextDiff = nextAmount > targetAmount
+        //            ? nextAmount.sub(targetAmount)
+        //            : targetAmount.sub(nextAmount);
 
         // action improves relative asset balance
+
         if (nextDiff < initialDiff) {
             uint256 rebateBps = _taxBasisPoints.mul(initialDiff).div(
                 targetAmount
@@ -130,11 +224,11 @@ contract VaultUtils is IVaultUtils, Ownable, Initializable {
                     : _feeBasisPoints.sub(rebateBps);
         }
 
-        uint256 averageDiff = initialDiff.add(nextDiff).div(2);
+        uint256 averageDiff = averageDiff(initialDiff, nextDiff); // initialDiff.add(nextDiff).div(2);
         if (averageDiff > targetAmount) {
             averageDiff = targetAmount;
         }
-        uint256 taxBps = _taxBasisPoints.mul(averageDiff).div(targetAmount);
+        uint256 taxBps = taxBps(_taxBasisPoints, averageDiff, targetAmount); //_taxBasisPoints.mul(averageDiff).div(targetAmount);
         return _feeBasisPoints.add(taxBps);
     }
 
@@ -156,7 +250,7 @@ contract VaultUtils is IVaultUtils, Ownable, Initializable {
         return _size.mul(borrowingRate).div(BORROWING_RATE_PRECISION);
     }
 
-    function setVault(address _vault) onlyOwner external {
+    function setVault(address _vault) external {
         vault = IVault(_vault);
     }
 

@@ -29,8 +29,8 @@ contract GatewayUtils is
     using SafeCastUpgradeable for uint256;
     using AddressUpgradeable for address;
 
-    uint256 constant PRICE_DECIMALS = 10**12;
-    uint256 constant WEI_DECIMALS = 10**18;
+    uint256 constant PRICE_DECIMALS = 10 ** 12;
+    uint256 constant WEI_DECIMALS = 10 ** 18;
 
     struct ManagerData {
         // fee = quoteAssetAmount / tollRatio (means if fee = 0.001% then tollRatio = 100000)
@@ -120,12 +120,10 @@ contract GatewayUtils is
     }
 
     // Swap fee is in token
-    function getSwapFee(address[] memory _path, uint256 _amountInToken)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getSwapFee(
+        address[] memory _path,
+        uint256 _amountInToken
+    ) external view override returns (uint256) {
         return _getSwapFee(_path, _amountInToken);
     }
 
@@ -268,11 +266,10 @@ contract GatewayUtils is
         vault = _vault;
     }
 
-    function _getSwapFee(address[] memory _path, uint256 _amountInToken)
-        internal
-        view
-        returns (uint256)
-    {
+    function _getSwapFee(
+        address[] memory _path,
+        uint256 _amountInToken
+    ) internal view returns (uint256) {
         if (_path.length == 1) {
             return 0;
         }
@@ -321,11 +318,10 @@ contract GatewayUtils is
         return 0;
     }
 
-    function _tokenToUsdMin(address _token, uint256 _tokenAmount)
-        internal
-        view
-        returns (uint256)
-    {
+    function _tokenToUsdMin(
+        address _token,
+        uint256 _tokenAmount
+    ) internal view returns (uint256) {
         return IVault(vault).tokenToUsdMin(_token, _tokenAmount);
     }
 

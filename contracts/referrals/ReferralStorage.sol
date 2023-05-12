@@ -38,7 +38,6 @@ contract ReferralStorage is
     event SetReferrerTier(address referrer, uint256 tierId);
     event SetTraderReferralCode(address account, bytes32 code);
 
-
     modifier onlyAdmin() {
         require(isAdmin[msg.sender], "ReferralStorage: forbidden");
         _;
@@ -101,7 +100,10 @@ contract ReferralStorage is
     }
 
     function setTraderReferralCode(bytes32 _code) external {
-        require(traderReferralCodes[msg.sender] == bytes32(0), "ReferralStorage: trader referral code already set");
+        require(
+            traderReferralCodes[msg.sender] == bytes32(0),
+            "ReferralStorage: trader referral code already set"
+        );
         address referrer = codes[_code];
         require(referrer != address(0), "ReferralStorage: referrer not exists");
         require(referrer != msg.sender, "ReferralStorage: self referred");
