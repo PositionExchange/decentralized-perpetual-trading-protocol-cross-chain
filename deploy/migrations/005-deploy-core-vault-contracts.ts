@@ -49,7 +49,7 @@ const migrations: MigrationDefinition = {
             1, // _stableSwapFeeBasisPoints
             10, // _marginFeeBasisPoints
             24 * 60 * 60, // _minProfitTime
-            false // _hasDynamicFees
+            true // _hasDynamicFees
           ),
           "vault.setFees"
         );

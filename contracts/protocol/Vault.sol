@@ -1194,26 +1194,24 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     ) private returns (uint256 delta) {
         if (_isLong) {
             delta = _amount;
-            _decreasePositionReservedAmount(_key, delta);
-            return delta;
+            return _decreasePositionReservedAmount(_key, delta);
         }
 
         if (_entryPrice == 0) {
             delta = positionInfo[_key].reservedAmount;
-            _decreasePositionReservedAmount(_key, delta);
-            return delta;
+            return _decreasePositionReservedAmount(_key, delta);
         }
 
         delta = _entryPrice.mul(_amount).div(WEI_DECIMALS);
-        _decreasePositionReservedAmount(_key, delta);
+        return _decreasePositionReservedAmount(_key, delta);
     }
 
     function _decreasePositionReservedAmount(
         bytes32 _key,
         uint256 _amount
-    ) private {
-        positionInfo[_key].subReservedAmount(_amount);
+    ) private returns (uint256) {
         emit DecreasePositionReserves(_amount);
+        return positionInfo[_key].subReservedAmount(_amount);
     }
 
     function _increaseGuaranteedUsd(
