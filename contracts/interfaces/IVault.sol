@@ -1,6 +1,8 @@
 pragma solidity ^0.8.2;
 
 import "./IVaultUtils.sol";
+import "../protocol/libraries/TokenConfiguration.sol";
+import "../protocol/libraries/PositionInfo.sol";
 
 interface IVault {
     /* Variables Getter */
@@ -269,6 +271,17 @@ interface IVault {
         bool _increment
     ) external view returns (uint256);
 
+    function getTokenConfiguration(address _token)
+        external
+        view
+        returns (TokenConfiguration.Data memory);
+
+    function getPositionInfo(
+        address _account,
+        address _indexToken,
+        bool _isLong
+    ) external view returns (PositionInfo.Data memory);
+
     function adjustDecimalToUsd(
         address _token,
         uint256 _amount
@@ -298,10 +311,4 @@ interface IVault {
         address _token,
         uint256 _usdAmount
     ) external view returns (uint256);
-
-    function validateTokens(
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) external view returns (bool);
 }

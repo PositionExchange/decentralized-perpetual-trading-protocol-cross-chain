@@ -435,6 +435,29 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return _nextPrice.mul(nextSize).div(divisor);
     }
 
+    function getTokenConfiguration(address _token)
+        external
+        view
+        override
+        returns (TokenConfiguration.Data memory)
+    {
+        return tokenConfigurations[_token];
+    }
+
+    function getPositionInfo(
+        address _account,
+        address _indexToken,
+        bool _isLong
+    )
+        external
+        view
+        override
+        returns (PositionInfo.Data memory)
+    {
+        bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
+        return positionInfo[key];
+    }
+
     /** OWNER FUNCTIONS **/
 
     function setConfigToken(
@@ -1428,14 +1451,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return tokenConfigurations[_token].isWhitelisted;
     }
 
-    function validateTokens(
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) external view returns (bool) {
-        return _validateTokens(_collateralToken, _indexToken, _isLong);
-    }
-
     function _increaseGlobalShortSize(
         address _token,
         uint256 _amount
@@ -1453,34 +1468,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     function _validateCaller(address _account) private view {
         // TODO: Validate caller
-    }
-
-    function _validateTokens(
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) private view returns (bool) {
-        TokenConfiguration.Data memory cTokenCfg = tokenConfigurations[
-            _collateralToken
-        ];
-
-        if (_isLong) {
-            _validate(_collateralToken == _indexToken, 42);
-            _validate(cTokenCfg.isWhitelisted, 43);
-            _validate(!cTokenCfg.isStableToken, 44);
-            return true;
-        }
-
-        _validate(cTokenCfg.isWhitelisted, 45);
-        _validate(cTokenCfg.isStableToken, 46);
-
-        TokenConfiguration.Data memory iTokenCfg = tokenConfigurations[
-            _indexToken
-        ];
-        _validate(!iTokenCfg.isStableToken, 47);
-        _validate(iTokenCfg.isShortableToken, 48);
-
-        return true;
     }
 
     function _validatePosition(

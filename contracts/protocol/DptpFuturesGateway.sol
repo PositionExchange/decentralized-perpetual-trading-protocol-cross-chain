@@ -254,6 +254,7 @@ contract DptpFuturesGateway is
         bool _isLong
     ) external payable nonReentrant returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
+            msg.sender,
             msg.value,
             _path,
             _indexToken,
@@ -342,6 +343,7 @@ contract DptpFuturesGateway is
         bool _isLong
     ) external payable nonReentrant returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
+            msg.sender,
             msg.value,
             _path,
             _indexToken,
@@ -409,6 +411,7 @@ contract DptpFuturesGateway is
         bool _withdrawETH
     ) external payable nonReentrant returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateDecreasePosition(
+            msg.sender,
             msg.value,
             _path,
             _indexToken,
@@ -443,6 +446,7 @@ contract DptpFuturesGateway is
         bool _withdrawETH
     ) external payable nonReentrant returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateDecreasePosition(
+            msg.sender,
             msg.value,
             _path,
             _indexToken,
@@ -1546,25 +1550,13 @@ contract DptpFuturesGateway is
         if (isValidateLeverage) Require._require(_leverage > 1, "min leverage");
     }
 
-    function _validateSize(
-        address _indexToken,
-        uint256 _sizeDelta,
-        bool _isCloseOrder
-    ) internal view {
-        IGatewayUtils(gatewayUtils).validateSize(
-            _indexToken,
-            _sizeDelta,
-            _isCloseOrder
-        );
-    }
-
     function _validateToken(
         address _collateralToken,
         address _indexToken,
         bool _isLong
     ) internal view returns (bool) {
         return
-            IVault(vault).validateTokens(
+            IGatewayUtils(gatewayUtils).validateTokens(
                 _collateralToken,
                 _indexToken,
                 _isLong
