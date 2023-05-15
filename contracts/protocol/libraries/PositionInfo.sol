@@ -7,10 +7,9 @@ library PositionInfo {
         address collateralToken;
     }
 
-    function setEntryBorrowingRates(
-        Data storage _self,
-        uint256 _rate
-    ) internal {
+    function setEntryBorrowingRates(Data storage _self, uint256 _rate)
+        internal
+    {
         _self.entryBorrowingRates = uint128(_rate);
     }
 
@@ -18,12 +17,17 @@ library PositionInfo {
         _self.reservedAmount = _self.reservedAmount + _amount;
     }
 
-    function subReservedAmount(Data storage _self, uint256 _amount) internal {
-        require(
-            _amount <= _self.reservedAmount,
-            "Vault: reservedAmount exceeded"
-        );
+    function subReservedAmount(Data storage _self, uint256 _amount) internal returns (uint256) {
+        // Position already decreased on process chain -> no point in reverting
+        // require(
+        //    _amount <= _self.reservedAmount,
+        //    "Vault: reservedAmount exceeded"
+        // );
+        if (_amount >= _self.reservedAmount) {
+            _amount = _self.reservedAmount;
+        }
         _self.reservedAmount = _self.reservedAmount - _amount;
+        return _amount;
     }
 
     function setCollateralToken(Data storage _self, address _token) internal {
