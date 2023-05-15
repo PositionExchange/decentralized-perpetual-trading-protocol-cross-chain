@@ -144,9 +144,10 @@ contract GatewayUtils is
         // TODO: Consider move this to manager config
         require(_leverage > 1, "min leverage");
 
-        validateCollateral(_account, _indexToken, _isLong);
+        address collateralToken = _path[_path.length - 1];
+        validateCollateral(_account, collateralToken, _indexToken, _isLong);
         validateSize(_indexToken, _sizeDeltaToken, false);
-        validateTokens(_path[_path.length - 1], _indexToken, _isLong);
+        validateTokens(collateralToken, _indexToken, _isLong);
 
         return true;
     }
@@ -162,10 +163,22 @@ contract GatewayUtils is
         require(_msgValue == _getExecutionFee(), "fee");
         require(_path.length == 1 || _path.length == 2, "len");
 
-        validateCollateral(_account, _indexToken, _isLong);
+        address collateralToken = _path[0];
+        validateCollateral(_account, collateralToken, _indexToken, _isLong);
         validateSize(_indexToken, _sizeDeltaToken, false);
-        validateTokens(_path[0], _indexToken, _isLong);
+        validateTokens(collateralToken, _indexToken, _isLong);
 
+        return true;
+    }
+
+    function validateUpdateCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) external view override returns (bool) {
+        validateTokens(_collateralToken, _indexToken, _isLong);
+        validateCollateral(_account, _collateralToken, _indexToken, _isLong);
         return true;
     }
 
@@ -201,7 +214,7 @@ contract GatewayUtils is
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) public view override returns (bool) {
+    ) public view returns (bool) {
         PositionInfo.Data memory position = IVault(vault).getPositionInfo(
             _account,
             _indexToken,

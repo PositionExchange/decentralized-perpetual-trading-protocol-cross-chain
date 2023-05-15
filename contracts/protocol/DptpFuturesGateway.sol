@@ -161,6 +161,7 @@ contract DptpFuturesGateway is
         address indexToken;
         uint256 amountInToken;
         bool isLong;
+        uint256 feeToken;
     }
 
     uint256 public pcsId;
@@ -804,27 +805,33 @@ contract DptpFuturesGateway is
         address paidToken = _path[0];
         address collateralToken = _path[_path.length - 1];
 
-        _validateToken(collateralToken, _indexToken, _isLong);
+        _validateUpdateCollateral(
+            msg.sender,
+            collateralToken,
+            _indexToken,
+            _isLong
+        );
 
         _amountInToken = _adjustDecimalToToken(paidToken, _amountInToken);
         _transferIn(paidToken, _amountInToken);
 
-        AddCollateralRequest memory request = AddCollateralRequest(
-            msg.sender,
-            _path,
-            _indexToken,
-            _amountInToken,
-            _isLong
-        );
-
-        (, bytes32 requestKey) = _storeAddCollateralRequest(request);
-
+        bytes32 requestKey;
         uint256 swapFeeUsd;
         if (paidToken != collateralToken) {
             uint256 swapFee = IGatewayUtils(gatewayUtils).getSwapFee(
                 _path,
                 _amountInToken
             );
+            AddCollateralRequest memory request = AddCollateralRequest(
+                msg.sender,
+                _path,
+                _indexToken,
+                _amountInToken,
+                _isLong,
+                swapFee
+            );
+            (, requestKey) = _storeAddCollateralRequest(request);
+
             swapFeeUsd = _tokenToUsdMin(collateralToken, swapFee);
         }
 
@@ -880,10 +887,10 @@ contract DptpFuturesGateway is
 
         IVault(vault).addCollateral(
             request.account,
-            collateralToken,
+            request.path,
             request.indexToken,
             request.isLong,
-            amountInToken
+            request.feeToken
         );
         emit CollateralAdded(request.account, collateralToken, amountInToken);
     }
@@ -896,7 +903,12 @@ contract DptpFuturesGateway is
     ) external nonReentrant {
         address collateralToken = _path[0];
 
-        _validateToken(collateralToken, _indexToken, _isLong);
+        _validateUpdateCollateral(
+            msg.sender,
+            collateralToken,
+            _indexToken,
+            _isLong
+        );
 
         uint256 amountOutUsdFormatted = _amountOutUsd.mul(PRICE_DECIMALS);
         uint256 amountOutToken = _usdToTokenMin(
@@ -908,7 +920,8 @@ contract DptpFuturesGateway is
             _path,
             _indexToken,
             amountOutToken,
-            _isLong
+            _isLong,
+            0
         );
         (, bytes32 requestKey) = _storeAddCollateralRequest(request);
 
@@ -1550,13 +1563,15 @@ contract DptpFuturesGateway is
         if (isValidateLeverage) Require._require(_leverage > 1, "min leverage");
     }
 
-    function _validateToken(
+    function _validateUpdateCollateral(
+        address _account,
         address _collateralToken,
         address _indexToken,
         bool _isLong
     ) internal view returns (bool) {
         return
-            IGatewayUtils(gatewayUtils).validateTokens(
+            IGatewayUtils(gatewayUtils).validateUpdateCollateral(
+                _account,
                 _collateralToken,
                 _indexToken,
                 _isLong

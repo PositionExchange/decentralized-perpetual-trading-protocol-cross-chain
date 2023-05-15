@@ -376,17 +376,22 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     function addCollateral(
         address _account,
-        address _collateralToken,
+        address[] memory _path,
         address _indexToken,
         bool _isLong,
-        uint256 _amountInToken // TODO: Remove later
+        uint256 _feeToken
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
+        address collateralToken = _path[_path.length - 1];
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
-        uint256 amountInToken = _transferIn(_collateralToken);
-        _increasePoolAmount(_collateralToken, amountInToken);
-        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
+        uint256 amountInToken = _transferIn(collateralToken);
+        _increasePoolAmount(collateralToken, amountInToken);
+        _updateCumulativeBorrowingRate(collateralToken, _indexToken);
+
+        if (_feeToken > 0) {
+            _increaseFeeReservesToken(_path[0], _feeToken);
+        }
     }
 
     function removeCollateral(
@@ -398,7 +403,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
-        bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
         _decreasePoolAmount(_collateralToken, _amountInToken);
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         _transferOut(_collateralToken, _amountInToken, msg.sender);
@@ -1129,7 +1133,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         uint256 feeAmount = _amount.sub(afterFeeAmount);
         // cr_increaseUsdpAmount
-        vaultInfo[_token].addFees(feeAmount);
+        _increaseFeeReservesToken(_token, feeAmount);
         // emit CollectSwapFees(_token, tokenToUsdMin(_token, feeAmount), feeAmount);
         return afterFeeAmount;
     }
@@ -1255,9 +1259,16 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         address _collateralToken,
         uint256 _feeUsd
     ) private {
-        uint256 tokenAmount = usdToTokenMin(_collateralToken, _feeUsd);
-        vaultInfo[_collateralToken].addFees(tokenAmount);
-        emit IncreaseFeeReserves(_collateralToken, tokenAmount);
+        uint256 feeToken = usdToTokenMin(_collateralToken, _feeUsd);
+        _increaseFeeReservesToken(_collateralToken, feeToken);
+    }
+
+    function _increaseFeeReservesToken(
+        address _collateralToken,
+        uint256 _feeToken
+    ) private {
+        vaultInfo[_collateralToken].addFees(_feeToken);
+        emit IncreaseFeeReserves(_collateralToken, _feeToken);
     }
 
     function _updateTokenBalance(address _token) private {

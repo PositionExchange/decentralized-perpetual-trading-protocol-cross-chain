@@ -55,6 +55,13 @@ interface IGatewayUtils {
         uint256 _sizeDelta
     ) external view returns (bool);
 
+    function validateUpdateCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) external view returns (bool);
+
     function validateTokens(
         address _collateralToken,
         address _indexToken,

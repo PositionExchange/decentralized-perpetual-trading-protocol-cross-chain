@@ -80,10 +80,10 @@ interface IVault {
 
     function addCollateral(
         address _account,
-        address _collateralToken,
+        address[] memory _path,
         address _indexToken,
         bool _isLong,
-        uint256 _amountInToken
+        uint256 _feeToken
     ) external;
 
     function removeCollateral(
