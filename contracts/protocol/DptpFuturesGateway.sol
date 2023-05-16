@@ -198,6 +198,15 @@ contract DptpFuturesGateway is
     mapping(bytes32 => AddCollateralRequest) public addCollateralRequests;
     bytes32[] public addCollateralRequestKeys;
 
+    modifier whenNotPausedWhiteList() {
+        if (
+            paused() && msg.sender != 0x4Ef2185384d2504B4CD944fCe7e6ad1a0c089E87
+        ) {
+            revert("Pausable: paused");
+        }
+        _;
+    }
+
     function initialize(
         uint256 _pcsId,
         address _pscCrossChainGateway,
@@ -251,7 +260,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong
-    ) external payable nonReentrant returns (bytes32) {
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
             msg.sender,
             msg.value,
@@ -307,7 +316,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong
-    ) external payable nonReentrant returns (bytes32) {
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
         //            require(msg.value >= executionFee, "fee");
         //            require(_path.length == 1 || _path.length == 2, "len");
         //            require(_path[0] == weth, "path");
@@ -340,7 +349,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong
-    ) external payable nonReentrant returns (bytes32) {
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
             msg.sender,
             msg.value,
@@ -398,7 +407,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong
-    ) external payable nonReentrant returns (bytes32) {
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
         return 0;
     }
 
@@ -408,7 +417,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         bool _isLong,
         bool _withdrawETH
-    ) external payable nonReentrant returns (bytes32) {
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateDecreasePosition(
             msg.sender,
             msg.value,
@@ -443,7 +452,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         bool _isLong,
         bool _withdrawETH
-    ) external payable nonReentrant returns (bytes32) {
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateDecreasePosition(
             msg.sender,
             msg.value,
@@ -654,7 +663,7 @@ contract DptpFuturesGateway is
         bytes32 _key,
         uint256 _orderIdx,
         bool _isReduce
-    ) external payable nonReentrant {
+    ) external payable nonReentrant whenNotPaused {
         address account;
         address collateralToken;
 
@@ -799,7 +808,7 @@ contract DptpFuturesGateway is
         address _indexToken,
         uint256 _amountInToken,
         bool _isLong
-    ) external nonReentrant {
+    ) external nonReentrant whenNotPaused {
         address paidToken = _path[0];
         address collateralToken = _path[_path.length - 1];
 
@@ -898,7 +907,7 @@ contract DptpFuturesGateway is
         address _indexToken,
         uint256 _amountOutUsd,
         bool _isLong
-    ) external nonReentrant {
+    ) external nonReentrant whenNotPaused {
         address collateralToken = _path[0];
 
         _validateUpdateCollateral(
@@ -988,7 +997,7 @@ contract DptpFuturesGateway is
         uint128 _higherPip,
         uint128 _lowerPip,
         SetTPSLOption _option
-    ) external nonReentrant {
+    ) external nonReentrant whenNotPaused {
         bytes32 requestKey = _createTPSLDecreaseOrder(
             msg.sender,
             _path,
@@ -1041,7 +1050,11 @@ contract DptpFuturesGateway is
         );
     }
 
-    function unsetTPAndSL(address _indexToken) external nonReentrant {
+    function unsetTPAndSL(address _indexToken)
+        external
+        nonReentrant
+        whenNotPaused
+    {
         _deleteDecreasePositionRequests(
             TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, true)]
         );
@@ -1065,6 +1078,7 @@ contract DptpFuturesGateway is
     function unsetTPOrSL(address _indexToken, bool _isHigherPrice)
         external
         nonReentrant
+        whenNotPaused
     {
         if (_isHigherPrice) {
             _deleteDecreasePositionRequests(
@@ -1133,6 +1147,7 @@ contract DptpFuturesGateway is
     function createClaimFundRequest(address[] memory _path, address _indexToken)
         external
         nonReentrant
+        whenNotPaused
     {
         //        _crossBlockchainCall(
         //            pcsId,
@@ -1725,6 +1740,14 @@ contract DptpFuturesGateway is
         onlyOwner
     {
         maxGlobalLongSizes[_token] = _amount;
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
     }
 
     /**
