@@ -198,15 +198,6 @@ contract DptpFuturesGateway is
     mapping(bytes32 => AddCollateralRequest) public addCollateralRequests;
     bytes32[] public addCollateralRequestKeys;
 
-    modifier whenNotPausedWhiteList() {
-        if (
-            paused() && msg.sender != 0x4Ef2185384d2504B4CD944fCe7e6ad1a0c089E87
-        ) {
-            revert("Pausable: paused");
-        }
-        _;
-    }
-
     function initialize(
         uint256 _pcsId,
         address _pscCrossChainGateway,
