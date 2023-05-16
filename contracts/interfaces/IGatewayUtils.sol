@@ -25,6 +25,7 @@ interface IGatewayUtils {
     ) external view returns (uint256);
 
     function validateIncreasePosition(
+        address _account,
         uint256 _msgValue,
         address[] memory _path,
         address _indexToken,
@@ -34,6 +35,7 @@ interface IGatewayUtils {
     ) external returns (bool);
 
     function validateDecreasePosition(
+        address _account,
         uint256 _msgValue,
         address[] memory _path,
         address _indexToken,
@@ -51,5 +53,18 @@ interface IGatewayUtils {
         address _indexToken,
         bool _isLong,
         uint256 _sizeDelta
+    ) external view returns (bool);
+
+    function validateUpdateCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) external view returns (bool);
+
+    function validateTokens(
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
     ) external view returns (bool);
 }

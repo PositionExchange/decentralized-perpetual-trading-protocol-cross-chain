@@ -26,9 +26,9 @@ const migrations: MigrationDefinition = {
     },
 
     "re-config after deploy new gateway": async () => {
-      const managerBTC = "0x5f0b4df521b6b9c3b8366d5b67c50064178067a6";
-      const managerETH = "0x338b4f4563b9a0ec2a07ad7338b43dc51674045e";
-      const managerLINK = "0x218b17c430e5248571f543376f8875533af9f865";
+      const managerBTC = "0x846d142804AF172c9a7Da38D82f26607C3EA2347";
+      const managerETH = "0xf7A8a8971fCC59ca120Cd28F5079F09da29115cA";
+      const managerLINK = "0x19e6C8AB4b17c6e022D4c0EA8ac3f3FcBf4E91A7";
 
       const wbtc = await ctx.factory.db.findAddressByKey("BTC");
       const weth = await ctx.factory.db.findAddressByKey("WETH");

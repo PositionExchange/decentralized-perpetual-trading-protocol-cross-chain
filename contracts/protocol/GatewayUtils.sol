@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
@@ -17,6 +18,7 @@ import "../interfaces/IGatewayUtils.sol";
 import "../interfaces/IFuturXGateway.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
+import "./libraries/TokenConfiguration.sol";
 
 contract GatewayUtils is
     IGatewayUtils,
@@ -29,8 +31,8 @@ contract GatewayUtils is
     using SafeCastUpgradeable for uint256;
     using AddressUpgradeable for address;
 
-    uint256 constant PRICE_DECIMALS = 10 ** 12;
-    uint256 constant WEI_DECIMALS = 10 ** 18;
+    uint256 constant PRICE_DECIMALS = 10**12;
+    uint256 constant WEI_DECIMALS = 10**18;
 
     struct ManagerData {
         // fee = quoteAssetAmount / tollRatio (means if fee = 0.001% then tollRatio = 100000)
@@ -120,14 +122,17 @@ contract GatewayUtils is
     }
 
     // Swap fee is in token
-    function getSwapFee(
-        address[] memory _path,
-        uint256 _amountInToken
-    ) external view override returns (uint256) {
+    function getSwapFee(address[] memory _path, uint256 _amountInToken)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return _getSwapFee(_path, _amountInToken);
     }
 
     function validateIncreasePosition(
+        address _account,
         uint256 _msgValue,
         address[] memory _path,
         address _indexToken,
@@ -139,13 +144,17 @@ contract GatewayUtils is
         require(_path.length == 1 || _path.length == 2, "len");
         // TODO: Consider move this to manager config
         require(_leverage > 1, "min leverage");
-        validateSize(_indexToken, _sizeDeltaToken, false);
+
         address collateralToken = _path[_path.length - 1];
-        _validateToken(collateralToken, _indexToken, _isLong);
+        validateCollateral(_account, collateralToken, _indexToken, _isLong);
+        validateSize(_indexToken, _sizeDeltaToken, false);
+        validateTokens(collateralToken, _indexToken, _isLong);
+
         return true;
     }
 
     function validateDecreasePosition(
+        address _account,
         uint256 _msgValue,
         address[] memory _path,
         address _indexToken,
@@ -154,23 +163,68 @@ contract GatewayUtils is
     ) public override returns (bool) {
         require(_msgValue == _getExecutionFee(), "fee");
         require(_path.length == 1 || _path.length == 2, "len");
-        validateSize(_indexToken, _sizeDeltaToken, false);
+
         address collateralToken = _path[0];
-        _validateToken(collateralToken, _indexToken, _isLong);
+        validateCollateral(_account, collateralToken, _indexToken, _isLong);
+        validateSize(_indexToken, _sizeDeltaToken, false);
+        validateTokens(collateralToken, _indexToken, _isLong);
+
         return true;
     }
 
-    function _validateToken(
+    function validateUpdateCollateral(
+        address _account,
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) internal view returns (bool) {
-        bool _isTokenValid = IVault(vault).validateTokens(
-            _collateralToken,
+    ) external view override returns (bool) {
+        validateTokens(_collateralToken, _indexToken, _isLong);
+        validateCollateral(_account, _collateralToken, _indexToken, _isLong);
+        return true;
+    }
+
+    function validateTokens(
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) public view override returns (bool) {
+        TokenConfiguration.Data memory cTokenCfg = IVault(vault)
+            .getTokenConfiguration(_collateralToken);
+
+        if (_isLong) {
+            _validate(_collateralToken == _indexToken, "42");
+            _validate(cTokenCfg.isWhitelisted, "43");
+            _validate(!cTokenCfg.isStableToken, "44");
+            return true;
+        }
+
+        _validate(cTokenCfg.isWhitelisted, "45");
+        _validate(cTokenCfg.isStableToken, "46");
+
+        TokenConfiguration.Data memory iTokenCfg = IVault(vault)
+            .getTokenConfiguration(_indexToken);
+
+        _validate(!iTokenCfg.isStableToken, "47");
+        _validate(iTokenCfg.isShortableToken, "48");
+
+        return true;
+    }
+
+    function validateCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) public view returns (bool) {
+        PositionInfo.Data memory position = IVault(vault).getPositionInfo(
+            _account,
             _indexToken,
             _isLong
         );
-        require(_isTokenValid, "token invalid");
+        if (position.collateralToken == address(0)) {
+            return true;
+        }
+        _validate(position.collateralToken == _collateralToken, "collateral");
         return true;
     }
 
@@ -266,10 +320,11 @@ contract GatewayUtils is
         vault = _vault;
     }
 
-    function _getSwapFee(
-        address[] memory _path,
-        uint256 _amountInToken
-    ) internal view returns (uint256) {
+    function _getSwapFee(address[] memory _path, uint256 _amountInToken)
+        internal
+        view
+        returns (uint256)
+    {
         if (_path.length == 1) {
             return 0;
         }
@@ -318,11 +373,16 @@ contract GatewayUtils is
         return 0;
     }
 
-    function _tokenToUsdMin(
-        address _token,
-        uint256 _tokenAmount
-    ) internal view returns (uint256) {
+    function _tokenToUsdMin(address _token, uint256 _tokenAmount)
+        internal
+        view
+        returns (uint256)
+    {
         return IVault(vault).tokenToUsdMin(_token, _tokenAmount);
+    }
+
+    function _validate(bool _condition, string memory _errorCode) private view {
+        require(_condition, _errorCode);
     }
 
     /**

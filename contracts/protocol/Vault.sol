@@ -1,11 +1,11 @@
 pragma solidity ^0.8.2;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./libraries/TokenConfiguration.sol";
 import "./libraries/VaultInfo.sol";
@@ -16,46 +16,44 @@ import "../token/interface/IUSDP.sol";
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IVaultPriceFeed.sol";
 
-contract Vault is IVault, Ownable, ReentrancyGuard {
-    using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+    using SafeMathUpgradeable for uint256;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     using TokenConfiguration for TokenConfiguration.Data;
     using VaultInfo for VaultInfo.Data;
     using PositionInfo for PositionInfo.Data;
 
     uint256 public constant BORROWING_RATE_PRECISION = 1000000;
-    uint256 public constant MIN_LEVERAGE = 10000; // 1x
-    uint256 public constant USDG_DECIMALS = 18;
     uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
     // TODO: MUST UPDATE MIN_BORROWING_RATE_INTERVAL BEFORE DEPLOY MAINNET
     //    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
     uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1;
     uint256 public constant MAX_BORROWING_RATE_FACTOR = 10000; // 1%
     uint256 public constant BASIS_POINTS_DIVISOR = 10000;
-    uint256 public constant PRICE_PRECISION = 10 ** 30;
+    uint256 public constant PRICE_PRECISION = 10**30;
     uint256 public constant DEAFULT_DECIMALS = 18;
-    uint256 public constant WEI_DECIMALS = 10 ** 18;
+    uint256 public constant WEI_DECIMALS = 10**18;
 
     IVaultPriceFeed private _priceFeed;
     IVaultUtils private _vaultUtils;
 
     address public usdp;
     uint256 public totalTokenWeight;
-    uint256 public override mintBurnFeeBasisPoints = 100; // 1%
-    uint256 public override swapFeeBasisPoints = 30; // 0.3%
-    uint256 public override stableSwapFeeBasisPoints = 4; // 0.04%
-    uint256 public override marginFeeBasisPoints = 10; // 0.1%
-    uint256 public override taxBasisPoints = 50; // 0.5%
-    uint256 public override stableTaxBasisPoints = 20; // 0.2%
+    uint256 public override mintBurnFeeBasisPoints;
+    uint256 public override swapFeeBasisPoints;
+    uint256 public override stableSwapFeeBasisPoints;
+    uint256 public override marginFeeBasisPoints;
+    uint256 public override taxBasisPoints;
+    uint256 public override stableTaxBasisPoints;
 
-    bool public override hasDynamicFees = false;
-    bool public override inManagerMode = false;
-    bool public override isSwapEnabled = true;
+    bool public override hasDynamicFees;
+    bool public override inManagerMode;
+    bool public override isSwapEnabled;
 
     // TODO: Update this config to 8 hours
-    uint256 public override borrowingRateInterval = 5 minutes;
-    uint256 public override borrowingRateFactor = 600;
-    uint256 public override stableBorrowingRateFactor = 600;
+    uint256 public override borrowingRateInterval;
+    uint256 public override borrowingRateFactor;
+    uint256 public override stableBorrowingRateFactor;
 
     // mapping(address => bool) public whitelistTokens;
     mapping(address => bool) public whitelistCaller;
@@ -144,14 +142,32 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     event WhitelistCallerChanged(address account, bool oldValue, bool newValue);
     event UpdateBorrowingRate(address token, uint256 borrowingRate);
 
-    constructor(
+    function initialize(
         address vaultUtils_,
         address vaultPriceFeed_,
         address usdp_
-    ) Ownable() ReentrancyGuard() {
+    ) public initializer {
+        __ReentrancyGuard_init();
+        __Ownable_init();
+
         _vaultUtils = IVaultUtils(vaultUtils_);
         _priceFeed = IVaultPriceFeed(vaultPriceFeed_);
         usdp = usdp_;
+
+        mintBurnFeeBasisPoints = 100; // 1%
+        swapFeeBasisPoints = 30; // 0.3%
+        stableSwapFeeBasisPoints = 4; // 0.04%
+        marginFeeBasisPoints = 10; // 0.1%
+        taxBasisPoints = 50; // 0.5%
+        stableTaxBasisPoints = 20; // 0.2%
+
+        hasDynamicFees = false;
+        inManagerMode = false;
+        isSwapEnabled = true;
+
+        borrowingRateInterval = 5 minutes;
+        borrowingRateFactor = 600;
+        stableBorrowingRateFactor = 600;
     }
 
     function increasePosition(
@@ -175,7 +191,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _collateralToken,
             collateralDeltaToken
         );
-        _validate(collateralDeltaUsd >= _feeUsd, 29);
+        _validate(collateralDeltaUsd >= _feeUsd, "29");
 
         _increaseFeeReserves(_collateralToken, _feeUsd);
 
@@ -376,17 +392,22 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     function addCollateral(
         address _account,
-        address _collateralToken,
+        address[] memory _path,
         address _indexToken,
         bool _isLong,
-        uint256 _amountInToken // TODO: Remove later
+        uint256 _feeToken
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
+        address collateralToken = _path[_path.length - 1];
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
-        uint256 amountInToken = _transferIn(_collateralToken);
-        _increasePoolAmount(_collateralToken, amountInToken);
-        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
+        uint256 amountInToken = _transferIn(collateralToken);
+        _increasePoolAmount(collateralToken, amountInToken);
+        _updateCumulativeBorrowingRate(collateralToken, _indexToken);
+
+        if (_feeToken > 0) {
+            _increaseFeeReservesToken(_path[0], _feeToken);
+        }
     }
 
     function removeCollateral(
@@ -398,7 +419,6 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
-        bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
         _decreasePoolAmount(_collateralToken, _amountInToken);
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         _transferOut(_collateralToken, _amountInToken, msg.sender);
@@ -433,6 +453,24 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 divisor = hasProfit ? nextSize.sub(delta) : nextSize.add(delta);
 
         return _nextPrice.mul(nextSize).div(divisor);
+    }
+
+    function getTokenConfiguration(address _token)
+        external
+        view
+        override
+        returns (TokenConfiguration.Data memory)
+    {
+        return tokenConfigurations[_token];
+    }
+
+    function getPositionInfo(
+        address _account,
+        address _indexToken,
+        bool _isLong
+    ) external view override returns (PositionInfo.Data memory) {
+        bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
+        return positionInfo[key];
     }
 
     /** OWNER FUNCTIONS **/
@@ -501,10 +539,11 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         whitelistCaller[caller] = val;
     }
 
-    function setUsdpAmount(
-        address _token,
-        uint256 _amount
-    ) external override onlyOwner {
+    function setUsdpAmount(address _token, uint256 _amount)
+        external
+        override
+        onlyOwner
+    {
         // TODO implement me
         revert("setUsdpAmount not implement");
     }
@@ -514,10 +553,11 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         revert("setMaxLeverage not implement");
     }
 
-    function setManager(
-        address _manager,
-        bool _isManager
-    ) external override onlyOwner {
+    function setManager(address _manager, bool _isManager)
+        external
+        override
+        onlyOwner
+    {
         // TODO implement me
         revert("setManager not implement");
     }
@@ -526,9 +566,11 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         isSwapEnabled = _isSwapEnabled;
     }
 
-    function setIsLeverageEnabled(
-        bool _isLeverageEnabled
-    ) external override onlyOwner {
+    function setIsLeverageEnabled(bool _isLeverageEnabled)
+        external
+        override
+        onlyOwner
+    {
         // TODO implement me
         revert("setIsLeverageEnabled not implement");
     }
@@ -538,40 +580,46 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         revert("setMaxGasPrice not implement");
     }
 
-    function setUsdgAmount(
-        address _token,
-        uint256 _amount
-    ) external override onlyOwner {
+    function setUsdgAmount(address _token, uint256 _amount)
+        external
+        override
+        onlyOwner
+    {
         // TODO implement me
         revert("setUsdgAmount not implement");
     }
 
-    function setBufferAmount(
-        address _token,
-        uint256 _amount
-    ) external override onlyOwner {
+    function setBufferAmount(address _token, uint256 _amount)
+        external
+        override
+        onlyOwner
+    {
         bufferAmounts[_token] = _amount;
     }
 
-    function setMaxGlobalShortSize(
-        address _token,
-        uint256 _amount
-    ) external override onlyOwner {
+    function setMaxGlobalShortSize(address _token, uint256 _amount)
+        external
+        override
+        onlyOwner
+    {
         // TODO implement me
         revert("setMaxGlobalShortSize not implement");
     }
 
-    function setInPrivateLiquidationMode(
-        bool _inPrivateLiquidationMode
-    ) external override onlyOwner {
+    function setInPrivateLiquidationMode(bool _inPrivateLiquidationMode)
+        external
+        override
+        onlyOwner
+    {
         // TODO implement me
         revert("setInPrivateLiquidationMode not implement");
     }
 
-    function setLiquidator(
-        address _liquidator,
-        bool _isActive
-    ) external override onlyOwner {
+    function setLiquidator(address _liquidator, bool _isActive)
+        external
+        override
+        onlyOwner
+    {
         // TODO implement me
         revert("setLiquidator not implement");
     }
@@ -584,10 +632,12 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _vaultUtils = IVaultUtils(_address);
     }
 
-    function withdrawFees(
-        address _token,
-        address _receiver
-    ) external override onlyOwner returns (uint256) {
+    function withdrawFees(address _token, address _receiver)
+        external
+        override
+        onlyOwner
+        returns (uint256)
+    {
         // TODO implement me
         revert("withdrawFees not implement");
     }
@@ -601,9 +651,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _borrowingRateFactor,
         uint256 _stableBorrowingRateFactor
     ) external override onlyOwner {
-        _validate(_borrowingRateInterval >= MIN_BORROWING_RATE_INTERVAL, 10);
-        _validate(_borrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, 11);
-        _validate(_stableBorrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, 12);
+        _validate(_borrowingRateInterval >= MIN_BORROWING_RATE_INTERVAL, "10");
+        _validate(_borrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, "11");
+        _validate(_stableBorrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, "12");
         borrowingRateInterval = _borrowingRateInterval;
         borrowingRateFactor = _borrowingRateFactor;
         stableBorrowingRateFactor = _stableBorrowingRateFactor;
@@ -614,10 +664,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     /// @notice Pay token to purchase USDP at the ask price
     /// @param _token the pay token
     /// @param _receiver the receiver for USDP
-    function buyUSDP(
-        address _token,
-        address _receiver
-    )
+    function buyUSDP(address _token, address _receiver)
         external
         override
         onlyWhitelistCaller
@@ -669,10 +716,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     /// @notice sell USDP for a token, at the bid price
     /// @param _token the receive token
     /// @param _receiver the receiver of the token
-    function sellUSDP(
-        address _token,
-        address _receiver
-    )
+    function sellUSDP(address _token, address _receiver)
         external
         override
         onlyWhitelistCaller
@@ -745,9 +789,25 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return _swap(_tokenIn, _tokenOut, _receiver, false);
     }
 
-    function poolAmounts(
-        address token
-    ) external view override returns (uint256) {
+    function withdraw(
+        address _token,
+        uint256 _amount,
+        address _receiver
+    ) external override onlyWhitelistToken(_token) {
+        _validateCaller(msg.sender);
+        if (_amount == 0) {
+            return;
+        }
+        _transferOut(_token, _amount, _receiver);
+        _decreasePoolAmount(_token, _amount);
+    }
+
+    function poolAmounts(address token)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return uint256(vaultInfo[token].poolAmounts);
     }
 
@@ -759,26 +819,35 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return address(_vaultUtils);
     }
 
-    function isStableToken(
-        address _token
-    ) external view override returns (bool) {
+    function isStableToken(address _token)
+        external
+        view
+        override
+        returns (bool)
+    {
         return tokenConfigurations[_token].isStableToken;
     }
 
     /// @notice get total usdpAmount by token
     /// @param _token the token address
-    function usdpAmount(
-        address _token
-    ) external view override returns (uint256) {
+    function usdpAmount(address _token)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return vaultInfo[_token].usdpAmounts;
     }
 
     /// @notice get the target usdp amount weighted for a token
     /// @param _token the address of the token
-    function getTargetUsdpAmount(
-        address _token
-    ) external view override returns (uint256) {
-        uint256 supply = IERC20(usdp).totalSupply();
+    function getTargetUsdpAmount(address _token)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        uint256 supply = IERC20Upgradeable(usdp).totalSupply();
         if (supply == 0) {
             return 0;
         }
@@ -786,29 +855,37 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return weight.mul(supply).div(totalTokenWeight);
     }
 
-    function getBidPrice(
-        address _token
-    ) public view override returns (uint256) {
+    function getBidPrice(address _token)
+        public
+        view
+        override
+        returns (uint256)
+    {
         return _priceFeed.getPrice(_token, true);
     }
 
-    function getAskPrice(
-        address _token
-    ) public view override returns (uint256) {
+    function getAskPrice(address _token)
+        public
+        view
+        override
+        returns (uint256)
+    {
         return _priceFeed.getPrice(_token, false);
     }
 
-    function adjustDecimalToUsd(
-        address _token,
-        uint256 _amount
-    ) public view returns (uint256) {
+    function adjustDecimalToUsd(address _token, uint256 _amount)
+        public
+        view
+        returns (uint256)
+    {
         return adjustForDecimals(_amount, _token, usdp);
     }
 
-    function adjustDecimalToToken(
-        address _token,
-        uint256 _amount
-    ) public view returns (uint256) {
+    function adjustDecimalToToken(address _token, uint256 _amount)
+        public
+        view
+        returns (uint256)
+    {
         return adjustForDecimals(_amount, usdp, _token);
     }
 
@@ -829,21 +906,26 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 decimalsMul = _tokenMul == usdp
             ? DEAFULT_DECIMALS
             : tokenConfigurations[_tokenMul].tokenDecimals;
-        return _amount.mul(10 ** decimalsMul).div(10 ** decimalsDiv);
+        return _amount.mul(10**decimalsMul).div(10**decimalsDiv);
     }
 
-    function getRedemptionAmount(
-        address _token,
-        uint256 _usdgAmount
-    ) public view override returns (uint256) {
+    function getRedemptionAmount(address _token, uint256 _usdgAmount)
+        public
+        view
+        override
+        returns (uint256)
+    {
         uint256 price = getBidPrice(_token);
         uint256 redemptionAmount = _usdgAmount.mul(PRICE_PRECISION).div(price);
         return adjustForDecimals(redemptionAmount, usdp, _token);
     }
 
-    function getNextBorrowingRate(
-        address _token
-    ) public view override returns (uint256) {
+    function getNextBorrowingRate(address _token)
+        public
+        view
+        override
+        returns (uint256)
+    {
         if (
             lastBorrowingRateTimes[_token].add(borrowingRateInterval) >
             block.timestamp
@@ -1046,10 +1128,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         );
     }
 
-    function _setCollateralToken(
-        bytes32 _key,
-        address _collateralToken
-    ) private {
+    function _setCollateralToken(bytes32 _key, address _collateralToken)
+        private
+    {
         positionInfo[_key].setCollateralToken(_collateralToken);
     }
 
@@ -1071,7 +1152,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     function _transferIn(address _token) private returns (uint256) {
         uint256 prevBalance = tokenBalances[_token];
-        uint256 nextBalance = IERC20(_token).balanceOf(address(this));
+        uint256 nextBalance = IERC20Upgradeable(_token).balanceOf(address(this));
         tokenBalances[_token] = nextBalance;
         return nextBalance.sub(prevBalance);
     }
@@ -1086,8 +1167,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         }
         uint256 prevBalance = tokenBalances[_token];
         require(prevBalance >= _amount, "Vault: insufficient amount");
-        IERC20(_token).safeTransfer(_receiver, _amount);
-        tokenBalances[_token] = IERC20(_token).balanceOf(address(this));
+        IERC20Upgradeable(_token).safeTransfer(_receiver, _amount);
+        tokenBalances[_token] = IERC20Upgradeable(_token).balanceOf(address(this));
     }
 
     /// Calculate and collect swap fees
@@ -1106,7 +1187,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
         uint256 feeAmount = _amount.sub(afterFeeAmount);
         // cr_increaseUsdpAmount
-        vaultInfo[_token].addFees(feeAmount);
+        _increaseFeeReservesToken(_token, feeAmount);
         // emit CollectSwapFees(_token, tokenToUsdMin(_token, feeAmount), feeAmount);
         return afterFeeAmount;
     }
@@ -1145,7 +1226,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     /// @param _amount the deposited amount after fees
     function _increasePoolAmount(address _token, uint256 _amount) private {
         vaultInfo[_token].addPoolAmount(_amount);
-        uint256 balance = IERC20(_token).balanceOf(address(this));
+        uint256 balance = IERC20Upgradeable(_token).balanceOf(address(this));
         require(
             vaultInfo[_token].poolAmounts <= balance,
             "Vault: invalid pool amount"
@@ -1178,10 +1259,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         _increasePositionReservedAmount(_key, delta);
     }
 
-    function _increasePositionReservedAmount(
-        bytes32 _key,
-        uint256 _amount
-    ) private {
+    function _increasePositionReservedAmount(bytes32 _key, uint256 _amount)
+        private
+    {
         positionInfo[_key].addReservedAmount(_amount);
         emit IncreasePositionReserves(_amount);
     }
@@ -1206,39 +1286,43 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return _decreasePositionReservedAmount(_key, delta);
     }
 
-    function _decreasePositionReservedAmount(
-        bytes32 _key,
-        uint256 _amount
-    ) private returns (uint256) {
+    function _decreasePositionReservedAmount(bytes32 _key, uint256 _amount)
+        private
+        returns (uint256)
+    {
         emit DecreasePositionReserves(_amount);
         return positionInfo[_key].subReservedAmount(_amount);
     }
 
-    function _increaseGuaranteedUsd(
-        address _token,
-        uint256 _usdAmount
-    ) private {
+    function _increaseGuaranteedUsd(address _token, uint256 _usdAmount)
+        private
+    {
         // TODO: Implement me
     }
 
-    function _decreaseGuaranteedUsd(
-        address _token,
-        uint256 _usdAmount
-    ) private {
+    function _decreaseGuaranteedUsd(address _token, uint256 _usdAmount)
+        private
+    {
         // TODO: Implement me
     }
 
-    function _increaseFeeReserves(
+    function _increaseFeeReserves(address _collateralToken, uint256 _feeUsd)
+        private
+    {
+        uint256 feeToken = usdToTokenMin(_collateralToken, _feeUsd);
+        _increaseFeeReservesToken(_collateralToken, feeToken);
+    }
+
+    function _increaseFeeReservesToken(
         address _collateralToken,
-        uint256 _feeUsd
+        uint256 _feeToken
     ) private {
-        uint256 tokenAmount = usdToTokenMin(_collateralToken, _feeUsd);
-        vaultInfo[_collateralToken].addFees(tokenAmount);
-        emit IncreaseFeeReserves(_collateralToken, tokenAmount);
+        vaultInfo[_collateralToken].addFees(_feeToken);
+        emit IncreaseFeeReserves(_collateralToken, _feeToken);
     }
 
     function _updateTokenBalance(address _token) private {
-        uint256 nextBalance = IERC20(_token).balanceOf(address(this));
+        uint256 nextBalance = IERC20Upgradeable(_token).balanceOf(address(this));
         tokenBalances[_token] = nextBalance;
     }
 
@@ -1268,58 +1352,85 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return whitelistedTokens.length;
     }
 
-    function allWhitelistedTokens(
-        uint256 i
-    ) external view override returns (address) {
+    function allWhitelistedTokens(uint256 i)
+        external
+        view
+        override
+        returns (address)
+    {
         return whitelistedTokens[i];
     }
 
-    function stableTokens(
-        address _token
-    ) external view override returns (bool) {
+    function stableTokens(address _token)
+        external
+        view
+        override
+        returns (bool)
+    {
         return tokenConfigurations[_token].isStableToken;
     }
 
-    function shortableTokens(
-        address _token
-    ) external view override returns (bool) {
+    function shortableTokens(address _token)
+        external
+        view
+        override
+        returns (bool)
+    {
         return tokenConfigurations[_token].isShortableToken;
     }
 
-    function feeReserves(
-        address _token
-    ) external view override returns (uint256) {
+    function feeReserves(address _token)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return uint256(vaultInfo[_token].feeReserves);
     }
 
-    function tokenDecimals(
-        address _token
-    ) external view override returns (uint256) {
+    function tokenDecimals(address _token)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return uint256(tokenConfigurations[_token].tokenDecimals);
     }
 
-    function tokenWeights(
-        address _token
-    ) external view override returns (uint256) {
+    function tokenWeights(address _token)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return uint256(tokenConfigurations[_token].tokenWeight);
     }
 
-    function guaranteedUsd(
-        address _token
-    ) external view override returns (uint256) {
+    function guaranteedUsd(address _token)
+        external
+        view
+        override
+        returns (uint256)
+    {
         // TODO implement
     }
 
-    function reservedAmounts(
-        address _token
-    ) external view override returns (uint256) {
+    function reservedAmounts(address _token)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return uint256(vaultInfo[_token].reservedAmounts);
     }
 
     // @deprecated use usdpAmount
-    function usdgAmounts(
-        address _token
-    ) external view override returns (uint256) {
+    function usdgAmounts(address _token)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return uint256(vaultInfo[_token].usdpAmounts);
     }
 
@@ -1327,66 +1438,75 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         return uint256(vaultInfo[_token].usdpAmounts);
     }
 
-    function maxUsdgAmounts(
-        address _token
-    ) external view override returns (uint256) {
+    function maxUsdgAmounts(address _token)
+        external
+        view
+        override
+        returns (uint256)
+    {
         // TODO impment me
     }
 
-    function tokenToUsdMin(
-        address _token,
-        uint256 _tokenAmount
-    ) public view returns (uint256) {
+    function tokenToUsdMin(address _token, uint256 _tokenAmount)
+        public
+        view
+        returns (uint256)
+    {
         if (_tokenAmount == 0) {
             return 0;
         }
         uint256 price = getMinPrice(_token);
         uint256 decimals = tokenConfigurations[_token].tokenDecimals;
-        return _tokenAmount.mul(price).div(10 ** decimals);
+        return _tokenAmount.mul(price).div(10**decimals);
     }
 
-    function tokenToUsdMax(
-        address _token,
-        uint256 _tokenAmount
-    ) public view returns (uint256) {
+    function tokenToUsdMax(address _token, uint256 _tokenAmount)
+        public
+        view
+        returns (uint256)
+    {
         if (_tokenAmount == 0) {
             return 0;
         }
         uint256 price = getMaxPrice(_token);
         uint256 decimals = tokenConfigurations[_token].tokenDecimals;
-        return _tokenAmount.mul(price).div(10 ** decimals);
+        return _tokenAmount.mul(price).div(10**decimals);
     }
 
-    function tokenToUsdMinWithAdjustment(
-        address _token,
-        uint256 _tokenAmount
-    ) public view returns (uint256) {
+    function tokenToUsdMinWithAdjustment(address _token, uint256 _tokenAmount)
+        public
+        view
+        returns (uint256)
+    {
         uint256 usdAmount = tokenToUsdMin(_token, _tokenAmount);
         return adjustForDecimals(usdAmount, usdp, _token);
     }
 
-    function usdToTokenMax(
-        address _token,
-        uint256 _usdAmount
-    ) public view returns (uint256) {
+    function usdToTokenMax(address _token, uint256 _usdAmount)
+        public
+        view
+        returns (uint256)
+    {
         if (_usdAmount == 0) {
             return 0;
         }
         return usdToToken(_token, _usdAmount, getMinPrice(_token));
     }
 
-    function usdToTokenMinWithAdjustment(
-        address _token,
-        uint256 _usdAmount
-    ) public view returns (uint256) {
+    function usdToTokenMinWithAdjustment(address _token, uint256 _usdAmount)
+        public
+        view
+        returns (uint256)
+    {
         uint256 tokenAmount = usdToTokenMin(_token, _usdAmount);
         return adjustForDecimals(tokenAmount, _token, usdp);
     }
 
-    function usdToTokenMin(
-        address _token,
-        uint256 _usdAmount
-    ) public view returns (uint256) {
+    function usdToTokenMin(address _token, uint256 _usdAmount)
+        public
+        view
+        returns (uint256)
+    {
         if (_usdAmount == 0) {
             return 0;
         }
@@ -1402,18 +1522,24 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             return 0;
         }
         uint256 decimals = tokenConfigurations[_token].tokenDecimals;
-        return _usdAmount.mul(10 ** decimals).div(_price);
+        return _usdAmount.mul(10**decimals).div(_price);
     }
 
-    function getMaxPrice(
-        address _token
-    ) public view override returns (uint256) {
+    function getMaxPrice(address _token)
+        public
+        view
+        override
+        returns (uint256)
+    {
         return IVaultPriceFeed(_priceFeed).getPrice(_token, true);
     }
 
-    function getMinPrice(
-        address _token
-    ) public view override returns (uint256) {
+    function getMinPrice(address _token)
+        public
+        view
+        override
+        returns (uint256)
+    {
         return IVaultPriceFeed(_priceFeed).getPrice(_token, false);
     }
 
@@ -1422,24 +1548,18 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         revert("Vault not implemented");
     }
 
-    function isWhitelistedTokens(
-        address _token
-    ) external view override returns (bool) {
+    function isWhitelistedTokens(address _token)
+        external
+        view
+        override
+        returns (bool)
+    {
         return tokenConfigurations[_token].isWhitelisted;
     }
 
-    function validateTokens(
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) external view returns (bool) {
-        return _validateTokens(_collateralToken, _indexToken, _isLong);
-    }
-
-    function _increaseGlobalShortSize(
-        address _token,
-        uint256 _amount
-    ) internal {
+    function _increaseGlobalShortSize(address _token, uint256 _amount)
+        internal
+    {
         globalShortSizes[_token] = globalShortSizes[_token].add(_amount);
 
         uint256 maxSize = maxGlobalShortSizes[_token];
@@ -1455,46 +1575,18 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         // TODO: Validate caller
     }
 
-    function _validateTokens(
-        address _collateralToken,
-        address _indexToken,
-        bool _isLong
-    ) private view returns (bool) {
-        TokenConfiguration.Data memory cTokenCfg = tokenConfigurations[
-            _collateralToken
-        ];
-
-        if (_isLong) {
-            _validate(_collateralToken == _indexToken, 42);
-            _validate(cTokenCfg.isWhitelisted, 43);
-            _validate(!cTokenCfg.isStableToken, 44);
-            return true;
-        }
-
-        _validate(cTokenCfg.isWhitelisted, 45);
-        _validate(cTokenCfg.isStableToken, 46);
-
-        TokenConfiguration.Data memory iTokenCfg = tokenConfigurations[
-            _indexToken
-        ];
-        _validate(!iTokenCfg.isStableToken, 47);
-        _validate(iTokenCfg.isShortableToken, 48);
-
-        return true;
-    }
-
-    function _validatePosition(
-        uint256 _size,
-        uint256 _collateral
-    ) private view {
+    function _validatePosition(uint256 _size, uint256 _collateral)
+        private
+        view
+    {
         if (_size == 0) {
-            _validate(_collateral == 0, 39);
+            _validate(_collateral == 0, "39");
             return;
         }
-        _validate(_size >= _collateral, 40);
+        _validate(_size >= _collateral, "40");
     }
 
-    function _validate(bool _condition, uint256 _errorCode) private view {
-        require(_condition, Strings.toString(_errorCode));
+    function _validate(bool _condition, string memory _errorCode) private view {
+        require(_condition, _errorCode);
     }
 }
