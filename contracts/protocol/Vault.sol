@@ -1,11 +1,10 @@
 pragma solidity ^0.8.2;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 import "./libraries/TokenConfiguration.sol";
 import "./libraries/VaultInfo.sol";
@@ -16,16 +15,14 @@ import "../token/interface/IUSDP.sol";
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IVaultPriceFeed.sol";
 
-contract Vault is IVault, Ownable, ReentrancyGuard {
-    using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+    using SafeMathUpgradeable for uint256;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     using TokenConfiguration for TokenConfiguration.Data;
     using VaultInfo for VaultInfo.Data;
     using PositionInfo for PositionInfo.Data;
 
     uint256 public constant BORROWING_RATE_PRECISION = 1000000;
-    uint256 public constant MIN_LEVERAGE = 10000; // 1x
-    uint256 public constant USDG_DECIMALS = 18;
     uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
     // TODO: MUST UPDATE MIN_BORROWING_RATE_INTERVAL BEFORE DEPLOY MAINNET
     //    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
@@ -41,21 +38,21 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     address public usdp;
     uint256 public totalTokenWeight;
-    uint256 public override mintBurnFeeBasisPoints = 100; // 1%
-    uint256 public override swapFeeBasisPoints = 30; // 0.3%
-    uint256 public override stableSwapFeeBasisPoints = 4; // 0.04%
-    uint256 public override marginFeeBasisPoints = 10; // 0.1%
-    uint256 public override taxBasisPoints = 50; // 0.5%
-    uint256 public override stableTaxBasisPoints = 20; // 0.2%
+    uint256 public override mintBurnFeeBasisPoints;
+    uint256 public override swapFeeBasisPoints;
+    uint256 public override stableSwapFeeBasisPoints;
+    uint256 public override marginFeeBasisPoints;
+    uint256 public override taxBasisPoints;
+    uint256 public override stableTaxBasisPoints;
 
-    bool public override hasDynamicFees = false;
-    bool public override inManagerMode = false;
-    bool public override isSwapEnabled = true;
+    bool public override hasDynamicFees;
+    bool public override inManagerMode;
+    bool public override isSwapEnabled;
 
     // TODO: Update this config to 8 hours
-    uint256 public override borrowingRateInterval = 5 minutes;
-    uint256 public override borrowingRateFactor = 600;
-    uint256 public override stableBorrowingRateFactor = 600;
+    uint256 public override borrowingRateInterval;
+    uint256 public override borrowingRateFactor;
+    uint256 public override stableBorrowingRateFactor;
 
     // mapping(address => bool) public whitelistTokens;
     mapping(address => bool) public whitelistCaller;
@@ -144,14 +141,32 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     event WhitelistCallerChanged(address account, bool oldValue, bool newValue);
     event UpdateBorrowingRate(address token, uint256 borrowingRate);
 
-    constructor(
+    function initialize(
         address vaultUtils_,
         address vaultPriceFeed_,
         address usdp_
-    ) Ownable() ReentrancyGuard() {
+    ) public initializer {
+        __ReentrancyGuard_init();
+        __Ownable_init();
+
         _vaultUtils = IVaultUtils(vaultUtils_);
         _priceFeed = IVaultPriceFeed(vaultPriceFeed_);
         usdp = usdp_;
+
+        mintBurnFeeBasisPoints = 100; // 1%
+        swapFeeBasisPoints = 30; // 0.3%
+        stableSwapFeeBasisPoints = 4; // 0.04%
+        marginFeeBasisPoints = 10; // 0.1%
+        taxBasisPoints = 50; // 0.5%
+        stableTaxBasisPoints = 20; // 0.2%
+
+        hasDynamicFees = false;
+        inManagerMode = false;
+        isSwapEnabled = true;
+
+        borrowingRateInterval = 5 minutes;
+        borrowingRateFactor = 600;
+        stableBorrowingRateFactor = 600;
     }
 
     function increasePosition(
@@ -175,7 +190,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
             _collateralToken,
             collateralDeltaToken
         );
-        _validate(collateralDeltaUsd >= _feeUsd, 29);
+        _validate(collateralDeltaUsd >= _feeUsd, "29");
 
         _increaseFeeReserves(_collateralToken, _feeUsd);
 
@@ -635,9 +650,9 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         uint256 _borrowingRateFactor,
         uint256 _stableBorrowingRateFactor
     ) external override onlyOwner {
-        _validate(_borrowingRateInterval >= MIN_BORROWING_RATE_INTERVAL, 10);
-        _validate(_borrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, 11);
-        _validate(_stableBorrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, 12);
+        _validate(_borrowingRateInterval >= MIN_BORROWING_RATE_INTERVAL, "10");
+        _validate(_borrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, "11");
+        _validate(_stableBorrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, "12");
         borrowingRateInterval = _borrowingRateInterval;
         borrowingRateFactor = _borrowingRateFactor;
         stableBorrowingRateFactor = _stableBorrowingRateFactor;
@@ -818,7 +833,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         override
         returns (uint256)
     {
-        uint256 supply = IERC20(usdp).totalSupply();
+        uint256 supply = IERC20Upgradeable(usdp).totalSupply();
         if (supply == 0) {
             return 0;
         }
@@ -1123,7 +1138,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
 
     function _transferIn(address _token) private returns (uint256) {
         uint256 prevBalance = tokenBalances[_token];
-        uint256 nextBalance = IERC20(_token).balanceOf(address(this));
+        uint256 nextBalance = IERC20Upgradeable(_token).balanceOf(address(this));
         tokenBalances[_token] = nextBalance;
         return nextBalance.sub(prevBalance);
     }
@@ -1138,8 +1153,8 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         }
         uint256 prevBalance = tokenBalances[_token];
         require(prevBalance >= _amount, "Vault: insufficient amount");
-        IERC20(_token).safeTransfer(_receiver, _amount);
-        tokenBalances[_token] = IERC20(_token).balanceOf(address(this));
+        IERC20Upgradeable(_token).safeTransfer(_receiver, _amount);
+        tokenBalances[_token] = IERC20Upgradeable(_token).balanceOf(address(this));
     }
 
     /// Calculate and collect swap fees
@@ -1197,7 +1212,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     /// @param _amount the deposited amount after fees
     function _increasePoolAmount(address _token, uint256 _amount) private {
         vaultInfo[_token].addPoolAmount(_amount);
-        uint256 balance = IERC20(_token).balanceOf(address(this));
+        uint256 balance = IERC20Upgradeable(_token).balanceOf(address(this));
         require(
             vaultInfo[_token].poolAmounts <= balance,
             "Vault: invalid pool amount"
@@ -1293,7 +1308,7 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
     }
 
     function _updateTokenBalance(address _token) private {
-        uint256 nextBalance = IERC20(_token).balanceOf(address(this));
+        uint256 nextBalance = IERC20Upgradeable(_token).balanceOf(address(this));
         tokenBalances[_token] = nextBalance;
     }
 
@@ -1551,13 +1566,13 @@ contract Vault is IVault, Ownable, ReentrancyGuard {
         view
     {
         if (_size == 0) {
-            _validate(_collateral == 0, 39);
+            _validate(_collateral == 0, "39");
             return;
         }
-        _validate(_size >= _collateral, 40);
+        _validate(_size >= _collateral, "40");
     }
 
-    function _validate(bool _condition, uint256 _errorCode) private view {
-        require(_condition, Strings.toString(_errorCode));
+    function _validate(bool _condition, string memory _errorCode) private view {
+        require(_condition, _errorCode);
     }
 }

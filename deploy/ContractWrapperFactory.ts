@@ -1,35 +1,36 @@
 import {
-    CreateChainLinkPriceFeed, CreateDptpFuturesGateway,
-    CreateFuturesAdapter,
-    CreateFuturesGateway,
+  CreateChainLinkPriceFeed,
+  CreateDptpFuturesGateway,
+  CreateFuturesAdapter,
+  CreateFuturesGateway,
 } from "./types";
-import {DeployDataStore} from "./DataStore";
-import {verifyContract} from "../scripts/utils";
-import {TransactionResponse} from "@ethersproject/abstract-provider";
-import {HardhatRuntimeEnvironment} from "hardhat/types";
+import { DeployDataStore } from "./DataStore";
+import { verifyContract } from "../scripts/utils";
+import { TransactionResponse } from "@ethersproject/abstract-provider";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 // @ts-ignore
-import {HardhatDefenderUpgrades} from "@openzeppelin/hardhat-defender";
+import { HardhatDefenderUpgrades } from "@openzeppelin/hardhat-defender";
 import {
-    DptpFuturesGateway,
-    FuturesAdapter,
-    InsuranceFund,
-    LpManager,
-    MockToken,
-    PLP,
-    PositionBUSDBonus,
-    PriceFeed,
-    USDP,
-    Vault,
-    VaultPriceFeed,
-    VaultUtils,
-    WETH
+  DptpFuturesGateway,
+  FuturesAdapter,
+  InsuranceFund,
+  LpManager,
+  MockToken,
+  PLP,
+  PositionBUSDBonus,
+  PriceFeed,
+  USDP,
+  Vault,
+  VaultPriceFeed,
+  VaultUtils,
+  WETH,
 } from "../typeChain";
 import { ContractConfig } from "./shared/PreDefinedContractAddress";
-import {ethers as ethersE} from "ethers"
+import { ethers as ethersE } from "ethers";
 import { IExtraTokenConfig, Token } from "./shared/types";
 
-interface  ContractWrapperFactoryOptions {
-  isForceDeploy?: boolean
+interface ContractWrapperFactoryOptions {
+  isForceDeploy?: boolean;
 }
 
 export class ContractWrapperFactory {
@@ -332,11 +333,12 @@ export class ContractWrapperFactory {
       const plp = await this.deployNonUpgradeableContract<PLP>('PLP', [])
       const vaultUtils = await this.deployNonUpgradeableContract<VaultUtils>('VaultUtils', [])
       const vaultPriceFeed = await this.deployNonUpgradeableContract<VaultPriceFeed>('VaultPriceFeed', [])
-      const vault = await this.deployNonUpgradeableContract<Vault>('Vault', [
+      await this.createVault(
         vaultUtils.address,
         vaultPriceFeed.address,
         usdp.address,
-      ])
+      )
+      const vault = await this.getDeployedContract<Vault>('Vault')
       const plpManager = await this.deployNonUpgradeableContract<LpManager>('LpManager', [
         plp.address,
         usdp.address,
@@ -494,6 +496,37 @@ export class ContractWrapperFactory {
             console.log(`Upgrade ${contractName}`);
         } else {
             const instance = await this.hre.upgrades.deployProxy(factory,);
+            console.log(`wait for deploy ${contractName}`);
+            await instance.deployed();
+            const address = instance.address.toString();
+            console.log(`Address ${contractName}: ${address}`);
+            await this.db.saveAddressByKey(contractName, address);
+            await this.verifyProxy(address);
+        }
+    }
+
+    async createVault(vaultUtilsAddress: string, vaultPriceFeedAddress: string, usdpAddress: string) {
+        const contractName = 'Vault';
+        const factory = await this.hre.ethers.getContractFactory(contractName);
+        const contractAddress = await this.db.findAddressByKey(contractName);
+        if (contractAddress) {
+            const upgraded = await this.hre.upgrades.upgradeProxy(
+                contractAddress,
+                factory
+            );
+            console.log(`Starting verify upgrade ${contractName}`);
+            await this.verifyImplContract(upgraded.deployTransaction);
+            console.log(`Upgrade ${contractName}`);
+        } else {
+            const contractArgs = [
+                vaultUtilsAddress,
+                vaultPriceFeedAddress,
+                usdpAddress,
+            ];
+            const instance = await this.hre.upgrades.deployProxy(
+                factory,
+                contractArgs
+            );
             console.log(`wait for deploy ${contractName}`);
             await instance.deployed();
             const address = instance.address.toString();

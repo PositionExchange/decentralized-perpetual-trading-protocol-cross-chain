@@ -69,7 +69,7 @@
 {"address":"yes","key":"0xe6bAC7436C36341e47c4F591B9Ce3c934B643da2:verified","_id":"fue3KXPIEdpFF6E1"}
 {"address":"yes","key":"0xB681620857B5988C931DC34cC3f44FdC994B12Ef:verified","_id":"h8rxmm0pjARswo4l"}
 {"address":"0x1D25C415ecAd9a247e0c70717B4787DEDC6dC566","key":"VaultReader","_id":"hZQWe7zTuBScWUOG"}
-{"address":"0x9557EE61535B7907cb56F20351A149e9548ceF60","key":"Vault","_id":"i6OIofltZdFXADUY"}
+{"address":"yes","key":"0xBaEFe1BD6922D75166f9f359d8191492a40C6B92:verified","_id":"iGhQTflXsKsvGUjK"}
 {"address":"0x0fD182e7cC0557868486155C60Cdfa2e8D033913","key":"BonusPosiTracker","_id":"j7tiHjTw8Vo7KpNu"}
 {"address":"yes","key":"0x19Ca46E39a864A4063aF817bb406EDfD8a6CD227:verified","_id":"jFb51nwHbI2nhO6C"}
 {"address":"yes","key":"0xaD8fE53f62B3222a668D336ba784fF57bfdf4624:verified","_id":"jrkUiGfitOQXvOFh"}
@@ -89,6 +89,7 @@
 {"address":"0xc2D7f320d0aeb3C90a211f49326BC5bc63eDC0C1","key":"VaultPriceFeed","_id":"pLsav7V8T6FVbVkz"}
 {"address":"yes","key":"0x0E81F396e2a1EA88dcEC131862CCAbb42615a9a9:verified","_id":"pcRd9WS21BZidZJN"}
 {"address":"yes","key":"0x8356aB7278d7A22B09de689cFe8B3537648C662a:verified","_id":"qyfMGRkeRSeqg8v3"}
+{"address":"0x568972946733b26Ab22Caf6080E688fEAb454d84","key":"Vault","_id":"rUXygWLpPkWPDg9T"}
 {"address":"yes","key":"0xcE92b53E4F0817e80F2A2f2f6ab9bA76BB7894d8:verified","_id":"rdBFJADqWnn6INBF"}
 {"address":"yes","key":"0x2CBDD1E334e94f221c0764F4E3133c5aBC3418D5:verified","_id":"sO0n07bq8Cb1qLRx"}
 {"address":"yes","key":"0x0617FC519ef2DDE047029cd0b3a3267db0730cDA:verified","_id":"sbY1roUsEX2Z6JN5"}
@@ -110,4 +111,4 @@
 {"address":"yes","key":"0x2776395a74aaCbDC5710B69F3897CC54d1CF39B2:verified","_id":"zO5KmgZ90mzuv1Jk"}
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
-{"address":"yes","key":"0xBaEFe1BD6922D75166f9f359d8191492a40C6B92:verified","_id":"iGhQTflXsKsvGUjK"}
+{"address":"yes","key":"0xbc0fE9469bB19292D45B43B73c46894826E6A1d2:verified","_id":"XpGZy4sYLkUOEc3L"}
