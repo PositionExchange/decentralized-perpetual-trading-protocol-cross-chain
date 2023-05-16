@@ -47,6 +47,12 @@ interface IVault {
         address _receiver
     ) external returns (uint256);
 
+    function withdraw(
+        address _token,
+        uint256 _amount,
+        address _receiver
+    ) external;
+
     function increasePosition(
         address _account,
         address _collateralToken,

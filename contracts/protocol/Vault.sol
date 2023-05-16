@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./libraries/TokenConfiguration.sol";
 import "./libraries/VaultInfo.sol";
@@ -786,6 +787,19 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     {
         _validateCaller(msg.sender);
         return _swap(_tokenIn, _tokenOut, _receiver, false);
+    }
+
+    function withdraw(
+        address _token,
+        uint256 _amount,
+        address _receiver
+    ) external override onlyWhitelistToken(_token) {
+        _validateCaller(msg.sender);
+        if (_amount == 0) {
+            return;
+        }
+        _transferOut(_token, _amount, _receiver);
+        _decreasePoolAmount(_token, _amount);
     }
 
     function poolAmounts(address token)

@@ -7,7 +7,6 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
@@ -496,6 +495,12 @@ contract DptpFuturesGateway is
         );
 
         _executeExecuteUpdatePositionData(_key);
+        _executeUpdateLatestCollateral(
+            request.account,
+            request.path[request.path.length - 1],
+            request.indexToken,
+            _isLong
+        );
     }
 
     function executeIncreaseLimitOrder(
@@ -523,6 +528,12 @@ contract DptpFuturesGateway is
         );
 
         _executeExecuteUpdatePositionData(_key);
+        _executeUpdateLatestCollateral(
+            request.account,
+            request.path[request.path.length - 1],
+            request.indexToken,
+            _isLong
+        );
     }
 
     function _executeIncreasePosition(
@@ -1135,43 +1146,32 @@ contract DptpFuturesGateway is
         _deleteTPSLRequestMap(triggeredTPSLKey);
     }
 
-    function createClaimFundRequest(address[] memory _path, address _indexToken)
-        external
-        nonReentrant
-        whenNotPaused
-    {
-        //        _crossBlockchainCall(
-        //            pcsId,
-        //            pscCrossChainGateway,
-        //            uint8(Method.CLAIM_FUND),
-        //            abi.encode(_path, coreManagers[_indexToken], msg.sender)
-        //        );
-    }
-
     function executeClaimFund(
-        address[] memory _path,
+        address _manager,
         address _account,
+        bool _isLong,
         uint256 _amountOutUsd
     ) external nonReentrant {
-        //        _validateCaller(msg.sender);
-        //
-        //        // TODO: Need to validate collateral token from previous position
-        //        address collateralToken = _path[0];
-        //        address receiveToken = _path[_path.length - 1];
-        //
-        //        uint256 amountOutToken = _usdToTokenMin(
-        //            collateralToken,
-        //            _amountOutUsd.mul(PRICE_DECIMALS)
-        //        );
-        //
-        //        //TODO: Decrease pool amount
-        //
-        //        if (_path.length > 1) {
-        //            _transferOut(collateralToken, amountOutToken, vault);
-        //            amountOutToken = _swap(_path, address(this), true);
-        //        }
-        //
-        //        _transferOut(receiveToken, amountOutToken, _account);
+        _validateCaller(msg.sender);
+
+        address indexToken = indexTokens[_manager];
+        require(indexToken != address(0), "invalid index token");
+
+        bytes32 key = getPositionKey(_account, indexToken, _isLong);
+        address collateralToken = latestExecutedCollateral[key];
+        require(collateralToken != address(0), "invalid collateral token");
+
+        delete latestExecutedCollateral[key];
+
+        uint256 amountOutToken = _usdToTokenMin(
+            collateralToken,
+            _amountOutUsd.mul(PRICE_DECIMALS)
+        );
+        if (amountOutToken == 0) {
+            return;
+        }
+        IVault(vault).withdraw(collateralToken, amountOutToken, address(this));
+        _transferOut(collateralToken, amountOutToken, _account);
     }
 
     function refund(bytes32 _key, Method _method)
@@ -1613,6 +1613,16 @@ contract DptpFuturesGateway is
         );
     }
 
+    function _executeUpdateLatestCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) private {
+        bytes32 key = getPositionKey(_account, _indexToken, _isLong);
+        latestExecutedCollateral[key] = _collateralToken;
+    }
+
     function _crossBlockchainCall(
         uint256 _bcId,
         address _contract,
@@ -1653,6 +1663,14 @@ contract DptpFuturesGateway is
         returns (bytes32)
     {
         return keccak256(abi.encodePacked(_account, _index));
+    }
+
+    function getPositionKey(address _account, address _indexToken, bool _isLong)
+        public
+        pure
+        returns (bytes32)
+    {
+        return keccak256(abi.encodePacked(_account, _indexToken, _isLong));
     }
 
     function _getTPSLRequestKey(
@@ -1747,4 +1765,5 @@ contract DptpFuturesGateway is
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
+    mapping(bytes32 => address) public latestExecutedCollateral;
 }
