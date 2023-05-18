@@ -406,7 +406,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _updateCumulativeBorrowingRate(collateralToken, _indexToken);
 
         if (_feeToken > 0) {
-            _increaseFeeReservesToken(_path[0], _feeToken);
+            _increaseFeeReservesToken(collateralToken, _feeToken);
         }
     }
 
