@@ -27,7 +27,7 @@ contract ReferralRewardTracker is
 
     address public rewardToken;
     address public referralStorage;
-    uint256 public positionValidationInterval = 1800;
+    uint256 public positionValidationInterval;
 
     mapping(address => bool) isCounterParty;
     mapping(address => uint256) public claimableCommission;
@@ -54,6 +54,7 @@ contract ReferralRewardTracker is
         __Ownable_init();
         rewardToken = _rewardToken;
         referralStorage = _referralStorage;
+        positionValidationInterval = 1800;
     }
 
     function setRewardToken(address _address) external onlyOwner {
