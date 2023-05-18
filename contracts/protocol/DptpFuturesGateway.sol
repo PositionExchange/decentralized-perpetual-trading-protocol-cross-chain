@@ -15,11 +15,13 @@ import "../interfaces/IShortsTracker.sol";
 import "../interfaces/IGatewayUtils.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
+import "../interfaces/IFuturXGateway.sol";
 
 contract DptpFuturesGateway is
     PausableUpgradeable,
     OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
+    ReentrancyGuardUpgradeable,
+    IFuturXGateway
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint256;
@@ -178,14 +180,14 @@ contract DptpFuturesGateway is
     mapping(address => uint256) public decreasePositionsIndex;
     mapping(bytes32 => DecreasePositionRequest) public decreasePositionRequests;
 
-    mapping(address => uint256) public maxGlobalLongSizes;
-    mapping(address => uint256) public maxGlobalShortSizes;
+    mapping(address => uint256) public override maxGlobalLongSizes;
+    mapping(address => uint256) public override maxGlobalShortSizes;
 
     bytes32[] public increasePositionRequestKeys;
     bytes32[] public decreasePositionRequestKeys;
 
     uint256 public maxTimeDelay;
-    uint256 public executionFee;
+    uint256 public override executionFee;
 
     // mapping indexToken with positionManager
     mapping(address => address) public coreManagers;
@@ -258,6 +260,12 @@ contract DptpFuturesGateway is
             _indexToken,
             _sizeDeltaToken,
             _leverage,
+            _isLong
+        );
+        _updateLatestIncreasePendingCollateral(
+            msg.sender,
+            _path[_path.length - 1],
+            _indexToken,
             _isLong
         );
 
@@ -347,6 +355,12 @@ contract DptpFuturesGateway is
             _indexToken,
             _sizeDeltaToken,
             _leverage,
+            _isLong
+        );
+        _updateLatestIncreasePendingCollateral(
+            msg.sender,
+            _path[_path.length - 1],
+            _indexToken,
             _isLong
         );
 
@@ -495,12 +509,6 @@ contract DptpFuturesGateway is
         );
 
         _executeExecuteUpdatePositionData(_key);
-        _executeUpdateLatestCollateral(
-            request.account,
-            request.path[request.path.length - 1],
-            request.indexToken,
-            _isLong
-        );
     }
 
     function executeIncreaseLimitOrder(
@@ -528,12 +536,6 @@ contract DptpFuturesGateway is
         );
 
         _executeExecuteUpdatePositionData(_key);
-        _executeUpdateLatestCollateral(
-            request.account,
-            request.path[request.path.length - 1],
-            request.indexToken,
-            _isLong
-        );
     }
 
     function _executeIncreasePosition(
@@ -557,6 +559,13 @@ contract DptpFuturesGateway is
 
             _transferOut(collateralToken, amountInToken, vault);
         }
+
+        _updateLatestExecutedCollateral(
+            _account,
+            _path[_path.length - 1],
+            _indexToken,
+            _isLong
+        );
 
         _increasePosition(
             _account,
@@ -1613,7 +1622,7 @@ contract DptpFuturesGateway is
         );
     }
 
-    function _executeUpdateLatestCollateral(
+    function _updateLatestExecutedCollateral(
         address _account,
         address _collateralToken,
         address _indexToken,
@@ -1621,6 +1630,17 @@ contract DptpFuturesGateway is
     ) private {
         bytes32 key = getPositionKey(_account, _indexToken, _isLong);
         latestExecutedCollateral[key] = _collateralToken;
+        delete latestIncreasePendingCollateral[key];
+    }
+
+    function _updateLatestIncreasePendingCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) private {
+        bytes32 key = getPositionKey(_account, _indexToken, _isLong);
+        latestIncreasePendingCollateral[key] = _collateralToken;
     }
 
     function _crossBlockchainCall(
@@ -1665,11 +1685,20 @@ contract DptpFuturesGateway is
         return keccak256(abi.encodePacked(_account, _index));
     }
 
-    function getPositionKey(address _account, address _indexToken, bool _isLong)
-        public
-        pure
-        returns (bytes32)
-    {
+    function getLatestIncreasePendingCollateral(
+        address _account,
+        address _indexToken,
+        bool _isLong
+    ) public view override returns (address) {
+        bytes32 key = getPositionKey(_account, _indexToken, _isLong);
+        return latestIncreasePendingCollateral[key];
+    }
+
+    function getPositionKey(
+        address _account,
+        address _indexToken,
+        bool _isLong
+    ) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_account, _indexToken, _isLong));
     }
 
@@ -1766,4 +1795,5 @@ contract DptpFuturesGateway is
      */
     uint256[49] private __gap;
     mapping(bytes32 => address) public latestExecutedCollateral;
+    mapping(bytes32 => address) public latestIncreasePendingCollateral;
 }

@@ -221,10 +221,25 @@ contract GatewayUtils is
             _indexToken,
             _isLong
         );
-        if (position.collateralToken == address(0)) {
+        if (position.collateralToken != address(0)) {
+            _validate(
+                position.collateralToken == _collateralToken,
+                "collateral"
+            );
             return true;
         }
-        _validate(position.collateralToken == _collateralToken, "collateral");
+
+        // TODO: DPTP-496 missing case when cancel limit order, must clear pending collateral.
+//        address pendingCollateral = IFuturXGateway(futurXGateway)
+//            .getLatestIncreasePendingCollateral(_account, _indexToken, _isLong);
+//        if (pendingCollateral != address(0)) {
+//            _validate(
+//                _collateralToken == pendingCollateral,
+//                "invalid pending collateral"
+//            );
+//            return true;
+//        }
+
         return true;
     }
 
