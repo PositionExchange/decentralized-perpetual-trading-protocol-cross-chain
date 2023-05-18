@@ -40,7 +40,7 @@ contract ReferralStorage is
     event RegisterCode(address account, bytes32 code);
     event SetReferrerTier(address referrer, uint256 tierId);
     event SetTraderReferralCode(address account, bytes32 code);
-    event SetTraderStatus(address referrer, bool isActive);
+    event SetTraderStatus(address trader, bool isActive);
 
     modifier onlyAdmin() {
         require(isAdmin[msg.sender], "ReferralStorage: onlyAdmin");
@@ -122,21 +122,7 @@ contract ReferralStorage is
     }
 
     function setTraderReferralCode(bytes32 _code) external {
-        require(
-            traderReferralCodes[msg.sender] == bytes32(0),
-            "ReferralStorage: trader referral code already set"
-        );
-        address referrer = codes[_code];
-        require(referrer != address(0), "ReferralStorage: referrer not exists");
-        require(referrer != msg.sender, "ReferralStorage: self referred");
-        require(
-            referrerTiers[msg.sender] <= referrerTiers[referrer],
-            "ReferralStorage: must less than referrer tier"
-        );
-        require(
-            traderReferralCodes[referrer] != traderCodes[msg.sender],
-            "ReferralStorage: cannot refer user referrer"
-        );
+        _validateSetReferralRequest(msg.sender, _code);
         traderReferralCodes[msg.sender] = _code;
         traderStatus[msg.sender] = false;
         emit SetTraderReferralCode(msg.sender, _code);
@@ -148,6 +134,29 @@ contract ReferralStorage is
         address referrer = codes[traderReferralCodes[_trader]];
         Tier memory tier = tiers[referrerTiers[referrer]];
         return (referrer, tier.totalRebate, tier.discountShare);
+    }
+
+    function _validateSetReferralRequest(
+        address _trader,
+        bytes32 _code
+    ) internal {
+        require(
+            traderReferralCodes[_trader] == bytes32(0),
+            "ReferralStorage: trader referral code already set"
+        );
+        address referrer = codes[_code];
+        require(referrer != address(0), "ReferralStorage: referrer not exists");
+        require(referrer != _trader, "ReferralStorage: self referred");
+        require(
+            referrerTiers[_trader] <= referrerTiers[referrer],
+            "ReferralStorage: must less than referrer tier"
+        );
+        if (traderReferralCodes[referrer] != bytes32(0)){
+            require(
+                traderReferralCodes[referrer] != traderCodes[_trader],
+                "ReferralStorage: cannot refer user referrer"
+            );
+        }
     }
 }
 

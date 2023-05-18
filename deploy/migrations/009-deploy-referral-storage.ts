@@ -7,7 +7,7 @@ const migrations: MigrationDefinition = {
       await ctx.factory.createReferralStorage();
     },
 
-    "deploy referral reward tracker": async () => {
+    "deploy referral reward tracker ": async () => {
       const referralStorage= await ctx.factory.db.findAddressByKey("ReferralStorage");
       const rewardToken = await ctx.factory.db.findAddressByKey("USDT");
       await ctx.factory.createReferralRewardTracker(
@@ -18,7 +18,7 @@ const migrations: MigrationDefinition = {
       );
     },
 
-    "config after deploy referral reward tracker": async () => {
+    "config after deploy referral reward tracker ": async () => {
       const referralStorage= await ctx.factory.getDeployedContract<ReferralStorage>("ReferralStorage");
       const referralRewardTracker = await ctx.factory.getDeployedContract<ReferralRewardTracker>("ReferralRewardTracker")
       const dptpFuturesGateway = await ctx.factory.db.findAddressByKey("DptpFuturesGateway");
