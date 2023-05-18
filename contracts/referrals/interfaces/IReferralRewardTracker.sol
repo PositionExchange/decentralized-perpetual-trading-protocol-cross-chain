@@ -9,7 +9,6 @@ interface IReferralRewardTracker {
         address _trader,
         address _indexToken,
         uint256 _timestamp,
-        uint256 _size,
-        bool _isLong
+        bool _isIncrease
     ) external;
 }

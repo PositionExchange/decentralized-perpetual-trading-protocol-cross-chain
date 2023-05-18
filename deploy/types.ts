@@ -59,3 +59,8 @@ export interface CreateDptpFuturesGateway {
     gatewayUtils: string,
     executionFee: number,
 }
+
+export interface CreateReferralRewardTracker {
+    rewardToken: string,
+    referralStorage: string,
+}

@@ -24,36 +24,36 @@ contract ReferralRewardTracker is
     using Address for address payable;
 
     uint256 public constant BASIS_POINTS = 10000;
-    uint256 public constant VALIDATION_INTERVAL = 1800;
-
-    struct PositionInfo {
-        uint256 size;
-        uint256 timestamp;
-        bool isLong;
-    }
 
     address public rewardToken;
     address public referralStorage;
+    uint256 public positionValidationInterval = 1800;
 
     mapping(address => bool) isCounterParty;
     mapping(address => uint256) public claimableCommission;
     mapping(address => uint256) public claimableDiscount;
-    mapping(address => mapping(address => PositionInfo)) public positionInfo;
+    mapping(address => mapping(address => uint256)) public positionTimestamp;
 
     event SetRewardToken(address rewardToken);
     event SetCounterParty(address counterParty, bool isActive);
     event ClaimCommission(address receiver, uint256 amount);
     event ClaimDiscount(address receiver, uint256 amount);
+    event UpdateClaimableCommissionReward(address _trader, uint256 amount);
+    event UpdateClaimableDiscountReward(address _trader, uint256 amount);
 
     modifier onlyCounterParty() {
         require(isCounterParty[msg.sender],"ReferralStorage: onlyCounterParty");
         _;
     }
 
-    function initialize(address _rewardToken) public initializer {
+    function initialize(
+        address _rewardToken,
+        address _referralStorage
+    ) public initializer {
         __ReentrancyGuard_init();
         __Ownable_init();
         rewardToken = _rewardToken;
+        referralStorage = _referralStorage;
     }
 
     function setRewardToken(address _address) external onlyOwner {
@@ -64,6 +64,10 @@ contract ReferralRewardTracker is
     function setCounterParty(address _address, bool _isActive) external onlyOwner {
         isCounterParty[_address] = _isActive;
         emit SetCounterParty(_address, _isActive);
+    }
+
+    function setPositionValidationInterval(uint256 _interval) external onlyOwner {
+        positionValidationInterval = _interval;
     }
 
     function claimCommission() external nonReentrant {
@@ -97,41 +101,40 @@ contract ReferralRewardTracker is
 
         (address referrer, uint256 rebate, uint256 discount) =
             IReferralStorage(referralStorage).getReferrerInfo(_trader);
-        claimableCommission[referrer].add(_fee.mul(rebate).div(BASIS_POINTS));
-        claimableDiscount[_trader].add(_fee.mul(discount).div(BASIS_POINTS));
+
+        uint256 commissionAmount = _fee.mul(rebate).div(BASIS_POINTS);
+        claimableCommission[referrer] = claimableCommission[referrer].add(commissionAmount);
+
+        uint256 discountAmount = _fee.mul(discount).div(BASIS_POINTS);
+        claimableDiscount[_trader] = claimableDiscount[_trader].add(discountAmount);
+
+        emit UpdateClaimableCommissionReward(_trader, commissionAmount);
+        emit UpdateClaimableDiscountReward(_trader, discountAmount);
     }
 
     function updateRefereeStatus(
         address _trader,
         address _indexToken,
         uint256 _timestamp,
-        uint256 _size,
-        bool _isLong
+        bool _isIncrease
     ) external nonReentrant onlyCounterParty {
         bool isActive = IReferralStorage(referralStorage).traderStatus(_trader);
         if (isActive) {
             return;
         }
 
-        PositionInfo memory position = positionInfo[_trader][_indexToken];
-        if (position.timestamp == 0) {
-            position.timestamp = _timestamp;
-            position.size = _size;
-            position.isLong = _isLong;
-            positionInfo[_trader][_indexToken] = position;
+        uint256 createTimestamp = positionTimestamp[_trader][_indexToken];
+        if (createTimestamp == 0) {
+            positionTimestamp[_trader][_indexToken] = _timestamp;
             return;
         }
 
-        if (position.isLong == _isLong) {
+        if (_isIncrease){
             return;
         }
 
-        if (position.size.sub(_size) > 0) {
-            return;
-        }
-
-        if (_timestamp.sub(position.timestamp)  > VALIDATION_INTERVAL) {
-            delete positionInfo[_trader][_indexToken];
+        delete positionTimestamp[_trader][_indexToken];
+        if (_timestamp.sub(createTimestamp)  > positionValidationInterval) {
             IReferralStorage(referralStorage).setTraderStatus(_trader,true);
         }
     }

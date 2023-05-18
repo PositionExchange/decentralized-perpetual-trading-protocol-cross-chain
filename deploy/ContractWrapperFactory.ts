@@ -3,6 +3,7 @@ import {
   CreateDptpFuturesGateway,
   CreateFuturesAdapter,
   CreateFuturesGateway,
+  CreateReferralRewardTracker
 } from "./types";
 import { DeployDataStore } from "./DataStore";
 import { verifyContract } from "../scripts/utils";
@@ -24,6 +25,7 @@ import {
   VaultPriceFeed,
   VaultUtils,
   WETH,
+  ReferralRewardTracker,
 } from "../typeChain";
 import { ContractConfig } from "./shared/PreDefinedContractAddress";
 import { ethers as ethersE } from "ethers";
@@ -482,7 +484,7 @@ export class ContractWrapperFactory {
         }
     }
 
-    async createReferralStorage(vault: string) {
+    async createReferralStorage() {
         const contractName = 'ReferralStorage';
         const factory = await this.hre.ethers.getContractFactory(contractName);
         const contractAddress = await this.db.findAddressByKey(contractName);
@@ -522,6 +524,36 @@ export class ContractWrapperFactory {
                 vaultUtilsAddress,
                 vaultPriceFeedAddress,
                 usdpAddress,
+            ];
+            const instance = await this.hre.upgrades.deployProxy(
+                factory,
+                contractArgs
+            );
+            console.log(`wait for deploy ${contractName}`);
+            await instance.deployed();
+            const address = instance.address.toString();
+            console.log(`Address ${contractName}: ${address}`);
+            await this.db.saveAddressByKey(contractName, address);
+            await this.verifyProxy(address);
+        }
+    }
+
+    async createReferralRewardTracker(arg: CreateReferralRewardTracker){
+        const contractName = 'ReferralRewardTracker';
+        const factory = await this.hre.ethers.getContractFactory(contractName);
+        const contractAddress = await this.db.findAddressByKey(contractName);
+        if (contractAddress) {
+            const upgraded = await this.hre.upgrades.upgradeProxy(
+                contractAddress,
+                factory
+            );
+            console.log(`Starting verify upgrade ${contractName}`);
+            await this.verifyImplContract(upgraded.deployTransaction);
+            console.log(`Upgrade ${contractName}`);
+        } else {
+            const contractArgs = [
+                arg.rewardToken,
+                arg.referralStorage,
             ];
             const instance = await this.hre.upgrades.deployProxy(
                 factory,
