@@ -29,7 +29,7 @@ contract ReferralRewardTracker is
     address public referralStorage;
     uint256 public positionValidationInterval;
 
-    mapping(address => bool) isCounterParty;
+    mapping(address => bool) public isCounterParty;
     mapping(address => uint256) public claimableCommission;
     mapping(address => uint256) public claimableDiscount;
     mapping(address => mapping(address => uint256)) public positionTimestamp;
