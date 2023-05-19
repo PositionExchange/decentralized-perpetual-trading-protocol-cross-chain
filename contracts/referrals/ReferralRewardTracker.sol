@@ -29,7 +29,7 @@ contract ReferralRewardTracker is
     address public referralStorage;
     uint256 public positionValidationInterval;
 
-    mapping(address => bool) isCounterParty;
+    mapping(address => bool) public isCounterParty;
     mapping(address => uint256) public claimableCommission;
     mapping(address => uint256) public claimableDiscount;
     mapping(address => mapping(address => uint256)) public positionTimestamp;
@@ -38,7 +38,7 @@ contract ReferralRewardTracker is
     event SetCounterParty(address counterParty, bool isActive);
     event ClaimCommission(address receiver, uint256 amount);
     event ClaimDiscount(address receiver, uint256 amount);
-    event UpdateClaimableCommissionReward(address _trader, uint256 amount);
+    event UpdateClaimableCommissionReward(address referrer, address _trader, uint256 amount);
     event UpdateClaimableDiscountReward(address _trader, uint256 amount);
 
     modifier onlyCounterParty() {
@@ -109,7 +109,7 @@ contract ReferralRewardTracker is
         uint256 discountAmount = _fee.mul(discount).div(BASIS_POINTS);
         claimableDiscount[_trader] = claimableDiscount[_trader].add(discountAmount);
 
-        emit UpdateClaimableCommissionReward(_trader, commissionAmount);
+        emit UpdateClaimableCommissionReward(referrer, _trader, commissionAmount);
         emit UpdateClaimableDiscountReward(_trader, discountAmount);
     }
 
