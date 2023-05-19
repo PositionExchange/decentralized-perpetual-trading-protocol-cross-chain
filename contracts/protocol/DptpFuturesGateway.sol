@@ -810,7 +810,6 @@ contract DptpFuturesGateway is
         uint256 _entryPrice,
         bool _isLong
     ) private {
-
         IncreasePositionRequest memory request = increasePositionRequests[_key];
         Require._require(request.account != address(0), "404");
 
@@ -1504,42 +1503,61 @@ contract DptpFuturesGateway is
         bool _isLong,
         bool _isLimitOrder
     ) internal returns (uint256, uint256) {
-        uint256 positionFeeUsd;
-        uint256 borrowingFeeUsd;
-        uint256 swapFeeUsd;
-        uint256 totalFeeUsd;
-        {
-            address account = _account;
-            address[] memory path = _path;
-            address indexToken = _indexToken;
-            uint256 amountInToken = _amountInToken;
-            uint256 amountInUsd = _amountInUsd;
-            uint16 leverage = _leverage;
-            bool isLong = _isLong;
-            bool isLimitOrder = _isLimitOrder;
-            (
-                positionFeeUsd,
-                borrowingFeeUsd,
-                swapFeeUsd,
-                totalFeeUsd
-            ) = IGatewayUtils(gatewayUtils).calculateMarginFees(
-                    account,
-                    path,
-                    indexToken,
-                    isLong,
-                    amountInToken,
-                    amountInUsd,
-                    leverage,
-                    isLimitOrder
+        (
+            uint256 positionFeeUsd,
+            uint256 borrowingFeeUsd,
+            uint256 swapFeeUsd,
+            uint256 totalFeeUsd
+        ) = _calculateMarginFees(
+                _account,
+                _path,
+                _indexToken,
+                _isLong,
+                _amountInToken,
+                _amountInUsd,
+                _leverage,
+                _isLimitOrder
             );
-        }
+
         emit CollectFees(
             _amountInToken,
             positionFeeUsd,
             borrowingFeeUsd,
             swapFeeUsd
         );
-        return (positionFeeUsd,totalFeeUsd);
+        return (positionFeeUsd, totalFeeUsd);
+    }
+
+    function _calculateMarginFees(
+        address _account,
+        address[] memory _path,
+        address _indexToken,
+        bool _isLong,
+        uint256 _amountInToken,
+        uint256 _amountInUsd,
+        uint256 _leverage,
+        bool _isLimitOrder
+    )
+        private
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        return
+            IGatewayUtils(gatewayUtils).calculateMarginFees(
+                _account,
+                _path,
+                _indexToken,
+                _isLong,
+                _amountInToken,
+                _amountInUsd,
+                _leverage,
+                _isLimitOrder
+            );
     }
 
     function _storeIncreasePositionRequest(
