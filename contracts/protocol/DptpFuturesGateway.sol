@@ -715,39 +715,65 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         uint256 _entryPrice,
         bool _isLong
-    ) external payable nonReentrant {
+    ) external nonReentrant {
         _validateCaller(msg.sender);
 
         if (_isReduce) {
-            if (_sizeDeltaToken == 0) {
-                _deleteDecreasePositionRequests(_key);
-                return;
-            }
-
-            if (_amountOutUsd == 0) {
-                return;
-            }
-
-            DecreasePositionRequest memory request = decreasePositionRequests[
-                _key
-            ];
-            Require._require(request.account != address(0), "404");
-
-            _deleteDecreasePositionRequests(_key);
-
-            _executeDecreasePosition(
-                request.account,
-                request.path,
-                request.indexToken,
+            _cancelReduceOrder(
+                _key,
                 _amountOutUsd,
-                0,
-                _entryPrice,
                 _sizeDeltaToken,
+                _entryPrice,
                 _isLong
             );
-
             return;
         }
+
+        _cancelIncreaseOrder(
+            _key,
+            _amountOutUsd,
+            _sizeDeltaToken,
+            _entryPrice,
+            _isLong
+        );
+    }
+
+    function _cancelReduceOrder(
+        bytes32 _key,
+        uint256 _amountOutUsd,
+        uint256 _sizeDeltaToken,
+        uint256 _entryPrice,
+        bool _isLong
+    ) private {
+        if (_sizeDeltaToken == 0 || _amountOutUsd == 0) {
+            _deleteDecreasePositionRequests(_key);
+            return;
+        }
+
+        DecreasePositionRequest memory request = decreasePositionRequests[_key];
+        Require._require(request.account != address(0), "404");
+
+        _deleteDecreasePositionRequests(_key);
+
+        _executeDecreasePosition(
+            request.account,
+            request.path,
+            request.indexToken,
+            _amountOutUsd,
+            0,
+            _entryPrice,
+            _sizeDeltaToken,
+            _isLong
+        );
+    }
+
+    function _cancelIncreaseOrder(
+        bytes32 _key,
+        uint256 _amountOutUsd,
+        uint256 _sizeDeltaToken,
+        uint256 _entryPrice,
+        bool _isLong
+    ) private {
 
         IncreasePositionRequest memory request = increasePositionRequests[_key];
         Require._require(request.account != address(0), "404");
@@ -833,26 +859,24 @@ contract DptpFuturesGateway is
         _amountInToken = _adjustDecimalToToken(paidToken, _amountInToken);
         _transferIn(paidToken, _amountInToken);
 
+        uint256 swapFeeToken = paidToken == collateralToken
+            ? 0
+            : IGatewayUtils(gatewayUtils).getSwapFee(_path, _amountInToken);
+
         bytes32 requestKey;
-        uint256 swapFeeUsd;
-        if (paidToken != collateralToken) {
-            uint256 swapFee = IGatewayUtils(gatewayUtils).getSwapFee(
-                _path,
-                _amountInToken
-            );
+        {
             AddCollateralRequest memory request = AddCollateralRequest(
                 msg.sender,
                 _path,
                 _indexToken,
                 _amountInToken,
                 _isLong,
-                swapFee
+                swapFeeToken
             );
             (, requestKey) = _storeAddCollateralRequest(request);
-
-            swapFeeUsd = _tokenToUsdMin(collateralToken, swapFee);
         }
 
+        uint256 swapFeeUsd = _tokenToUsdMin(collateralToken, swapFeeToken);
         uint256 amountInUsd = _tokenToUsdMin(paidToken, _amountInToken).sub(
             swapFeeUsd
         );
@@ -1020,32 +1044,20 @@ contract DptpFuturesGateway is
                 _getTPSLRequestKey(msg.sender, _indexToken, true),
                 requestKey
             );
-            //            TPSLRequestMap[
-            //                _getTPSLRequestKey(msg.sender, _indexToken, true)
-            //            ] = requestKey;
         } else if (_option == SetTPSLOption.ONLY_LOWER) {
             _setTPSLToMap(
                 _getTPSLRequestKey(msg.sender, _indexToken, false),
                 requestKey
             );
-            //            TPSLRequestMap[
-            //                _getTPSLRequestKey(msg.sender, _indexToken, false)
-            //            ] = requestKey;
         } else if (_option == SetTPSLOption.BOTH) {
             _setTPSLToMap(
                 _getTPSLRequestKey(msg.sender, _indexToken, true),
                 requestKey
             );
-            //            TPSLRequestMap[
-            //                _getTPSLRequestKey(msg.sender, _indexToken, true)
-            //            ] = requestKey;
             _setTPSLToMap(
                 _getTPSLRequestKey(msg.sender, _indexToken, false),
                 requestKey
             );
-            //            TPSLRequestMap[
-            //                _getTPSLRequestKey(msg.sender, _indexToken, false)
-            //            ] = requestKey;
         }
         _crossBlockchainCall(
             pcsId,
