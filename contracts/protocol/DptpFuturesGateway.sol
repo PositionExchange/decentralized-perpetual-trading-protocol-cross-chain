@@ -16,6 +16,7 @@ import "../interfaces/IGatewayUtils.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
 import "../interfaces/IFuturXGateway.sol";
+import "../referrals/interfaces/IReferralRewardTracker.sol";
 
 contract DptpFuturesGateway is
     PausableUpgradeable,
@@ -131,6 +132,7 @@ contract DptpFuturesGateway is
         bool hasCollateralInETH;
         uint256 amountInToken;
         uint256 feeUsd;
+        uint256 positionFeeUsd;
     }
 
     struct DecreasePositionRequest {
@@ -152,6 +154,7 @@ contract DptpFuturesGateway is
         uint16 leverage;
         bool isLong;
         bool hasCollateralInETH;
+        uint256 positionFeeUsd;
     }
 
     struct AddCollateralRequest {
@@ -272,7 +275,7 @@ contract DptpFuturesGateway is
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
         uint256 amountInToken = _usdToTokenMin(_path[0], _amountInUsd);
 
-        uint256 totalFeeUsd = _collectFees(
+        (uint256 positionFeeUsd, uint256 totalFeeUsd) = _collectFees(
             msg.sender,
             _path,
             _indexToken,
@@ -302,7 +305,8 @@ contract DptpFuturesGateway is
             0,
             _leverage,
             _isLong,
-            false
+            false,
+            positionFeeUsd
         );
         return _createIncreasePosition(params);
     }
@@ -367,7 +371,7 @@ contract DptpFuturesGateway is
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
         uint256 amountInToken = _usdToTokenMin(_path[0], _amountInUsd);
 
-        uint256 totalFeeUsd = _collectFees(
+        (uint256 positionFeeUsd, uint256 totalFeeUsd) = _collectFees(
             msg.sender,
             _path,
             _indexToken,
@@ -397,7 +401,8 @@ contract DptpFuturesGateway is
             _pip,
             _leverage,
             _isLong,
-            false
+            false,
+            positionFeeUsd
         );
 
         return _createIncreasePosition(params);
@@ -508,6 +513,17 @@ contract DptpFuturesGateway is
             _isLong
         );
 
+        IReferralRewardTracker(referralRewardTracker).updateRefereeStatus(
+            request.account,
+            request.indexToken,
+            block.timestamp,
+            true
+        );
+        IReferralRewardTracker(referralRewardTracker).updateClaimableReward(
+            request.account,
+            request.positionFeeUsd
+        );
+
         _executeExecuteUpdatePositionData(_key);
     }
 
@@ -533,6 +549,17 @@ contract DptpFuturesGateway is
             _entryPrice,
             _sizeDeltaInToken,
             _isLong
+        );
+
+        IReferralRewardTracker(referralRewardTracker).updateRefereeStatus(
+            request.account,
+            request.indexToken,
+            block.timestamp,
+            true
+        );
+        IReferralRewardTracker(referralRewardTracker).updateClaimableReward(
+            request.account,
+            request.positionFeeUsd
         );
 
         _executeExecuteUpdatePositionData(_key);
@@ -639,6 +666,15 @@ contract DptpFuturesGateway is
         );
 
         _transferOutETH(executionFee, payable(msg.sender));
+
+        if (_entryPrice == 0) {
+            IReferralRewardTracker(referralRewardTracker).updateRefereeStatus(
+                _account,
+                _indexToken,
+                block.timestamp,
+                true
+            );
+        }
 
         emit ExecuteDecreasePosition(
             _account,
@@ -1321,7 +1357,8 @@ contract DptpFuturesGateway is
             param.indexToken,
             param.hasCollateralInETH,
             param.amountInAfterFeeToken,
-            param.feeInUsd
+            param.feeInUsd,
+            param.positionFeeUsd
         );
 
         (, bytes32 requestKey) = _storeIncreasePositionRequest(request);
@@ -1466,29 +1503,43 @@ contract DptpFuturesGateway is
         uint16 _leverage,
         bool _isLong,
         bool _isLimitOrder
-    ) internal returns (uint256) {
-        (
-            uint256 positionFeeUsd,
-            uint256 borrowingFeeUsd,
-            uint256 swapFeeUsd,
-            uint256 totalFeeUsd
-        ) = IGatewayUtils(gatewayUtils).calculateMarginFees(
-                _account,
-                _path,
-                _indexToken,
-                _isLong,
-                _amountInToken,
-                _amountInUsd,
-                _leverage,
-                _isLimitOrder
+    ) internal returns (uint256, uint256) {
+        uint256 positionFeeUsd;
+        uint256 borrowingFeeUsd;
+        uint256 swapFeeUsd;
+        uint256 totalFeeUsd;
+        {
+            address account = _account;
+            address[] memory path = _path;
+            address indexToken = _indexToken;
+            uint256 amountInToken = _amountInToken;
+            uint256 amountInUsd = _amountInUsd;
+            uint16 leverage = _leverage;
+            bool isLong = _isLong;
+            bool isLimitOrder = _isLimitOrder;
+            (
+                positionFeeUsd,
+                borrowingFeeUsd,
+                swapFeeUsd,
+                totalFeeUsd
+            ) = IGatewayUtils(gatewayUtils).calculateMarginFees(
+                    account,
+                    path,
+                    indexToken,
+                    isLong,
+                    amountInToken,
+                    amountInUsd,
+                    leverage,
+                    isLimitOrder
             );
+        }
         emit CollectFees(
             _amountInToken,
             positionFeeUsd,
             borrowingFeeUsd,
             swapFeeUsd
         );
-        return totalFeeUsd;
+        return (positionFeeUsd,totalFeeUsd);
     }
 
     function _storeIncreasePositionRequest(
@@ -1792,6 +1843,10 @@ contract DptpFuturesGateway is
         maxGlobalLongSizes[_token] = _amount;
     }
 
+    function setReferralRewardTracker(address _address) external onlyOwner {
+        referralRewardTracker = _address;
+    }
+
     function pause() external onlyOwner {
         _pause();
     }
@@ -1808,4 +1863,5 @@ contract DptpFuturesGateway is
     uint256[49] private __gap;
     mapping(bytes32 => address) public latestExecutedCollateral;
     mapping(bytes32 => address) public latestIncreasePendingCollateral;
+    address public referralRewardTracker;
 }
