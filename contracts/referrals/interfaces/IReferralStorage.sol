@@ -12,10 +12,17 @@ interface IReferralStorage {
     ) external view returns (bytes32);
 
     function referrerTiers(address _account) external view returns (uint256);
+    function traderStatus(address _account) external view returns (bool);
 
     function setTier(
         uint256 _tierId,
         uint256 _totalRebate,
         uint256 _discountShare
     ) external;
+
+    function setTraderStatus(address _trader, bool _isActive) external;
+
+    function getReferrerInfo(
+        address _trader
+    ) external view returns (address,uint256,uint256);
 }

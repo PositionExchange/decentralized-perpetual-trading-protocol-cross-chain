@@ -85,4 +85,14 @@ describe("ReferralStorage", function() {
       expect(referralStorage.connect(user1).setTraderReferralCode(userCode)).
       to.be.revertedWith("ReferralStorage: cannot refer user referrer")
   })
+
+    it("setRefereeStatus", async () => {
+        expect(await referralStorage.isCounterParty(admin.address)).to.be.false
+        await referralStorage.setCounterParty(admin.address, true)
+        expect(await referralStorage.isCounterParty(admin.address)).to.be.true
+
+        expect(await referralStorage.traderStatus(user.address)).to.be.false
+        await referralStorage.connect(admin).setTraderStatus(user.address, true)
+        expect(await referralStorage.traderStatus(user.address)).to.be.true
+    })
 })
