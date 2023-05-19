@@ -15,11 +15,13 @@ import "../interfaces/IShortsTracker.sol";
 import "../interfaces/IGatewayUtils.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
+import "../interfaces/IFuturXGateway.sol";
 
 contract DptpFuturesGateway is
     PausableUpgradeable,
     OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
+    ReentrancyGuardUpgradeable,
+    IFuturXGateway
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint256;
@@ -178,14 +180,14 @@ contract DptpFuturesGateway is
     mapping(address => uint256) public decreasePositionsIndex;
     mapping(bytes32 => DecreasePositionRequest) public decreasePositionRequests;
 
-    mapping(address => uint256) public maxGlobalLongSizes;
-    mapping(address => uint256) public maxGlobalShortSizes;
+    mapping(address => uint256) public override maxGlobalLongSizes;
+    mapping(address => uint256) public override maxGlobalShortSizes;
 
     bytes32[] public increasePositionRequestKeys;
     bytes32[] public decreasePositionRequestKeys;
 
     uint256 public maxTimeDelay;
-    uint256 public executionFee;
+    uint256 public override executionFee;
 
     // mapping indexToken with positionManager
     mapping(address => address) public coreManagers;
@@ -258,6 +260,12 @@ contract DptpFuturesGateway is
             _indexToken,
             _sizeDeltaToken,
             _leverage,
+            _isLong
+        );
+        _updateLatestIncreasePendingCollateral(
+            msg.sender,
+            _path[_path.length - 1],
+            _indexToken,
             _isLong
         );
 
@@ -347,6 +355,12 @@ contract DptpFuturesGateway is
             _indexToken,
             _sizeDeltaToken,
             _leverage,
+            _isLong
+        );
+        _updateLatestIncreasePendingCollateral(
+            msg.sender,
+            _path[_path.length - 1],
+            _indexToken,
             _isLong
         );
 
@@ -495,12 +509,6 @@ contract DptpFuturesGateway is
         );
 
         _executeExecuteUpdatePositionData(_key);
-        _executeUpdateLatestCollateral(
-            request.account,
-            request.path[request.path.length - 1],
-            request.indexToken,
-            _isLong
-        );
     }
 
     function executeIncreaseLimitOrder(
@@ -528,12 +536,6 @@ contract DptpFuturesGateway is
         );
 
         _executeExecuteUpdatePositionData(_key);
-        _executeUpdateLatestCollateral(
-            request.account,
-            request.path[request.path.length - 1],
-            request.indexToken,
-            _isLong
-        );
     }
 
     function _executeIncreasePosition(
@@ -557,6 +559,13 @@ contract DptpFuturesGateway is
 
             _transferOut(collateralToken, amountInToken, vault);
         }
+
+        _updateLatestExecutedCollateral(
+            _account,
+            _path[_path.length - 1],
+            _indexToken,
+            _isLong
+        );
 
         _increasePosition(
             _account,
@@ -706,39 +715,65 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         uint256 _entryPrice,
         bool _isLong
-    ) external payable nonReentrant {
+    ) external nonReentrant {
         _validateCaller(msg.sender);
 
         if (_isReduce) {
-            if (_sizeDeltaToken == 0) {
-                _deleteDecreasePositionRequests(_key);
-                return;
-            }
-
-            if (_amountOutUsd == 0) {
-                return;
-            }
-
-            DecreasePositionRequest memory request = decreasePositionRequests[
-                _key
-            ];
-            Require._require(request.account != address(0), "404");
-
-            _deleteDecreasePositionRequests(_key);
-
-            _executeDecreasePosition(
-                request.account,
-                request.path,
-                request.indexToken,
+            _cancelReduceOrder(
+                _key,
                 _amountOutUsd,
-                0,
-                _entryPrice,
                 _sizeDeltaToken,
+                _entryPrice,
                 _isLong
             );
-
             return;
         }
+
+        _cancelIncreaseOrder(
+            _key,
+            _amountOutUsd,
+            _sizeDeltaToken,
+            _entryPrice,
+            _isLong
+        );
+    }
+
+    function _cancelReduceOrder(
+        bytes32 _key,
+        uint256 _amountOutUsd,
+        uint256 _sizeDeltaToken,
+        uint256 _entryPrice,
+        bool _isLong
+    ) private {
+        if (_sizeDeltaToken == 0 || _amountOutUsd == 0) {
+            _deleteDecreasePositionRequests(_key);
+            return;
+        }
+
+        DecreasePositionRequest memory request = decreasePositionRequests[_key];
+        Require._require(request.account != address(0), "404");
+
+        _deleteDecreasePositionRequests(_key);
+
+        _executeDecreasePosition(
+            request.account,
+            request.path,
+            request.indexToken,
+            _amountOutUsd,
+            0,
+            _entryPrice,
+            _sizeDeltaToken,
+            _isLong
+        );
+    }
+
+    function _cancelIncreaseOrder(
+        bytes32 _key,
+        uint256 _amountOutUsd,
+        uint256 _sizeDeltaToken,
+        uint256 _entryPrice,
+        bool _isLong
+    ) private {
 
         IncreasePositionRequest memory request = increasePositionRequests[_key];
         Require._require(request.account != address(0), "404");
@@ -824,26 +859,24 @@ contract DptpFuturesGateway is
         _amountInToken = _adjustDecimalToToken(paidToken, _amountInToken);
         _transferIn(paidToken, _amountInToken);
 
+        uint256 swapFeeToken = paidToken == collateralToken
+            ? 0
+            : IGatewayUtils(gatewayUtils).getSwapFee(_path, _amountInToken);
+
         bytes32 requestKey;
-        uint256 swapFeeUsd;
-        if (paidToken != collateralToken) {
-            uint256 swapFee = IGatewayUtils(gatewayUtils).getSwapFee(
-                _path,
-                _amountInToken
-            );
+        {
             AddCollateralRequest memory request = AddCollateralRequest(
                 msg.sender,
                 _path,
                 _indexToken,
                 _amountInToken,
                 _isLong,
-                swapFee
+                swapFeeToken
             );
             (, requestKey) = _storeAddCollateralRequest(request);
-
-            swapFeeUsd = _tokenToUsdMin(collateralToken, swapFee);
         }
 
+        uint256 swapFeeUsd = _tokenToUsdMin(collateralToken, swapFeeToken);
         uint256 amountInUsd = _tokenToUsdMin(paidToken, _amountInToken).sub(
             swapFeeUsd
         );
@@ -1011,32 +1044,20 @@ contract DptpFuturesGateway is
                 _getTPSLRequestKey(msg.sender, _indexToken, true),
                 requestKey
             );
-            //            TPSLRequestMap[
-            //                _getTPSLRequestKey(msg.sender, _indexToken, true)
-            //            ] = requestKey;
         } else if (_option == SetTPSLOption.ONLY_LOWER) {
             _setTPSLToMap(
                 _getTPSLRequestKey(msg.sender, _indexToken, false),
                 requestKey
             );
-            //            TPSLRequestMap[
-            //                _getTPSLRequestKey(msg.sender, _indexToken, false)
-            //            ] = requestKey;
         } else if (_option == SetTPSLOption.BOTH) {
             _setTPSLToMap(
                 _getTPSLRequestKey(msg.sender, _indexToken, true),
                 requestKey
             );
-            //            TPSLRequestMap[
-            //                _getTPSLRequestKey(msg.sender, _indexToken, true)
-            //            ] = requestKey;
             _setTPSLToMap(
                 _getTPSLRequestKey(msg.sender, _indexToken, false),
                 requestKey
             );
-            //            TPSLRequestMap[
-            //                _getTPSLRequestKey(msg.sender, _indexToken, false)
-            //            ] = requestKey;
         }
         _crossBlockchainCall(
             pcsId,
@@ -1613,7 +1634,7 @@ contract DptpFuturesGateway is
         );
     }
 
-    function _executeUpdateLatestCollateral(
+    function _updateLatestExecutedCollateral(
         address _account,
         address _collateralToken,
         address _indexToken,
@@ -1621,6 +1642,17 @@ contract DptpFuturesGateway is
     ) private {
         bytes32 key = getPositionKey(_account, _indexToken, _isLong);
         latestExecutedCollateral[key] = _collateralToken;
+        delete latestIncreasePendingCollateral[key];
+    }
+
+    function _updateLatestIncreasePendingCollateral(
+        address _account,
+        address _collateralToken,
+        address _indexToken,
+        bool _isLong
+    ) private {
+        bytes32 key = getPositionKey(_account, _indexToken, _isLong);
+        latestIncreasePendingCollateral[key] = _collateralToken;
     }
 
     function _crossBlockchainCall(
@@ -1665,11 +1697,20 @@ contract DptpFuturesGateway is
         return keccak256(abi.encodePacked(_account, _index));
     }
 
-    function getPositionKey(address _account, address _indexToken, bool _isLong)
-        public
-        pure
-        returns (bytes32)
-    {
+    function getLatestIncreasePendingCollateral(
+        address _account,
+        address _indexToken,
+        bool _isLong
+    ) public view override returns (address) {
+        bytes32 key = getPositionKey(_account, _indexToken, _isLong);
+        return latestIncreasePendingCollateral[key];
+    }
+
+    function getPositionKey(
+        address _account,
+        address _indexToken,
+        bool _isLong
+    ) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_account, _indexToken, _isLong));
     }
 
@@ -1766,4 +1807,5 @@ contract DptpFuturesGateway is
      */
     uint256[49] private __gap;
     mapping(bytes32 => address) public latestExecutedCollateral;
+    mapping(bytes32 => address) public latestIncreasePendingCollateral;
 }

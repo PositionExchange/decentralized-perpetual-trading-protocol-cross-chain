@@ -1,6 +1,7 @@
 import { MigrationContext, MigrationDefinition } from "../types";
 import {
-  DptpFuturesGateway, GatewayUtils,
+  DptpFuturesGateway,
+  GatewayUtils,
   LpManager,
   MockToken,
   RewardRouter,
@@ -21,6 +22,13 @@ const migrations: MigrationDefinition = {
         await ctx.factory.createMockToken("DAI", "DAI", 18);
         await ctx.factory.createMockToken("LINK", "LINK", 18);
         await ctx.factory.createMockToken("USDC", "USDC", 6);
+      },
+      "upgrade vault": async () => {
+        const vault = await ctx.db.findAddressByKey("Vault");
+        if (vault) {
+          await ctx.factory.createVault("", "", "");
+          return;
+        }
       },
       "deploy core vault & config": async () => {
         const { usdp, plp, vaultUtils, vaultPriceFeed, vault, plpManager } =
@@ -113,9 +121,8 @@ const migrations: MigrationDefinition = {
         const vaultUtils = await ctx.factory.getDeployedContract<VaultUtils>(
           "VaultUtils"
         );
-        const gatewayUtils = await ctx.factory.getDeployedContract<GatewayUtils>(
-          "GatewayUtils"
-        );
+        const gatewayUtils =
+          await ctx.factory.getDeployedContract<GatewayUtils>("GatewayUtils");
         const rewardRouter =
           await ctx.factory.getDeployedContract<RewardRouter>("RewardRouter");
 
@@ -164,10 +171,7 @@ const migrations: MigrationDefinition = {
         tx = btc.mint(deployerAddress, BigNumber.from("10000000000"));
         await ctx.factory.waitTx(tx, "btc.mint");
 
-        tx = btc.approve(
-          lpManager.address,
-          BigNumber.from("10000000000")
-        );
+        tx = btc.approve(lpManager.address, BigNumber.from("10000000000"));
         await ctx.factory.waitTx(tx, "btc.approve");
 
         tx = lpManager.addLiquidity(
@@ -204,16 +208,10 @@ const migrations: MigrationDefinition = {
         // EOF Add liquidity LINK //
         ///////////////////////////
 
-        tx = usdt.mint(
-          deployerAddress,
-          BigNumber.from("100000000000")
-        );
+        tx = usdt.mint(deployerAddress, BigNumber.from("100000000000"));
         await ctx.factory.waitTx(tx, "usdt.mint");
 
-        tx = usdt.approve(
-          lpManager.address,
-          BigNumber.from("100000000000")
-        );
+        tx = usdt.approve(lpManager.address, BigNumber.from("100000000000"));
         await ctx.factory.waitTx(tx, "usdt.approve");
 
         tx = lpManager.addLiquidity(
@@ -232,18 +230,18 @@ const migrations: MigrationDefinition = {
           );
         const weth = await ctx.factory.getDeployedContract<WETH>("WETH");
 
-        const signers = await ctx.hre.ethers.getSigners()
+        const signers = await ctx.hre.ethers.getSigners();
 
         const amount = BigNumber.from("100000000000000000000");
 
         for (const signer of signers) {
           await ctx.factory.waitTx(
-              weth.mint(signer.address, amount),
-              `minting weth for ${signer.address}`
+            weth.mint(signer.address, amount),
+            `minting weth for ${signer.address}`
           );
           await ctx.factory.waitTx(
-              weth.approve(gateway.address, amount),
-              `minting weth for ${signer.address}`
+            weth.approve(gateway.address, amount),
+            `minting weth for ${signer.address}`
           );
         }
 
