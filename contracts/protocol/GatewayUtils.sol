@@ -221,7 +221,7 @@ contract GatewayUtils is
             _indexToken,
             _isLong
         );
-        if (position.collateralToken != address(0)) {
+        if (position.reservedAmount > 0 && position.collateralToken != address(0)) {
             _validate(
                 position.collateralToken == _collateralToken,
                 "collateral"

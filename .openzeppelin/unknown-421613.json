@@ -38298,7 +38298,7 @@
             "label": "positionManagerConfigData",
             "offset": 0,
             "slot": "203",
-            "type": "t_mapping(t_address,t_struct(ManagerData)4399_storage)",
+            "type": "t_mapping(t_address,t_struct(ManagerData)4365_storage)",
             "contract": "GatewayUtils",
             "src": "contracts/protocol/GatewayUtils.sol:61"
           },
@@ -38328,11 +38328,228 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_mapping(t_address,t_struct(ManagerData)4399_storage)": {
+          "t_mapping(t_address,t_struct(ManagerData)4365_storage)": {
             "label": "mapping(address => struct GatewayUtils.ManagerData)",
             "numberOfBytes": "32"
           },
-          "t_struct(ManagerData)4399_storage": {
+          "t_struct(ManagerData)4365_storage": {
+            "label": "struct GatewayUtils.ManagerData",
+            "members": [
+              {
+                "label": "takerTollRatio",
+                "type": "t_uint24",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "makerTollRatio",
+                "type": "t_uint24",
+                "offset": 3,
+                "slot": "0"
+              },
+              {
+                "label": "baseBasicPoint",
+                "type": "t_uint40",
+                "offset": 6,
+                "slot": "0"
+              },
+              {
+                "label": "basicPoint",
+                "type": "t_uint32",
+                "offset": 11,
+                "slot": "0"
+              },
+              {
+                "label": "contractPrice",
+                "type": "t_uint16",
+                "offset": 15,
+                "slot": "0"
+              },
+              {
+                "label": "assetRfiPercent",
+                "type": "t_uint8",
+                "offset": 17,
+                "slot": "0"
+              },
+              {
+                "label": "minimumOrderQuantity",
+                "type": "t_uint80",
+                "offset": 18,
+                "slot": "0"
+              },
+              {
+                "label": "stepBaseSize",
+                "type": "t_uint32",
+                "offset": 28,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint16": {
+            "label": "uint16",
+            "numberOfBytes": "2"
+          },
+          "t_uint24": {
+            "label": "uint24",
+            "numberOfBytes": "3"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          },
+          "t_uint40": {
+            "label": "uint40",
+            "numberOfBytes": "5"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          },
+          "t_uint80": {
+            "label": "uint80",
+            "numberOfBytes": "10"
+          }
+        }
+      }
+    },
+    "ccbff8f760d79b9b4cd53db8172922ddc4a43d20e9186bbaa97b17584d5fc971": {
+      "address": "0xd208447B770da8E77c25408f0A60c69bD0e2794C",
+      "txHash": "0xf24188f658fa3390998946287a234b532179706e74795d58a3972afb03881d96",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_address",
+            "contract": "GatewayUtils",
+            "src": "contracts/protocol/GatewayUtils.sol:58"
+          },
+          {
+            "label": "futurXGateway",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_address",
+            "contract": "GatewayUtils",
+            "src": "contracts/protocol/GatewayUtils.sol:59"
+          },
+          {
+            "label": "positionManagerConfigData",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_mapping(t_address,t_struct(ManagerData)4365_storage)",
+            "contract": "GatewayUtils",
+            "src": "contracts/protocol/GatewayUtils.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "GatewayUtils",
+            "src": "contracts/protocol/GatewayUtils.sol:408"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_struct(ManagerData)4365_storage)": {
+            "label": "mapping(address => struct GatewayUtils.ManagerData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(ManagerData)4365_storage": {
             "label": "struct GatewayUtils.ManagerData",
             "members": [
               {
