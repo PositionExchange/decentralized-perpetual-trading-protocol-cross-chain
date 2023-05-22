@@ -77,6 +77,21 @@ contract FuturXVoucher is  ERC721Enumerable,  Ownable{
 
     }
 
+    function tokensOfOwner(address owner)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256 balance = balanceOf(owner);
+        uint256[] memory tokens = new uint256[](balance);
+
+        for (uint256 i = 0; i < balance; i++) {
+            tokens[i] = tokenOfOwnerByIndex(owner, i);
+        }
+
+        return tokens;
+    }
+
     function addOperator(address _miner) public onlyOwner {
         miner[_miner] = true;
     }
