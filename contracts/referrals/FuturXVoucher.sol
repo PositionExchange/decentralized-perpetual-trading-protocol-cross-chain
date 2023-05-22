@@ -6,9 +6,10 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 
-contract FuturXVoucher is ERC721, Ownable {
+contract FuturXVoucher is  ERC721Enumerable,  Ownable{
 
     struct Voucher {
         address owner;
@@ -74,6 +75,21 @@ contract FuturXVoucher is ERC721, Ownable {
         _burn(voucherId);
         emit VoucherBurned(voucherInfo[voucherId].owner, voucherId);
 
+    }
+
+    function tokensOfOwner(address owner)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256 balance = balanceOf(owner);
+        uint256[] memory tokens = new uint256[](balance);
+
+        for (uint256 i = 0; i < balance; i++) {
+            tokens[i] = tokenOfOwnerByIndex(owner, i);
+        }
+
+        return tokens;
     }
 
     function addOperator(address _miner) public onlyOwner {
