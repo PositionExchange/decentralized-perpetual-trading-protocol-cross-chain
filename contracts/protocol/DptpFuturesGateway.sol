@@ -754,6 +754,10 @@ contract DptpFuturesGateway is
     ) external nonReentrant {
         _validateCaller(msg.sender);
 
+        if (_amountOutUsd > 0) {
+            _amountOutUsd = _amountOutUsd.mul(PRICE_DECIMALS);
+        }
+
         if (_isReduce) {
             _cancelReduceOrder(
                 _key,
@@ -833,9 +837,10 @@ contract DptpFuturesGateway is
             _amountOutUsd
         );
 
-        if (amountOutToken >= request.amountInToken) {
+        if (amountOutToken > request.amountInToken) {
             // TODO: Position already partially filled, however withdraw
             // TODO: amount is greater than deposited amount due to price change?
+            amountOutToken = request.amountInToken;
             return;
         }
 
@@ -1808,25 +1813,25 @@ contract DptpFuturesGateway is
     // ONLY OWNER FUNCTIONS
     //******************************************************************************************************************
 
-    function setExecutionFee(uint256 _executionFee) external onlyOwner {
-        executionFee = _executionFee;
-    }
+//    function setExecutionFee(uint256 _executionFee) external onlyOwner {
+//        executionFee = _executionFee;
+//    }
 
-    function setWeth(address _weth) external onlyOwner {
-        weth = _weth;
-    }
+//    function setWeth(address _weth) external onlyOwner {
+//        weth = _weth;
+//    }
 
     function setVault(address _vault) external onlyOwner {
         vault = _vault;
     }
 
-    function setFuturesAdapter(address _futuresAdapter) external onlyOwner {
-        futuresAdapter = _futuresAdapter;
-    }
-
-    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
-        pcsId = _posiChainId;
-    }
+//    function setFuturesAdapter(address _futuresAdapter) external onlyOwner {
+//        futuresAdapter = _futuresAdapter;
+//    }
+//
+//    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
+//        pcsId = _posiChainId;
+//    }
 
     function setPosiChainCrosschainGatewayContract(address _address)
         external
@@ -1865,13 +1870,13 @@ contract DptpFuturesGateway is
         referralRewardTracker = _address;
     }
 
-    function pause() external onlyOwner {
-        _pause();
-    }
-
-    function unpause() external onlyOwner {
-        _unpause();
-    }
+//    function pause() external onlyOwner {
+//        _pause();
+//    }
+//
+//    function unpause() external onlyOwner {
+//        _unpause();
+//    }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

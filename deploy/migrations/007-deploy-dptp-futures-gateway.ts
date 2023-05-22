@@ -1,5 +1,9 @@
 import { MigrationContext, MigrationDefinition } from "../types";
-import { DptpFuturesGateway, WETH } from "../../typeChain";
+import {
+  DptpFuturesGateway,
+  ReferralRewardTracker,
+  WETH,
+} from "../../typeChain";
 import { ContractTransaction } from "ethers";
 
 const migrations: MigrationDefinition = {
@@ -34,6 +38,11 @@ const migrations: MigrationDefinition = {
       const weth = await ctx.factory.db.findAddressByKey("WETH");
       const link = await ctx.factory.db.findAddressByKey("LINK");
 
+      const referralRewardTracker =
+        await ctx.factory.getDeployedContract<ReferralRewardTracker>(
+          "ReferralRewardTracker"
+        );
+
       const futuresGateway =
         await ctx.factory.getDeployedContract<DptpFuturesGateway>(
           "DptpFuturesGateway"
@@ -54,6 +63,11 @@ const migrations: MigrationDefinition = {
         "0x9AC215Dcbd4447cE0aa830Ed17f3d99997a10F5F"
       );
       await ctx.factory.waitTx(tx, "futuresGateway.setPositionKeeper");
+
+      tx = futuresGateway.setReferralRewardTracker(
+          referralRewardTracker.address
+      );
+      await ctx.factory.waitTx(tx, "futuresGateway.setReferralRewardTracker");
     },
   }),
 };
