@@ -8,73 +8,92 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-
-contract FuturXVoucher is  ERC721Enumerable,  Ownable{
-
+contract FuturXVoucher is ERC721Enumerable, Ownable {
     struct Voucher {
         address owner;
         uint256 value;
-        uint256 expiredDate;
+        uint256 expiredTime;
         uint256 maxDiscountValue;
-        uint8 typeVoucher;
+        uint8 voucherType;
+        bool isActive;
     }
 
     mapping(uint256 => Voucher) public voucherInfo;
     mapping(address => bool) public miner;
 
     uint256 public voucherID = 1000000;
+    uint256 public defaultExpireTime = 3 days;
+    mapping(uint8 => uint256) expireTimeMap;
 
     event VoucherDistributed(
         address owner,
         uint256 value,
-        uint256 expiredDate,
+        uint256 expiredTime,
         uint256 maxDiscountValue,
-        uint8 typeVoucher,
+        uint8 voucherType,
         uint256 voucherID
     );
 
-    event VoucherBurned(
-        address owner,
-        uint256 voucherId
-    );
+    event VoucherClaim(address owner, uint256 voucherID, uint256 expiredTime);
 
+    event VoucherBurned(address owner, uint256 voucherId);
 
     modifier onlyMiner() {
         require(miner[msg.sender], "Only miner");
         _;
     }
 
-    constructor() ERC721("FuturX Voucher", "FV"){}
-
+    constructor() ERC721("FuturX Voucher", "FV") {}
 
     function distributeVoucher(
         address _to,
-        uint8 _typeVoucher,
+        uint8 _voucherType,
         uint256 _value,
-        uint256 _expiredDate,
+        uint256 _expiredTime,
         uint256 _maxDiscountValue
-    ) public onlyMiner returns (Voucher memory, uint256 voucherId)  {
+    ) public onlyMiner returns (Voucher memory, uint256 voucherId) {
         voucherID++;
         _mint(_to, voucherID);
-        voucherInfo[voucherID] = Voucher(
-            {
-                owner: _to,
-                value: _value,
-                expiredDate: _expiredDate,
-                maxDiscountValue: _maxDiscountValue,
-                typeVoucher: _typeVoucher
-            }
+        voucherInfo[voucherID] = Voucher({
+            owner: _to,
+            value: _value,
+            expiredTime: 0,
+            maxDiscountValue: _maxDiscountValue,
+            voucherType: _voucherType,
+            isActive: false
+        });
+        emit VoucherDistributed(
+            _to,
+            _value,
+            _expiredTime,
+            _maxDiscountValue,
+            _voucherType,
+            voucherID
         );
-        emit VoucherDistributed(_to, _value, _expiredDate, _maxDiscountValue, _typeVoucher, voucherID);
         return (voucherInfo[voucherID], voucherID);
     }
 
+    function claim(uint256 _voucherID)
+        external
+        returns (uint256 voucherId, uint256 expiredTime)
+    {
+        Voucher storage voucher = voucherInfo[_voucherID];
+        require(voucher.owner == msg.sender, "not owner");
+
+        uint256 expiredTime = block.timestamp +
+            getExpireTime(voucher.voucherType);
+
+        voucher.expiredTime = expiredTime;
+        voucher.isActive = true;
+
+        emit VoucherClaim(msg.sender, _voucherID, expiredTime);
+        return (_voucherID, 0);
+    }
 
     function burnVoucher(uint256 voucherId) public onlyMiner {
         require(_isApprovedOrOwner(_msgSender(), voucherId), "!Burn");
         _burn(voucherId);
         emit VoucherBurned(voucherInfo[voucherId].owner, voucherId);
-
     }
 
     function tokensOfOwner(address owner)
@@ -100,4 +119,15 @@ contract FuturXVoucher is  ERC721Enumerable,  Ownable{
         miner[_miner] = false;
     }
 
+    function getExpireTime(uint8 _voucherType) public view returns (uint256) {
+        uint256 expiredTime = expireTimeMap[_voucherType];
+        return expiredTime > 0 ? expiredTime : defaultExpireTime;
+    }
+
+    function setExpireTime(uint8 _voucherType, uint256 _expiredTimeInSecond)
+        external
+        onlyOwner
+    {
+        expireTimeMap[_voucherType] = _expiredTimeInSecond;
+    }
 }
