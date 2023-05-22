@@ -51,7 +51,7 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         uint256 _value,
         uint256 _expiredTime,
         uint256 _maxDiscountValue
-    ) public onlyMiner returns (Voucher memory, uint256 voucherId) {
+    ) external onlyMiner returns (Voucher memory, uint256 voucherId) {
         voucherID++;
         _mint(_to, voucherID);
         voucherInfo[voucherID] = Voucher({
@@ -77,8 +77,25 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         external
         returns (uint256 voucherId, uint256 expiredTime)
     {
+        return _claim(_voucherID, msg.sender);
+    }
+
+    function claimAll() external {
+        address sender = msg.sender;
+        uint256 balance = balanceOf(sender);
+
+        for (uint256 i = 0; i < balance; i++) {
+            uint256 voucherID = tokenOfOwnerByIndex(owner, i);
+            _claim(voucherID, sender);
+        }
+    }
+
+    function _claim(uint256 _voucherID, address _account)
+        private
+        returns (uint256 voucherId, uint256 expiredTime)
+    {
         Voucher storage voucher = voucherInfo[_voucherID];
-        require(voucher.owner == msg.sender, "not owner");
+        require(voucher.owner == _account, "not owner");
 
         uint256 expiredTime = block.timestamp +
             getExpireTime(voucher.voucherType);
@@ -86,8 +103,8 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         voucher.expiredTime = expiredTime;
         voucher.isActive = true;
 
-        emit VoucherClaim(msg.sender, _voucherID, expiredTime);
-        return (_voucherID, 0);
+        emit VoucherClaim(_account, _voucherID, expiredTime);
+        return (_voucherID, expiredTime);
     }
 
     function burnVoucher(uint256 voucherId) public onlyMiner {
