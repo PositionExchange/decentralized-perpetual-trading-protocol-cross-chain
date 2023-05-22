@@ -28,6 +28,7 @@ contract ReferralRewardTracker is
     address public rewardToken;
     address public referralStorage;
     uint256 public positionValidationInterval;
+    uint256 public positionValidationNotional;
 
     mapping(address => bool) public isCounterParty;
     mapping(address => uint256) public claimableCommission;
@@ -55,6 +56,7 @@ contract ReferralRewardTracker is
         rewardToken = _rewardToken;
         referralStorage = _referralStorage;
         positionValidationInterval = 1800;
+        positionValidationNotional = 50*10**18;
     }
 
     function setRewardToken(address _address) external onlyOwner {
@@ -69,6 +71,10 @@ contract ReferralRewardTracker is
 
     function setPositionValidationInterval(uint256 _interval) external onlyOwner {
         positionValidationInterval = _interval;
+    }
+
+    function setPositionValidationNotional(uint256 _notional) external onlyOwner {
+        positionValidationNotional = _notional;
     }
 
     function claimCommission() external nonReentrant {
@@ -117,15 +123,19 @@ contract ReferralRewardTracker is
         address _trader,
         address _indexToken,
         uint256 _timestamp,
+        uint256 _notional,
         bool _isIncrease
     ) external nonReentrant onlyCounterParty {
-        bool isActive = IReferralStorage(referralStorage).traderStatus(_trader);
-        if (isActive) {
+        bool isStatusUpgradeable = IReferralStorage(referralStorage).isStatusUpgradeable(_trader);
+        if (isStatusUpgradeable) {
             return;
         }
 
         uint256 createTimestamp = positionTimestamp[_trader][_indexToken];
         if (createTimestamp == 0) {
+            if (_isIncrease && _notional < positionValidationNotional) {
+                return;
+            }
             positionTimestamp[_trader][_indexToken] = _timestamp;
             return;
         }
