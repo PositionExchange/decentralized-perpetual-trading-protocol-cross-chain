@@ -517,6 +517,7 @@ contract DptpFuturesGateway is
             request.account,
             request.indexToken,
             block.timestamp,
+            _entryPrice.mul(_sizeDeltaInToken).div(WEI_DECIMALS),
             true
         );
         IReferralRewardTracker(referralRewardTracker).updateClaimableReward(
@@ -555,6 +556,7 @@ contract DptpFuturesGateway is
             request.account,
             request.indexToken,
             block.timestamp,
+            _entryPrice.mul(_sizeDeltaInToken).div(WEI_DECIMALS),
             true
         );
         IReferralRewardTracker(referralRewardTracker).updateClaimableReward(
@@ -672,7 +674,8 @@ contract DptpFuturesGateway is
                 _account,
                 _indexToken,
                 block.timestamp,
-                true
+                0,
+                false
             );
         }
 

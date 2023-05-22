@@ -59,16 +59,16 @@ describe("ReferralRewardTracker", function() {
 
     // while hold time did not reach validation interval
     await referralRewardTracker.connect(admin).updateRefereeStatus(
-        referee.address,busd.address,time, true)
+        referee.address,busd.address,time,ethers.utils.parseEther("100"), true)
     await referralRewardTracker.connect(admin).updateRefereeStatus(
-        referee.address,busd.address,time+100, false)
+        referee.address,busd.address,time+100, 0, false)
     expect(await referralStorage.traderStatus(referee.address)).to.be.false
 
     // while hold time reach validation interval
     await referralRewardTracker.connect(admin).updateRefereeStatus(
-        referee.address,busd.address,time, true)
+        referee.address,busd.address,time, ethers.utils.parseEther("100"), true)
     await referralRewardTracker.connect(admin).updateRefereeStatus(
-        referee.address,busd.address,time+2000, false)
+        referee.address,busd.address,time+2000,0, false)
     expect(await referralStorage.traderStatus(referee.address)).to.be.true
   })
 })

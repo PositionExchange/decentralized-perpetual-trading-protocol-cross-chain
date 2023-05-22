@@ -25,4 +25,6 @@ interface IReferralStorage {
     function getReferrerInfo(
         address _trader
     ) external view returns (address,uint256,uint256);
+
+    function isStatusUpgradeable(address _trader) external view returns (bool);
 }

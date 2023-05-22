@@ -136,6 +136,11 @@ contract ReferralStorage is
         return (referrer, tier.totalRebate, tier.discountShare);
     }
 
+    function isStatusUpgradeable(address _trader) external view returns (bool) {
+        if (traderReferralCodes[_trader] == bytes32(0)) return false;
+        return traderStatus[_trader];
+    }
+
     function _validateSetReferralRequest(
         address _trader,
         bytes32 _code
