@@ -5,15 +5,34 @@ const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
     "deploy referral storage": async () => {
       await ctx.factory.createReferralStorage();
+      const referralStorage= await ctx.factory.getDeployedContract<ReferralStorage>("ReferralStorage");
+      // TODO move to config
+      await ctx.factory.waitTx(
+          referralStorage.setTier(1,500,500),
+          "referralStorage.setTier",
+          true
+      );
+      await ctx.factory.waitTx(
+          referralStorage.setTier(2,1000,1000),
+          "referralStorage.setTier",
+          true
+      );
+      await ctx.factory.waitTx(
+          referralStorage.setTier(3,1500,1500),
+          "referralStorage.setTier",
+          true
+      );
     },
 
     "deploy referral reward tracker": async () => {
       const referralStorage= await ctx.factory.db.findAddressByKey("ReferralStorage");
       const rewardToken = await ctx.factory.db.findAddressByKey("USDT");
+      const tokenDecimal = 6;
       await ctx.factory.createReferralRewardTracker(
           {
             rewardToken,
-            referralStorage,
+            tokenDecimal,
+            referralStorage
           }
       );
     },

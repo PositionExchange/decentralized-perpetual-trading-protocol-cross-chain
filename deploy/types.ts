@@ -62,5 +62,6 @@ export interface CreateDptpFuturesGateway {
 
 export interface CreateReferralRewardTracker {
     rewardToken: string,
+    tokenDecimal: number,
     referralStorage: string,
 }

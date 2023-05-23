@@ -80,15 +80,16 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         return _claim(_voucherID, msg.sender);
     }
 
-    function claimAll() external {
-        address sender = msg.sender;
-        uint256 balance = balanceOf(sender);
-
-        for (uint256 i = 0; i < balance; i++) {
-            uint256 voucherID = tokenOfOwnerByIndex(owner, i);
-            _claim(voucherID, sender);
-        }
-    }
+    // TODO: Liam must check this function
+//    function claimAll() external {
+//        address sender = msg.sender;
+//        uint256 balance = balanceOf(sender);
+//
+//        for (uint256 i = 0; i < balance; i++) {
+//            uint256 voucherID = tokenOfOwnerByIndex(owner, i);
+//            _claim(voucherID, sender);
+//        }
+//    }
 
     function _claim(uint256 _voucherID, address _account)
         private

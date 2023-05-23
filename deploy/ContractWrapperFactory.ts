@@ -553,6 +553,7 @@ export class ContractWrapperFactory {
         } else {
             const contractArgs = [
                 arg.rewardToken,
+                arg.tokenDecimal,
                 arg.referralStorage,
             ];
             const instance = await this.hre.upgrades.deployProxy(
