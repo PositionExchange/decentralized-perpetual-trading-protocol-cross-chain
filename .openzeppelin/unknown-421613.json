@@ -38298,7 +38298,7 @@
             "label": "positionManagerConfigData",
             "offset": 0,
             "slot": "203",
-            "type": "t_mapping(t_address,t_struct(ManagerData)4365_storage)",
+            "type": "t_mapping(t_address,t_struct(ManagerData)4399_storage)",
             "contract": "GatewayUtils",
             "src": "contracts/protocol/GatewayUtils.sol:61"
           },
@@ -38328,11 +38328,11 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_mapping(t_address,t_struct(ManagerData)4365_storage)": {
+          "t_mapping(t_address,t_struct(ManagerData)4399_storage)": {
             "label": "mapping(address => struct GatewayUtils.ManagerData)",
             "numberOfBytes": "32"
           },
-          "t_struct(ManagerData)4365_storage": {
+          "t_struct(ManagerData)4399_storage": {
             "label": "struct GatewayUtils.ManagerData",
             "members": [
               {
@@ -39315,7 +39315,7 @@
             "label": "increasePositionRequests",
             "offset": 0,
             "slot": "210",
-            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)5325_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)4288_storage)",
             "contract": "DptpFuturesGateway",
             "src": "contracts/protocol/DptpFuturesGateway.sol:181"
           },
@@ -39331,7 +39331,7 @@
             "label": "decreasePositionRequests",
             "offset": 0,
             "slot": "212",
-            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)5335_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)4298_storage)",
             "contract": "DptpFuturesGateway",
             "src": "contracts/protocol/DptpFuturesGateway.sol:184"
           },
@@ -39419,7 +39419,7 @@
             "label": "addCollateralRequests",
             "offset": 0,
             "slot": "223",
-            "type": "t_mapping(t_bytes32,t_struct(AddCollateralRequest)5375_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(AddCollateralRequest)4338_storage)",
             "contract": "DptpFuturesGateway",
             "src": "contracts/protocol/DptpFuturesGateway.sol:202"
           },
@@ -39513,19 +39513,19 @@
             "label": "mapping(bytes32 => bytes32)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(AddCollateralRequest)5375_storage)": {
+          "t_mapping(t_bytes32,t_struct(AddCollateralRequest)4338_storage)": {
             "label": "mapping(bytes32 => struct DptpFuturesGateway.AddCollateralRequest)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)5335_storage)": {
+          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)4298_storage)": {
             "label": "mapping(bytes32 => struct DptpFuturesGateway.DecreasePositionRequest)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)5325_storage)": {
+          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)4288_storage)": {
             "label": "mapping(bytes32 => struct DptpFuturesGateway.IncreasePositionRequest)",
             "numberOfBytes": "32"
           },
-          "t_struct(AddCollateralRequest)5375_storage": {
+          "t_struct(AddCollateralRequest)4338_storage": {
             "label": "struct DptpFuturesGateway.AddCollateralRequest",
             "members": [
               {
@@ -39567,7 +39567,7 @@
             ],
             "numberOfBytes": "192"
           },
-          "t_struct(DecreasePositionRequest)5335_storage": {
+          "t_struct(DecreasePositionRequest)4298_storage": {
             "label": "struct DptpFuturesGateway.DecreasePositionRequest",
             "members": [
               {
@@ -39597,7 +39597,7 @@
             ],
             "numberOfBytes": "96"
           },
-          "t_struct(IncreasePositionRequest)5325_storage": {
+          "t_struct(IncreasePositionRequest)4288_storage": {
             "label": "struct DptpFuturesGateway.IncreasePositionRequest",
             "members": [
               {
@@ -39656,10 +39656,11 @@
         }
       }
     },
-    "72cdc9b7c8dda2cc80254fe81e3661830f439f935cb2b0a1536899ee020b10a4": {
-      "address": "0x4Aa776FC811395F02baAC6a2c8d8606D9A3b9326",
-      "txHash": "0xa016918665143fbcf6fa89bf09b287706192b9bbc72c041be8bd2e6a62827778",
+    "3daeece5281b5ad391523f5a8fb7e3f5de1f4ff82ffcf2c6a0240e2169fc04ac": {
+      "address": "0xC3725b572D9a7d9D6B162315EaC8d0e648C175B5",
+      "txHash": "0x5f4ce48b9c55a5a9c66b356086848730cea4f58bd125b7180ee799a89ca2ea5c",
       "layout": {
+        "solcVersion": "0.8.9",
         "storage": [
           {
             "label": "_initialized",
@@ -39732,7 +39733,7 @@
             "slot": "152",
             "type": "t_array(t_uint256)49_storage",
             "contract": "ReentrancyGuardUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:80"
           },
           {
             "label": "pcsId",
@@ -39810,7 +39811,7 @@
             "label": "increasePositionRequests",
             "offset": 0,
             "slot": "210",
-            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)4525_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)7302_storage)",
             "contract": "DptpFuturesGateway",
             "src": "contracts/protocol/DptpFuturesGateway.sol:181"
           },
@@ -39826,7 +39827,7 @@
             "label": "decreasePositionRequests",
             "offset": 0,
             "slot": "212",
-            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)4535_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)7312_storage)",
             "contract": "DptpFuturesGateway",
             "src": "contracts/protocol/DptpFuturesGateway.sol:184"
           },
@@ -39914,7 +39915,7 @@
             "label": "addCollateralRequests",
             "offset": 0,
             "slot": "223",
-            "type": "t_mapping(t_bytes32,t_struct(AddCollateralRequest)4575_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(AddCollateralRequest)7352_storage)",
             "contract": "DptpFuturesGateway",
             "src": "contracts/protocol/DptpFuturesGateway.sol:202"
           },
@@ -39932,7 +39933,7 @@
             "slot": "225",
             "type": "t_array(t_uint256)49_storage",
             "contract": "DptpFuturesGateway",
-            "src": "contracts/protocol/DptpFuturesGateway.sol:1886"
+            "src": "contracts/protocol/DptpFuturesGateway.sol:1889"
           },
           {
             "label": "latestExecutedCollateral",
@@ -39940,7 +39941,7 @@
             "slot": "274",
             "type": "t_mapping(t_bytes32,t_address)",
             "contract": "DptpFuturesGateway",
-            "src": "contracts/protocol/DptpFuturesGateway.sol:1887"
+            "src": "contracts/protocol/DptpFuturesGateway.sol:1890"
           },
           {
             "label": "latestIncreasePendingCollateral",
@@ -39948,7 +39949,7 @@
             "slot": "275",
             "type": "t_mapping(t_bytes32,t_address)",
             "contract": "DptpFuturesGateway",
-            "src": "contracts/protocol/DptpFuturesGateway.sol:1888"
+            "src": "contracts/protocol/DptpFuturesGateway.sol:1891"
           },
           {
             "label": "referralRewardTracker",
@@ -39956,7 +39957,7 @@
             "slot": "276",
             "type": "t_address",
             "contract": "DptpFuturesGateway",
-            "src": "contracts/protocol/DptpFuturesGateway.sol:1889"
+            "src": "contracts/protocol/DptpFuturesGateway.sol:1892"
           }
         ],
         "types": {
@@ -40008,19 +40009,19 @@
             "label": "mapping(bytes32 => bytes32)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(AddCollateralRequest)4575_storage)": {
+          "t_mapping(t_bytes32,t_struct(AddCollateralRequest)7352_storage)": {
             "label": "mapping(bytes32 => struct DptpFuturesGateway.AddCollateralRequest)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)4535_storage)": {
+          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)7312_storage)": {
             "label": "mapping(bytes32 => struct DptpFuturesGateway.DecreasePositionRequest)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)4525_storage)": {
+          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)7302_storage)": {
             "label": "mapping(bytes32 => struct DptpFuturesGateway.IncreasePositionRequest)",
             "numberOfBytes": "32"
           },
-          "t_struct(AddCollateralRequest)4575_storage": {
+          "t_struct(AddCollateralRequest)7352_storage": {
             "label": "struct DptpFuturesGateway.AddCollateralRequest",
             "members": [
               {
@@ -40062,7 +40063,7 @@
             ],
             "numberOfBytes": "192"
           },
-          "t_struct(DecreasePositionRequest)4535_storage": {
+          "t_struct(DecreasePositionRequest)7312_storage": {
             "label": "struct DptpFuturesGateway.DecreasePositionRequest",
             "members": [
               {
@@ -40092,7 +40093,7 @@
             ],
             "numberOfBytes": "96"
           },
-          "t_struct(IncreasePositionRequest)4525_storage": {
+          "t_struct(IncreasePositionRequest)7302_storage": {
             "label": "struct DptpFuturesGateway.IncreasePositionRequest",
             "members": [
               {
@@ -40147,223 +40148,6 @@
           "t_uint8": {
             "label": "uint8",
             "numberOfBytes": "1"
-          }
-        }
-      }
-    },
-    "3d5efa571a4e4f56ac59892cfcf1ea9c39acdf9438501e7fc876f71a723946f5": {
-      "address": "0x1adA26e1e47083Bc80303434eEfe293c1bA61027",
-      "txHash": "0xb65fca7bd7edec992327ec1a990c48d6874bb8f69c16964075c6909f3bb99e57",
-      "layout": {
-        "storage": [
-          {
-            "label": "_initialized",
-            "offset": 0,
-            "slot": "0",
-            "type": "t_uint8",
-            "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
-            "retypedFrom": "bool"
-          },
-          {
-            "label": "_initializing",
-            "offset": 1,
-            "slot": "0",
-            "type": "t_bool",
-            "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "1",
-            "type": "t_array(t_uint256)50_storage",
-            "contract": "ContextUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
-          },
-          {
-            "label": "_paused",
-            "offset": 0,
-            "slot": "51",
-            "type": "t_bool",
-            "contract": "PausableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "52",
-            "type": "t_array(t_uint256)49_storage",
-            "contract": "PausableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
-          },
-          {
-            "label": "_owner",
-            "offset": 0,
-            "slot": "101",
-            "type": "t_address",
-            "contract": "OwnableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "102",
-            "type": "t_array(t_uint256)49_storage",
-            "contract": "OwnableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
-          },
-          {
-            "label": "_status",
-            "offset": 0,
-            "slot": "151",
-            "type": "t_uint256",
-            "contract": "ReentrancyGuardUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "152",
-            "type": "t_array(t_uint256)49_storage",
-            "contract": "ReentrancyGuardUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
-          },
-          {
-            "label": "vault",
-            "offset": 0,
-            "slot": "201",
-            "type": "t_address",
-            "contract": "GatewayUtils",
-            "src": "contracts/protocol/GatewayUtils.sol:58"
-          },
-          {
-            "label": "futurXGateway",
-            "offset": 0,
-            "slot": "202",
-            "type": "t_address",
-            "contract": "GatewayUtils",
-            "src": "contracts/protocol/GatewayUtils.sol:59"
-          },
-          {
-            "label": "positionManagerConfigData",
-            "offset": 0,
-            "slot": "203",
-            "type": "t_mapping(t_address,t_struct(ManagerData)4399_storage)",
-            "contract": "GatewayUtils",
-            "src": "contracts/protocol/GatewayUtils.sol:61"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "204",
-            "type": "t_array(t_uint256)49_storage",
-            "contract": "GatewayUtils",
-            "src": "contracts/protocol/GatewayUtils.sol:408"
-          }
-        ],
-        "types": {
-          "t_address": {
-            "label": "address",
-            "numberOfBytes": "20"
-          },
-          "t_array(t_uint256)49_storage": {
-            "label": "uint256[49]",
-            "numberOfBytes": "1568"
-          },
-          "t_array(t_uint256)50_storage": {
-            "label": "uint256[50]",
-            "numberOfBytes": "1600"
-          },
-          "t_bool": {
-            "label": "bool",
-            "numberOfBytes": "1"
-          },
-          "t_mapping(t_address,t_struct(ManagerData)4399_storage)": {
-            "label": "mapping(address => struct GatewayUtils.ManagerData)",
-            "numberOfBytes": "32"
-          },
-          "t_struct(ManagerData)4399_storage": {
-            "label": "struct GatewayUtils.ManagerData",
-            "members": [
-              {
-                "label": "takerTollRatio",
-                "type": "t_uint24",
-                "offset": 0,
-                "slot": "0"
-              },
-              {
-                "label": "makerTollRatio",
-                "type": "t_uint24",
-                "offset": 3,
-                "slot": "0"
-              },
-              {
-                "label": "baseBasicPoint",
-                "type": "t_uint40",
-                "offset": 6,
-                "slot": "0"
-              },
-              {
-                "label": "basicPoint",
-                "type": "t_uint32",
-                "offset": 11,
-                "slot": "0"
-              },
-              {
-                "label": "contractPrice",
-                "type": "t_uint16",
-                "offset": 15,
-                "slot": "0"
-              },
-              {
-                "label": "assetRfiPercent",
-                "type": "t_uint8",
-                "offset": 17,
-                "slot": "0"
-              },
-              {
-                "label": "minimumOrderQuantity",
-                "type": "t_uint80",
-                "offset": 18,
-                "slot": "0"
-              },
-              {
-                "label": "stepBaseSize",
-                "type": "t_uint32",
-                "offset": 28,
-                "slot": "0"
-              }
-            ],
-            "numberOfBytes": "32"
-          },
-          "t_uint16": {
-            "label": "uint16",
-            "numberOfBytes": "2"
-          },
-          "t_uint24": {
-            "label": "uint24",
-            "numberOfBytes": "3"
-          },
-          "t_uint256": {
-            "label": "uint256",
-            "numberOfBytes": "32"
-          },
-          "t_uint32": {
-            "label": "uint32",
-            "numberOfBytes": "4"
-          },
-          "t_uint40": {
-            "label": "uint40",
-            "numberOfBytes": "5"
-          },
-          "t_uint8": {
-            "label": "uint8",
-            "numberOfBytes": "1"
-          },
-          "t_uint80": {
-            "label": "uint80",
-            "numberOfBytes": "10"
           }
         }
       }
