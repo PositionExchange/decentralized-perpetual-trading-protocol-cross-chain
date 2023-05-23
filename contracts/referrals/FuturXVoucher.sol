@@ -85,7 +85,7 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         uint256 balance = balanceOf(sender);
 
         for (uint256 i = 0; i < balance; i++) {
-            uint256 voucherID = tokenOfOwnerByIndex(owner, i);
+            uint256 voucherID = tokenOfOwnerByIndex(sender, i);
             _claim(voucherID, sender);
         }
     }
