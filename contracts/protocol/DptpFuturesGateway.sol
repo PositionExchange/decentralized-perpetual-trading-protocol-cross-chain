@@ -522,7 +522,7 @@ contract DptpFuturesGateway is
         );
         IReferralRewardTracker(referralRewardTracker).updateClaimableReward(
             request.account,
-            request.positionFeeUsd
+            request.positionFeeUsd.div(PRICE_DECIMALS)
         );
 
         _executeExecuteUpdatePositionData(_key);
@@ -561,7 +561,7 @@ contract DptpFuturesGateway is
         );
         IReferralRewardTracker(referralRewardTracker).updateClaimableReward(
             request.account,
-            request.positionFeeUsd
+            request.positionFeeUsd.div(PRICE_DECIMALS)
         );
 
         _executeExecuteUpdatePositionData(_key);
