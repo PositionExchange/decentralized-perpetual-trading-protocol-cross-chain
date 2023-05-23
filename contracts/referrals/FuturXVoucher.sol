@@ -7,6 +7,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "../interfaces/IFuturXVoucher.sol";
 
 contract FuturXVoucher is ERC721Enumerable, Ownable {
     struct Voucher {
@@ -139,6 +140,10 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
     function getExpireTime(uint8 _voucherType) public view returns (uint256) {
         uint256 expiredTime = expireTimeMap[_voucherType];
         return expiredTime > 0 ? expiredTime : defaultExpireTime;
+    }
+
+    function getVoucherInfo(uint256 _voucherId) external view returns (Voucher memory) {
+        return voucherInfo[_voucherId];
     }
 
     function setExpireTime(uint8 _voucherType, uint256 _expiredTimeInSecond)

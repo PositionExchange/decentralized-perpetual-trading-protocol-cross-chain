@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
@@ -21,7 +21,7 @@ import "../interfaces/IFuturXGateway.sol";
 import "../referrals/interfaces/IReferralRewardTracker.sol";
 
 contract DptpFuturesGateway is
-    ERC721HolderUpgradeable,
+    IERC721ReceiverUpgradeable,
     PausableUpgradeable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
@@ -323,11 +323,22 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _voucherId
     ) external payable returns (bytes32) {
-
         if (_voucherId > 0) {
-            IERC721Upgradeable(0x8E617eA3DC231FBD2c0902630b48B4A250f34B2A)
-                .safeTransferFrom(msg.sender, address(this), _voucherId);
+            IERC721Upgradeable(futurXVoucher).safeTransferFrom(
+                msg.sender,
+                address(this),
+                _voucherId
+            );
         }
+        IGatewayUtils(gatewayUtils).validateIncreasePosition(
+            msg.sender,
+            msg.value,
+            _path,
+            _indexToken,
+            _sizeDeltaToken,
+            _leverage,
+            _isLong
+        );
 
         return
             createIncreasePositionRequest(
@@ -1841,6 +1852,20 @@ contract DptpFuturesGateway is
         return IVault(vault).swapWithoutFees(_path[0], _path[1], _receiver);
     }
 
+    /**
+     * @dev See {IERC721Receiver-onERC721Received}.
+     *
+     * Always returns `IERC721Receiver.onERC721Received.selector`.
+     */
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public virtual override returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
+
     //******************************************************************************************************************
     // ONLY OWNER FUNCTIONS
     //******************************************************************************************************************
@@ -1902,6 +1927,10 @@ contract DptpFuturesGateway is
     //        referralRewardTracker = _address;
     //    }
 
+    function setFuturXVoucher(address _address) external onlyOwner {
+        futurXVoucher = _address;
+    }
+
     //    function pause() external onlyOwner {
     //        _pause();
     //    }
@@ -1919,4 +1948,5 @@ contract DptpFuturesGateway is
     mapping(bytes32 => address) public latestExecutedCollateral;
     mapping(bytes32 => address) public latestIncreasePendingCollateral;
     address public referralRewardTracker;
+    address public futurXVoucher;
 }
