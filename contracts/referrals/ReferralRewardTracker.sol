@@ -39,8 +39,8 @@ contract ReferralRewardTracker is
     event SetCounterParty(address counterParty, bool isActive);
     event ClaimCommission(address receiver, uint256 amount);
     event ClaimDiscount(address receiver, uint256 amount);
-    event UpdateClaimableCommissionReward(address referrer, address _trader, uint256 amount);
-    event UpdateClaimableDiscountReward(address _trader, uint256 amount);
+    event UpdateClaimableCommissionReward(address referrer, address trader, uint256 amount);
+    event UpdateClaimableDiscountReward(address trader, uint256 amount);
 
     modifier onlyCounterParty() {
         require(isCounterParty[msg.sender],"ReferralStorage: onlyCounterParty");
