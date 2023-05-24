@@ -26,8 +26,8 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
     uint256 public defaultExpireTime = 3 days;
     mapping(uint8 => uint256) public expireTimeMap;
 
-    mapping(address => uint16) public voucherCount;
-    uint16 public maxVoucherPerAccount = 500;
+    mapping(address => uint256) public voucherValuePerAccount;
+    uint256 public maxVoucherValuePerAccount = 500000000000000000000;
 
     event VoucherDistributed(
         address owner,
@@ -54,7 +54,15 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         uint256 _value,
         uint256 _maxDiscountValue
     ) external onlyMiner returns (Voucher memory, uint256 voucherId) {
-        require(voucherCount[_to] < maxVoucherPerAccount, "max voucher per account exceeded");
+
+        if (_voucherType == 1) {
+            voucherValuePerAccount[_to] += _maxDiscountValue;
+            require(voucherValuePerAccount[_to] <= maxVoucherValuePerAccount, "max value exceeded");
+        } else {
+            voucherValuePerAccount[_to] += _value;
+            require(voucherValuePerAccount[_to] <= maxVoucherValuePerAccount, "max value exceeded");
+        }
+
         voucherId++;
         _mint(_to, voucherId);
         voucherInfo[voucherId] = Voucher({
@@ -72,7 +80,6 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
             _voucherType,
             voucherId
         );
-        voucherCount[_to]++;
         return (voucherInfo[voucherId], voucherId);
     }
 
@@ -156,10 +163,10 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         expireTimeMap[_voucherType] = _expiredTimeInSecond;
     }
 
-    function setMaxVoucherPerAccount(uint16 _amount)
+    function setMaxVoucherValuePerAccount(uint256 _amount)
         external
         onlyOwner
     {
-        maxVoucherPerAccount = _amount;
+        maxVoucherValuePerAccount = _amount;
     }
 }
