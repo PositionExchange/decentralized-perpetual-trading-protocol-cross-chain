@@ -578,10 +578,11 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaInToken,
         bool _isLong
     ) internal {
-        address collateralToken = _path[_path.length - 1];
+        uint256 amountInUsd;
         if (_amountInToken > 0) {
+            address collateralToken = _path[_path.length - 1];
             uint256 amountInToken = uint256(_amountInToken);
-
+            amountInUsd = _tokenToUsdMin(collateralToken, _amountInToken);
             if (_path.length > 1) {
                 _transferOut(_path[0], amountInToken, vault);
                 amountInToken = _swap(_path, address(this), false);
@@ -607,8 +608,6 @@ contract DptpFuturesGateway is
             _feeUsd
         );
         _transferOutETH(executionFee, payable(msg.sender));
-
-        uint256 amountInUsd = _tokenToUsdMin(collateralToken, _amountInToken);
 
         emit ExecuteIncreasePosition(
             _account,
