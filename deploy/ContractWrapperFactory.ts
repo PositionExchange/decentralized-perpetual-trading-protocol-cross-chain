@@ -12,23 +12,23 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 // @ts-ignore
 import { HardhatDefenderUpgrades } from "@openzeppelin/hardhat-defender";
 import {
-  DptpFuturesGateway,
-  FuturesAdapter,
-  InsuranceFund,
-  LpManager,
-  MockToken,
-  PLP,
-  PositionBUSDBonus,
-  PriceFeed,
-  USDP,
-  Vault,
-  VaultPriceFeed,
-  VaultUtils,
-  WETH,
-  ReferralRewardTracker,
+    DptpFuturesGateway,
+    FuturesAdapter,
+    InsuranceFund,
+    LpManager,
+    MockToken,
+    PLP,
+    PositionBUSDBonus,
+    PriceFeed,
+    USDP,
+    Vault,
+    VaultPriceFeed,
+    VaultUtils,
+    WETH,
+    ReferralRewardTracker, FuturXVoucher,
 } from "../typeChain";
 import { ContractConfig } from "./shared/PreDefinedContractAddress";
-import { ethers as ethersE } from "ethers";
+import {ContractTransaction, ethers as ethersE} from "ethers";
 import { IExtraTokenConfig, Token } from "./shared/types";
 
 interface ContractWrapperFactoryOptions {
@@ -566,6 +566,21 @@ export class ContractWrapperFactory {
             console.log(`Address ${contractName}: ${address}`);
             await this.db.saveAddressByKey(contractName, address);
             await this.verifyProxy(address);
+        }
+    }
+
+    async createFuturXVoucher(miner: string) {
+        const contractName = 'FuturXVoucher';
+        const contractAddress = await this.db.findAddressByKey(contractName);
+        if (contractAddress) {
+            console.log(`${contractName} already deployed at ${contractAddress}`);
+        } else {
+            const voucher = await this.deployNonUpgradeableContract<FuturXVoucher>(contractName, [])
+
+            let tx: Promise<ContractTransaction>
+
+            tx = voucher.addOperator(miner)
+            await this.waitTx(tx, "voucher.addOperator")
         }
     }
 }

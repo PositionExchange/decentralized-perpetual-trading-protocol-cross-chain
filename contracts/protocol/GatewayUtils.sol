@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
@@ -16,6 +17,7 @@ import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IShortsTracker.sol";
 import "../interfaces/IGatewayUtils.sol";
 import "../interfaces/IFuturXGateway.sol";
+import "../interfaces/IFuturXVoucher.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
 import "./libraries/TokenConfiguration.sol";
@@ -153,6 +155,35 @@ contract GatewayUtils is
         return true;
     }
 
+    function validateIncreasePosition(
+        address _account,
+        uint256 _msgValue,
+        address[] memory _path,
+        address _indexToken,
+        uint256 _sizeDeltaToken,
+        uint16 _leverage,
+        bool _isLong,
+        uint256 _voucherId
+    ) public override returns (bool) {
+        if (_voucherId > 0) {
+            FuturXVoucher.Voucher memory voucher = IFuturXVoucher(futurXVoucher)
+                .getVoucherInfo(_voucherId);
+            require(voucher.isActive, "voucher is not active");
+            require(voucher.expiredTime < block.timestamp, "voucher is expired");
+        }
+
+        return
+            validateIncreasePosition(
+                _account,
+                _msgValue,
+                _path,
+                _indexToken,
+                _sizeDeltaToken,
+                _leverage,
+                _isLong
+            );
+    }
+
     function validateDecreasePosition(
         address _account,
         uint256 _msgValue,
@@ -182,6 +213,10 @@ contract GatewayUtils is
         validateCollateral(_account, _collateralToken, _indexToken, _isLong);
         return true;
     }
+
+    //    function validateVoucher(uint256 _voucherId) {
+    //        IFuturXGateway
+    //    }
 
     function validateTokens(
         address _collateralToken,
@@ -221,7 +256,10 @@ contract GatewayUtils is
             _indexToken,
             _isLong
         );
-        if (position.reservedAmount > 0 && position.collateralToken != address(0)) {
+        if (
+            position.reservedAmount > 0 &&
+            position.collateralToken != address(0)
+        ) {
             _validate(
                 position.collateralToken == _collateralToken,
                 "collateral"
@@ -230,15 +268,15 @@ contract GatewayUtils is
         }
 
         // TODO: DPTP-496 missing case when cancel limit order, must clear pending collateral.
-//        address pendingCollateral = IFuturXGateway(futurXGateway)
-//            .getLatestIncreasePendingCollateral(_account, _indexToken, _isLong);
-//        if (pendingCollateral != address(0)) {
-//            _validate(
-//                _collateralToken == pendingCollateral,
-//                "invalid pending collateral"
-//            );
-//            return true;
-//        }
+        //        address pendingCollateral = IFuturXGateway(futurXGateway)
+        //            .getLatestIncreasePendingCollateral(_account, _indexToken, _isLong);
+        //        if (pendingCollateral != address(0)) {
+        //            _validate(
+        //                _collateralToken == pendingCollateral,
+        //                "invalid pending collateral"
+        //            );
+        //            return true;
+        //        }
 
         return true;
     }
@@ -400,10 +438,15 @@ contract GatewayUtils is
         require(_condition, _errorCode);
     }
 
+    function setFuturXVoucher(address _address) external onlyOwner {
+        futurXVoucher = _address;
+    }
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
+    address public futurXVoucher;
 }

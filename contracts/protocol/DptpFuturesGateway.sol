@@ -5,6 +5,8 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
@@ -19,6 +21,7 @@ import "../interfaces/IFuturXGateway.sol";
 import "../referrals/interfaces/IReferralRewardTracker.sol";
 
 contract DptpFuturesGateway is
+    IERC721ReceiverUpgradeable,
     PausableUpgradeable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
@@ -256,7 +259,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong
-    ) external payable nonReentrant whenNotPaused returns (bytes32) {
+    ) public payable nonReentrant whenNotPaused returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
             msg.sender,
             msg.value,
@@ -310,6 +313,43 @@ contract DptpFuturesGateway is
             positionFeeUsd
         );
         return _createIncreasePosition(params);
+    }
+
+    function createIncreasePositionRequestNFT(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _sizeDeltaToken,
+        uint16 _leverage,
+        bool _isLong,
+        uint256 _voucherId
+    ) external payable returns (bytes32) {
+        if (_voucherId > 0) {
+            IERC721Upgradeable(futurXVoucher).safeTransferFrom(
+                msg.sender,
+                address(this),
+                _voucherId
+            );
+        }
+        IGatewayUtils(gatewayUtils).validateIncreasePosition(
+            msg.sender,
+            msg.value,
+            _path,
+            _indexToken,
+            _sizeDeltaToken,
+            _leverage,
+            _isLong
+        );
+
+        return
+            createIncreasePositionRequest(
+                _path,
+                _indexToken,
+                _amountInUsd,
+                _sizeDeltaToken,
+                _leverage,
+                _isLong
+            );
     }
 
     function createIncreasePositionETH(
@@ -1815,74 +1855,92 @@ contract DptpFuturesGateway is
         return IVault(vault).swapWithoutFees(_path[0], _path[1], _receiver);
     }
 
+    /**
+     * @dev See {IERC721Receiver-onERC721Received}.
+     *
+     * Always returns `IERC721Receiver.onERC721Received.selector`.
+     */
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public virtual override returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
+
     //******************************************************************************************************************
     // ONLY OWNER FUNCTIONS
     //******************************************************************************************************************
 
-//    function setExecutionFee(uint256 _executionFee) external onlyOwner {
-//        executionFee = _executionFee;
-//    }
+    //    function setExecutionFee(uint256 _executionFee) external onlyOwner {
+    //        executionFee = _executionFee;
+    //    }
 
-//    function setWeth(address _weth) external onlyOwner {
-//        weth = _weth;
-//    }
+    //    function setWeth(address _weth) external onlyOwner {
+    //        weth = _weth;
+    //    }
 
-    function setVault(address _vault) external onlyOwner {
-        vault = _vault;
+    //    function setVault(address _vault) external onlyOwner {
+    //        vault = _vault;
+    //    }
+
+    //    function setFuturesAdapter(address _futuresAdapter) external onlyOwner {
+    //        futuresAdapter = _futuresAdapter;
+    //    }
+    //
+    //    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
+    //        pcsId = _posiChainId;
+    //    }
+
+    //    function setPosiChainCrosschainGatewayContract(address _address)
+    //        external
+    //        onlyOwner
+    //    {
+    //        pscCrossChainGateway = _address;
+    //    }
+    //
+    //    function setPositionKeeper(address _address) external onlyOwner {
+    //        positionKeepers[_address] = true;
+    //    }
+    //
+    //    function setCoreManager(address _token, address _manager)
+    //        external
+    //        onlyOwner
+    //    {
+    //        coreManagers[_token] = _manager;
+    //        indexTokens[_manager] = _token;
+    //    }
+    //
+    //    function setMaxGlobalShortSize(address _token, uint256 _amount)
+    //        external
+    //        onlyOwner
+    //    {
+    //        maxGlobalShortSizes[_token] = _amount;
+    //    }
+    //
+    //    function setMaxGlobalLongSize(address _token, uint256 _amount)
+    //        external
+    //        onlyOwner
+    //    {
+    //        maxGlobalLongSizes[_token] = _amount;
+    //    }
+    //
+    //    function setReferralRewardTracker(address _address) external onlyOwner {
+    //        referralRewardTracker = _address;
+    //    }
+
+    function setFuturXVoucher(address _address) external onlyOwner {
+        futurXVoucher = _address;
     }
 
-//    function setFuturesAdapter(address _futuresAdapter) external onlyOwner {
-//        futuresAdapter = _futuresAdapter;
-//    }
-//
-//    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
-//        pcsId = _posiChainId;
-//    }
-
-    function setPosiChainCrosschainGatewayContract(address _address)
-        external
-        onlyOwner
-    {
-        pscCrossChainGateway = _address;
-    }
-
-    function setPositionKeeper(address _address) external onlyOwner {
-        positionKeepers[_address] = true;
-    }
-
-    function setCoreManager(address _token, address _manager)
-        external
-        onlyOwner
-    {
-        coreManagers[_token] = _manager;
-        indexTokens[_manager] = _token;
-    }
-
-    function setMaxGlobalShortSize(address _token, uint256 _amount)
-        external
-        onlyOwner
-    {
-        maxGlobalShortSizes[_token] = _amount;
-    }
-
-    function setMaxGlobalLongSize(address _token, uint256 _amount)
-        external
-        onlyOwner
-    {
-        maxGlobalLongSizes[_token] = _amount;
-    }
-
-    function setReferralRewardTracker(address _address) external onlyOwner {
-        referralRewardTracker = _address;
-    }
-
-//    function pause() external onlyOwner {
-//        _pause();
-//    }
-//
-//    function unpause() external onlyOwner {
-//        _unpause();
-//    }
+    //    function pause() external onlyOwner {
+    //        _pause();
+    //    }
+    //
+    //    function unpause() external onlyOwner {
+    //        _unpause();
+    //    }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
@@ -1893,4 +1951,5 @@ contract DptpFuturesGateway is
     mapping(bytes32 => address) public latestExecutedCollateral;
     mapping(bytes32 => address) public latestIncreasePendingCollateral;
     address public referralRewardTracker;
+    address public futurXVoucher;
 }
