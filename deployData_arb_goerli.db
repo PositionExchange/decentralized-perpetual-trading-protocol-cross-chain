@@ -43,6 +43,7 @@
 {"address":"yes","key":"0xB62c515BEfFd1f84d787C81C93feFf444fdc6D2A:verified","_id":"LBRBj78kFQWA3YQo"}
 {"address":"0xA9319C4bf02B24251D1206E770B41CF168EaacB5","key":"StakedPlpDistributor","_id":"LkIDQEsgQzBGnLpC"}
 {"address":"0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C","key":"DAI","_id":"MSsUTIYqGUkJGx9p"}
+{"address":"0x8b27fCb94b193D3Dd9ff09682B5b2c0be089fb87","key":"FuturXVoucher","_id":"MpPtYNm9tTbTtB1B"}
 {"address":"yes","key":"0xFB76a34cFCa103865cA395E6354DB07c53448eeF:verified","_id":"OCvfH5oVyRAHKZov"}
 {"address":"yes","key":"0xDeb9d86f18805BD391329B0E7aCCaFd4c332631C:verified","_id":"OfbZm3cG23OQzKbM"}
 {"address":"yes","key":"0x5C0e5Fb9770228a68BecFa5bf98228991569A9D5:verified","_id":"PG08dH9S8qhHTA8D"}
@@ -64,6 +65,7 @@
 {"address":"yes","key":"0xF3A3e4ba47A32c1F227c722D8BCb078C3b3C6f2c:verified","_id":"U7aCSVDWtgNV2xqc"}
 {"address":"0xA32585e3ecF1067F7E444a7ea3c0d6b5B21626F6","key":"LpManager","_id":"UBnhQm1s0SC30KPa"}
 {"address":"0xA8cc0c527a271c7D196f12c23a65DbFB58C033F5","key":"BTC","_id":"UeL3ptJVXKCWnoMU"}
+{"address":"yes","key":"0x3696bb16bC653800AdfA821689B45C36EFd33244:verified","_id":"VkrcQTgf0n2K94fy"}
 {"address":"0x42C2Bd247fbe4804C52999f33105Ad705Dee3bC5","key":"USDC","_id":"VrnvxhOYZQNUHms2"}
 {"address":"yes","key":"0xC3725b572D9a7d9D6B162315EaC8d0e648C175B5:verified","_id":"WY72nDYKLiOvbGQ5"}
 {"address":"yes","key":"0x2d03ba86B16Cad8CFc65aF6bFf69Cd3547359b23:verified","_id":"Wc6hb7ER0CDZrTik"}
@@ -88,6 +90,7 @@
 {"address":"yes","key":"0xbd21D219cca3B37696504fD6937790E758edd43b:verified","_id":"emIfUCRvDD46catp"}
 {"address":"0xd6bd9a3025e7294a9899a6d5fbf999b75b71e699","key":"ChainLinkPriceFeed","_id":"fWwNNhvBTDU1LzBA"}
 {"address":"yes","key":"0xe6bAC7436C36341e47c4F591B9Ce3c934B643da2:verified","_id":"fue3KXPIEdpFF6E1"}
+{"address":"yes","key":"0x7C7532d2BE0080D10629868c8154ae6c809D6B58:verified","_id":"guw9Gvv1Tj01Ho76"}
 {"address":"yes","key":"0xB681620857B5988C931DC34cC3f44FdC994B12Ef:verified","_id":"h8rxmm0pjARswo4l"}
 {"address":"0x1D25C415ecAd9a247e0c70717B4787DEDC6dC566","key":"VaultReader","_id":"hZQWe7zTuBScWUOG"}
 {"address":"yes","key":"0xBaEFe1BD6922D75166f9f359d8191492a40C6B92:verified","_id":"iGhQTflXsKsvGUjK"}
@@ -143,6 +146,4 @@
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
 {"address":"yes","key":"0x9ECCfa925822705AD78F70399476f396e282B37b:verified","_id":"zoNXF9UaVZHi8eIG"}
-{"address":"yes","key":"0xC3725b572D9a7d9D6B162315EaC8d0e648C175B5:verified","_id":"WY72nDYKLiOvbGQ5"}
-{"address":"0x8b27fCb94b193D3Dd9ff09682B5b2c0be089fb87","key":"FuturXVoucher","_id":"MpPtYNm9tTbTtB1B"}
-{"address":"yes","key":"0x3696bb16bC653800AdfA821689B45C36EFd33244:verified","_id":"VkrcQTgf0n2K94fy"}
+{"address":"yes","key":"0x5cC125fBf8Ae7179CB3b75E61D8e717328092941:verified","_id":"rXP9FHG9hnEuJvYE"}

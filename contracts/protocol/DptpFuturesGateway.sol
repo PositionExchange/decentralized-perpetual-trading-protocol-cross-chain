@@ -91,7 +91,8 @@ contract DptpFuturesGateway is
         uint256 amountInUsd,
         uint256 sizeDelta,
         bool isLong,
-        uint256 feeUsd
+        uint256 feeUsd,
+        uint256 timestamp
     );
 
     event ExecuteDecreasePosition(
@@ -657,7 +658,8 @@ contract DptpFuturesGateway is
             amountInUsd,
             _sizeDeltaInToken,
             _isLong,
-            _feeUsd
+            _feeUsd,
+            block.timestamp
         );
     }
 

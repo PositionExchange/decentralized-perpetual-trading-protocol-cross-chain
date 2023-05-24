@@ -28,7 +28,7 @@ describe("ReferralRewardTracker", function() {
 
     const referralRewardTrackerFactory = await ethers.getContractFactory("ReferralRewardTracker")
     referralRewardTracker = (await referralRewardTrackerFactory.deploy()) as ReferralRewardTracker
-    await referralRewardTracker.initialize(busd.address, referralStorage.address);
+    await referralRewardTracker.initialize(busd.address, 6, referralStorage.address);
 
     await referralStorage.setCounterParty(admin.address, true)
     await referralRewardTracker.setCounterParty(admin.address, true)
