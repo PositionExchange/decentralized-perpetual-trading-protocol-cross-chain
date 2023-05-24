@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
@@ -15,6 +15,7 @@ import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IShortsTracker.sol";
 import "../interfaces/IGatewayUtils.sol";
+import "../interfaces/IFuturXVoucher.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
 import "../interfaces/IFuturXGateway.sol";
@@ -111,8 +112,8 @@ contract DptpFuturesGateway is
         uint256 swapFee
     );
 
-    event CollateralAdded(address account, address token, uint256 tokenAmount);
-    event CollateralRemove(address account, address token, uint256 tokenAmount);
+    //    event CollateralAdded(address account, address token, uint256 tokenAmount);
+    //    event CollateralRemove(address account, address token, uint256 tokenAmount);
 
     event CollateralAddCreated(
         bytes32 requestKey,
@@ -216,41 +217,37 @@ contract DptpFuturesGateway is
         address _gatewayUtils,
         uint256 _executionFee
     ) public initializer {
-        __ReentrancyGuard_init();
-        __Ownable_init();
-        __Pausable_init();
-
-        pcsId = _pcsId;
-
-        //        require(_pscCrossChainGateway != address(0), Errors.VL_EMPTY_ADDRESS);
-        Require._require(
-            _pscCrossChainGateway != address(0),
-            Errors.VL_EMPTY_ADDRESS
-        );
-
-        pscCrossChainGateway = _pscCrossChainGateway;
-
-        //        require(_futuresAdapter != address(0), Errors.VL_EMPTY_ADDRESS);
-        Require._require(
-            _futuresAdapter != address(0),
-            Errors.VL_EMPTY_ADDRESS
-        );
-
-        futuresAdapter = _futuresAdapter;
-
-        //        require(_vault != address(0), Errors.VL_EMPTY_ADDRESS);
-        Require._require(_vault != address(0), Errors.VL_EMPTY_ADDRESS);
-
-        vault = _vault;
-
-        //        require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
-        Require._require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
-        weth = _weth;
-
-        require(_gatewayUtils != address(0), Errors.VL_EMPTY_ADDRESS);
-        gatewayUtils = _gatewayUtils;
-
-        executionFee = _executionFee;
+        //        __ReentrancyGuard_init();
+        //        __Ownable_init();
+        //        __Pausable_init();
+        //
+        //        pcsId = _pcsId;
+        //
+        //        Require._require(
+        //            _pscCrossChainGateway != address(0),
+        //            Errors.VL_EMPTY_ADDRESS
+        //        );
+        //
+        //        pscCrossChainGateway = _pscCrossChainGateway;
+        //
+        //        Require._require(
+        //            _futuresAdapter != address(0),
+        //            Errors.VL_EMPTY_ADDRESS
+        //        );
+        //
+        //        futuresAdapter = _futuresAdapter;
+        //
+        //        Require._require(_vault != address(0), Errors.VL_EMPTY_ADDRESS);
+        //
+        //        vault = _vault;
+        //
+        //        Require._require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
+        //        weth = _weth;
+        //
+        //        require(_gatewayUtils != address(0), Errors.VL_EMPTY_ADDRESS);
+        //        gatewayUtils = _gatewayUtils;
+        //
+        //        executionFee = _executionFee;
     }
 
     function createIncreasePositionRequest(
@@ -259,8 +256,16 @@ contract DptpFuturesGateway is
         uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
-        bool _isLong
+        bool _isLong,
+        uint256 _voucherId
     ) public payable nonReentrant whenNotPaused returns (bytes32) {
+        if (_voucherId > 0) {
+            IERC721(futurXVoucher).safeTransferFrom(
+                msg.sender,
+                address(this),
+                _voucherId
+            );
+        }
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
             msg.sender,
             msg.value,
@@ -268,7 +273,8 @@ contract DptpFuturesGateway is
             _indexToken,
             _sizeDeltaToken,
             _leverage,
-            _isLong
+            _isLong,
+            _voucherId
         );
         _updateLatestIncreasePendingCollateral(
             msg.sender,
@@ -278,6 +284,12 @@ contract DptpFuturesGateway is
         );
 
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
+        if (_voucherId > 0) {
+            _amountInUsd -= IGatewayUtils(gatewayUtils).calculateDiscountValue(
+                _voucherId,
+                _amountInUsd
+            );
+        }
         uint256 amountInToken = _usdToTokenMin(_path[0], _amountInUsd);
 
         (uint256 positionFeeUsd, uint256 totalFeeUsd) = _collectFees(
@@ -291,10 +303,8 @@ contract DptpFuturesGateway is
             false
         );
 
-        uint256 amountInAfterFeeToken = _usdToTokenMin(
-            _path[0],
-            _amountInUsd.add(totalFeeUsd)
-        );
+        _amountInUsd += totalFeeUsd;
+        uint256 amountInAfterFeeToken = _usdToTokenMin(_path[0], _amountInUsd);
 
         _transferIn(_path[0], amountInAfterFeeToken);
         _transferInETH();
@@ -316,17 +326,29 @@ contract DptpFuturesGateway is
         return _createIncreasePosition(params);
     }
 
-    function createIncreasePositionRequestNFT(
+    function createIncreasePositionETH(
         address[] memory _path,
         address _indexToken,
         uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
+        bool _isLong
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
+        return 0;
+    }
+
+    function createIncreaseOrderRequest(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _pip,
+        uint256 _sizeDeltaToken,
+        uint16 _leverage,
         bool _isLong,
         uint256 _voucherId
-    ) external payable returns (bytes32) {
+    ) external payable nonReentrant whenNotPaused returns (bytes32) {
         if (_voucherId > 0) {
-            IERC721Upgradeable(futurXVoucher).safeTransferFrom(
+            IERC721(futurXVoucher).safeTransferFrom(
                 msg.sender,
                 address(this),
                 _voucherId
@@ -339,69 +361,8 @@ contract DptpFuturesGateway is
             _indexToken,
             _sizeDeltaToken,
             _leverage,
-            _isLong
-        );
-
-        return
-            createIncreasePositionRequest(
-                _path,
-                _indexToken,
-                _amountInUsd,
-                _sizeDeltaToken,
-                _leverage,
-                _isLong
-            );
-    }
-
-    function createIncreasePositionETH(
-        address[] memory _path,
-        address _indexToken,
-        uint256 _amountInUsd,
-        uint256 _sizeDeltaToken,
-        uint16 _leverage,
-        bool _isLong
-    ) external payable nonReentrant whenNotPaused returns (bytes32) {
-        //            require(msg.value >= executionFee, "fee");
-        //            require(_path.length == 1 || _path.length == 2, "len");
-        //            require(_path[0] == weth, "path");
-        //            _validateSize(_path[0], _sizeDeltaToken, false);
-        //
-        //            uint256 amountInToken = msg.value.sub(executionFee);
-        //            _transferInETH();
-        //
-        //            CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
-        //                msg.sender,
-        //                _path,
-        //                _indexToken,
-        //                amountInToken,
-        //                _amountInUsd,
-        //                _sizeDeltaToken,
-        //                0,
-        //                _leverage,
-        //                _isLong,
-        //                false
-        //            );
-        //            return _createIncreasePosition(params);
-        return 0;
-    }
-
-    function createIncreaseOrderRequest(
-        address[] memory _path,
-        address _indexToken,
-        uint256 _amountInUsd,
-        uint256 _pip,
-        uint256 _sizeDeltaToken,
-        uint16 _leverage,
-        bool _isLong
-    ) external payable nonReentrant whenNotPaused returns (bytes32) {
-        IGatewayUtils(gatewayUtils).validateIncreasePosition(
-            msg.sender,
-            msg.value,
-            _path,
-            _indexToken,
-            _sizeDeltaToken,
-            _leverage,
-            _isLong
+            _isLong,
+            _voucherId
         );
         _updateLatestIncreasePendingCollateral(
             msg.sender,
@@ -411,6 +372,12 @@ contract DptpFuturesGateway is
         );
 
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
+        if (_voucherId > 0) {
+            _amountInUsd -= IGatewayUtils(gatewayUtils).calculateDiscountValue(
+                _voucherId,
+                _amountInUsd
+            );
+        }
         uint256 amountInToken = _usdToTokenMin(_path[0], _amountInUsd);
 
         (uint256 positionFeeUsd, uint256 totalFeeUsd) = _collectFees(
@@ -424,9 +391,10 @@ contract DptpFuturesGateway is
             true
         );
 
+        _amountInUsd += totalFeeUsd;
         uint256 amountInAfterFeeToken = _usdToTokenMin(
             _path[0],
-            _amountInUsd.add(totalFeeUsd)
+            _amountInUsd
         );
 
         _transferIn(_path[0], amountInAfterFeeToken);
@@ -619,6 +587,9 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaInToken,
         bool _isLong
     ) internal {
+        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
+            revert("test");
+        }
         uint256 amountInUsd;
         if (_amountInToken > 0) {
             address collateralToken = _path[_path.length - 1];
@@ -655,7 +626,7 @@ contract DptpFuturesGateway is
             _path,
             _indexToken,
             _amountInToken,
-            amountInUsd,
+            amountInUsd.div(PRICE_DECIMALS),
             _sizeDeltaInToken,
             _isLong,
             _feeUsd,
@@ -775,7 +746,6 @@ contract DptpFuturesGateway is
             account = request.account;
             collateralToken = request.path[0];
         }
-        //        require(account == msg.sender, "403");
         Require._require(account == msg.sender, "403");
 
         _crossBlockchainCall(
@@ -1022,7 +992,7 @@ contract DptpFuturesGateway is
             request.isLong,
             request.feeToken
         );
-        emit CollateralAdded(request.account, collateralToken, amountInToken);
+        //        emit CollateralAdded(request.account, collateralToken, amountInToken);
     }
 
     function createRemoveCollateralRequest(
@@ -1110,7 +1080,7 @@ contract DptpFuturesGateway is
         }
 
         _transferOut(receiveToken, amountOutToken, request.account);
-        emit CollateralRemove(request.account, receiveToken, amountOutToken);
+        //        emit CollateralRemove(request.account, receiveToken, amountOutToken);
     }
 
     function setTPSL(
@@ -1191,31 +1161,31 @@ contract DptpFuturesGateway is
         nonReentrant
         whenNotPaused
     {
-        if (_isHigherPrice) {
-            _deleteDecreasePositionRequests(
-                TPSLRequestMap[
-                    _getTPSLRequestKey(msg.sender, _indexToken, true)
-                ]
-            );
-            _deleteTPSLRequestMap(
-                _getTPSLRequestKey(msg.sender, _indexToken, true)
-            );
-        } else {
-            _deleteDecreasePositionRequests(
-                TPSLRequestMap[
-                    _getTPSLRequestKey(msg.sender, _indexToken, false)
-                ]
-            );
-            _deleteTPSLRequestMap(
-                _getTPSLRequestKey(msg.sender, _indexToken, false)
-            );
-        }
-        _crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.UNSET_TP_OR_SL),
-            abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
-        );
+        //        if (_isHigherPrice) {
+        //            _deleteDecreasePositionRequests(
+        //                TPSLRequestMap[
+        //                    _getTPSLRequestKey(msg.sender, _indexToken, true)
+        //                ]
+        //            );
+        //            _deleteTPSLRequestMap(
+        //                _getTPSLRequestKey(msg.sender, _indexToken, true)
+        //            );
+        //        } else {
+        //            _deleteDecreasePositionRequests(
+        //                TPSLRequestMap[
+        //                    _getTPSLRequestKey(msg.sender, _indexToken, false)
+        //                ]
+        //            );
+        //            _deleteTPSLRequestMap(
+        //                _getTPSLRequestKey(msg.sender, _indexToken, false)
+        //            );
+        //        }
+        //        _crossBlockchainCall(
+        //            pcsId,
+        //            pscCrossChainGateway,
+        //            uint8(Method.UNSET_TP_OR_SL),
+        //            abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
+        //        );
     }
 
     function triggerTPSL(
@@ -1227,32 +1197,32 @@ contract DptpFuturesGateway is
         bool _isHigherPrice,
         bool _isLong
     ) external {
-        _validateCaller(msg.sender);
-
-        address indexToken = indexTokens[_positionManager];
-        bytes32 triggeredTPSLKey = _getTPSLRequestKey(
-            _account,
-            indexToken,
-            _isHigherPrice
-        );
-        executeDecreasePosition(
-            TPSLRequestMap[triggeredTPSLKey],
-            _amountOutUsdAfterFees,
-            _feeUsd,
-            0, // TODO: Add _entryPip
-            _sizeDeltaInToken,
-            _isLong
-        );
-        _deleteDecreasePositionRequests(
-            TPSLRequestMap[
-                _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
-            ]
-        );
-        _deleteTPSLRequestMap(
-            _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
-        );
-        _deleteDecreasePositionRequests(TPSLRequestMap[triggeredTPSLKey]);
-        _deleteTPSLRequestMap(triggeredTPSLKey);
+        //        _validateCaller(msg.sender);
+        //
+        //        address indexToken = indexTokens[_positionManager];
+        //        bytes32 triggeredTPSLKey = _getTPSLRequestKey(
+        //            _account,
+        //            indexToken,
+        //            _isHigherPrice
+        //        );
+        //        executeDecreasePosition(
+        //            TPSLRequestMap[triggeredTPSLKey],
+        //            _amountOutUsdAfterFees,
+        //            _feeUsd,
+        //            0, // TODO: Add _entryPip
+        //            _sizeDeltaInToken,
+        //            _isLong
+        //        );
+        //        _deleteDecreasePositionRequests(
+        //            TPSLRequestMap[
+        //                _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
+        //            ]
+        //        );
+        //        _deleteTPSLRequestMap(
+        //            _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
+        //        );
+        //        _deleteDecreasePositionRequests(TPSLRequestMap[triggeredTPSLKey]);
+        //        _deleteTPSLRequestMap(triggeredTPSLKey);
     }
 
     function executeClaimFund(

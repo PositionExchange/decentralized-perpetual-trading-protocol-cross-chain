@@ -22,7 +22,7 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
     mapping(uint256 => Voucher) public voucherInfo;
     mapping(address => bool) public miner;
 
-    uint256 public voucherId = 1000000;
+    uint256 public globalVoucherId = 1000000;
     uint256 public defaultExpireTime = 3 days;
     mapping(uint8 => uint256) public expireTimeMap;
 
@@ -53,7 +53,7 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         uint8 _voucherType,
         uint256 _value,
         uint256 _maxDiscountValue
-    ) external onlyMiner returns (Voucher memory, uint256 voucherId) {
+    ) external onlyMiner returns (Voucher memory, uint256) {
 
         if (_voucherType == 1) {
             voucherValuePerAccount[_to] += _maxDiscountValue;
@@ -63,9 +63,9 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
             require(voucherValuePerAccount[_to] <= maxVoucherValuePerAccount, "max value exceeded");
         }
 
-        voucherId++;
-        _mint(_to, voucherId);
-        voucherInfo[voucherId] = Voucher({
+        globalVoucherId++;
+        _mint(_to, globalVoucherId);
+        voucherInfo[globalVoucherId] = Voucher({
             owner: _to,
             value: _value,
             expiredTime: 0,
@@ -78,16 +78,16 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
             _value,
             _maxDiscountValue,
             _voucherType,
-            voucherId
+            globalVoucherId
         );
-        return (voucherInfo[voucherId], voucherId);
+        return (voucherInfo[globalVoucherId], globalVoucherId);
     }
 
     function claim(uint256 _voucherId)
         external
         returns (uint256 voucherId, uint256 expiredTime)
     {
-        return _claim(_voucherId, msg.sender);
+        return _claim(_voucherId, msg.sender, true);
     }
 
     function claimAll() external {
@@ -96,17 +96,22 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
 
         for (uint256 i = 0; i < balance; i++) {
             uint256 voucherId = tokenOfOwnerByIndex(sender, i);
-            _claim(voucherId, sender);
+            _claim(globalVoucherId, sender, false);
         }
     }
 
-    function _claim(uint256 _voucherId, address _account)
+    function _claim(uint256 _voucherId, address _account, bool _revertOnActive)
         private
         returns (uint256 voucherId, uint256 expiredTime)
     {
         Voucher storage voucher = voucherInfo[_voucherId];
         require(voucher.owner == _account, "not owner");
-        require(!voucher.isActive, "must be inactive");
+
+        if (_revertOnActive) {
+            require(!voucher.isActive, "must be inactive");
+        } else if (voucher.isActive) {
+            return (0, 0);
+        }
 
         uint256 expiredTime = block.timestamp +
             getExpireTime(voucher.voucherType);
@@ -119,13 +124,13 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
     }
 
     function burnVoucher(uint256 voucherId) public onlyMiner {
-        require(_isApprovedOrOwner(_msgSender(), voucherId), "!Burn");
-        _burn(voucherId);
-        emit VoucherBurned(voucherInfo[voucherId].owner, voucherId);
+        require(_isApprovedOrOwner(_msgSender(), globalVoucherId), "!Burn");
+        _burn(globalVoucherId);
+        emit VoucherBurned(voucherInfo[globalVoucherId].owner, globalVoucherId);
     }
 
-    function tokensOfOwner(address owner)
-        public
+    function tokenIdsByOwner(address owner)
+        external
         view
         returns (uint256[] memory)
     {
@@ -137,6 +142,22 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         }
 
         return tokens;
+    }
+
+    function tokensByOwner(address owner)
+        external
+        view
+        returns (Voucher[] memory)
+    {
+        uint256 balance = balanceOf(owner);
+        Voucher[] memory vouchers = new Voucher[](balance);
+
+        for (uint256 i = 0; i < balance; i++) {
+            uint256 voucherId = tokenOfOwnerByIndex(owner, i);
+            vouchers[i] = voucherInfo[voucherId];
+        }
+
+        return vouchers;
     }
 
     function addOperator(address _miner) public onlyOwner {
