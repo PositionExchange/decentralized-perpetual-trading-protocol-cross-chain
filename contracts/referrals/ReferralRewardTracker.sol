@@ -112,6 +112,10 @@ contract ReferralRewardTracker is
         (address referrer, uint256 rebate, uint256 discount) =
             IReferralStorage(referralStorage).getReferrerInfo(_trader);
 
+        if (referrer == address(0)) {
+            return;
+        }
+
         uint256 commissionAmount = _fee.mul(rebate).div(BASIS_POINTS);
         claimableCommission[referrer] = claimableCommission[referrer].add(commissionAmount);
 
