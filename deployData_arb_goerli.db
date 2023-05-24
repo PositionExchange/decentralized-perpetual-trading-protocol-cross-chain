@@ -34,10 +34,12 @@
 {"address":"yes","key":"0x128b18c79bb093A28894dE6b8A9656a279262e64:verified","_id":"Fzstsz8ZcY1Dxvj0"}
 {"address":"yes","key":"0x195077972b497ad32D86686E2Abcb4589fCc0AD9:verified","_id":"GE7w2qbjbh71Umvc"}
 {"address":"yes","key":"0xe0728f4fbe5b86576f90a3601bc90Ca6D6c8C581:verified","_id":"GEaa4ZbTHrFnwXjZ"}
+{"address":"yes","key":"0x96ab9AeCBfc52Dad0753e35e2A95564F43544D24:verified","_id":"GWYbdRw1ax02Q5AW"}
 {"address":"yes","key":"0x261d610A48E8A5164a31D272981B0F446bADa19C:verified","_id":"HOBx3Zkko03nAto8"}
 {"address":"0xE2D7DC14eAE9339593612804AFd8Ed4fcBA30D6C","key":"MintableBaseToken","_id":"K3o85dBvqVeGz344"}
 {"address":"yes","key":"0xb69079161968142b5eCDAa4E34849b6CBAcB01ea:verified","_id":"Kc0gpDIN4odMQqoM"}
 {"address":"yes","key":"0x68E0672CeCFDb11cFB967d2C7791D08e7551e0c9:verified","_id":"KsldgT3Vy3hFzL5f"}
+{"address":"yes","key":"0xD29479c5160bd33b38157E5021d13cF54652e60D:verified","_id":"KzcyonYk2VoobASK"}
 {"address":"yes","key":"0xB62c515BEfFd1f84d787C81C93feFf444fdc6D2A:verified","_id":"LBRBj78kFQWA3YQo"}
 {"address":"0xA9319C4bf02B24251D1206E770B41CF168EaacB5","key":"StakedPlpDistributor","_id":"LkIDQEsgQzBGnLpC"}
 {"address":"0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C","key":"DAI","_id":"MSsUTIYqGUkJGx9p"}
@@ -63,6 +65,7 @@
 {"address":"0xA32585e3ecF1067F7E444a7ea3c0d6b5B21626F6","key":"LpManager","_id":"UBnhQm1s0SC30KPa"}
 {"address":"0xA8cc0c527a271c7D196f12c23a65DbFB58C033F5","key":"BTC","_id":"UeL3ptJVXKCWnoMU"}
 {"address":"0x42C2Bd247fbe4804C52999f33105Ad705Dee3bC5","key":"USDC","_id":"VrnvxhOYZQNUHms2"}
+{"address":"yes","key":"0xC3725b572D9a7d9D6B162315EaC8d0e648C175B5:verified","_id":"WY72nDYKLiOvbGQ5"}
 {"address":"yes","key":"0x2d03ba86B16Cad8CFc65aF6bFf69Cd3547359b23:verified","_id":"Wc6hb7ER0CDZrTik"}
 {"address":"yes","key":"0xC9A8f85a65E45652ed7fF46Ee86AF195B38Fe7ab:verified","_id":"XMPnC60r7zN20dvv"}
 {"address":"yes","key":"0xbc0fE9469bB19292D45B43B73c46894826E6A1d2:verified","_id":"XpGZy4sYLkUOEc3L"}
@@ -110,6 +113,7 @@
 {"address":"yes","key":"0x0E81F396e2a1EA88dcEC131862CCAbb42615a9a9:verified","_id":"pcRd9WS21BZidZJN"}
 {"address":"0x572AC915B3dCB6B04936960054Fc399E156aE9fb","key":"ReferralStorage","_id":"qf9xVlTGIzorTn1a"}
 {"address":"yes","key":"0x8356aB7278d7A22B09de689cFe8B3537648C662a:verified","_id":"qyfMGRkeRSeqg8v3"}
+{"address":"yes","key":"0x4A497F1A380F77e435ba2ffB734948Ab06D4B396:verified","_id":"r3BXfaBoDtlzZ9q4"}
 {"address":"0x568972946733b26Ab22Caf6080E688fEAb454d84","key":"Vault","_id":"rUXygWLpPkWPDg9T"}
 {"address":"yes","key":"0xcE92b53E4F0817e80F2A2f2f6ab9bA76BB7894d8:verified","_id":"rdBFJADqWnn6INBF"}
 {"address":"yes","key":"0x2CBDD1E334e94f221c0764F4E3133c5aBC3418D5:verified","_id":"sO0n07bq8Cb1qLRx"}
@@ -140,3 +144,5 @@
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
 {"address":"yes","key":"0x9ECCfa925822705AD78F70399476f396e282B37b:verified","_id":"zoNXF9UaVZHi8eIG"}
 {"address":"yes","key":"0xC3725b572D9a7d9D6B162315EaC8d0e648C175B5:verified","_id":"WY72nDYKLiOvbGQ5"}
+{"address":"0x8b27fCb94b193D3Dd9ff09682B5b2c0be089fb87","key":"FuturXVoucher","_id":"MpPtYNm9tTbTtB1B"}
+{"address":"yes","key":"0x3696bb16bC653800AdfA821689B45C36EFd33244:verified","_id":"VkrcQTgf0n2K94fy"}

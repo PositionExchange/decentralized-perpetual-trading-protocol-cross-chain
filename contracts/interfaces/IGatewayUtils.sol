@@ -24,6 +24,7 @@ interface IGatewayUtils {
         uint256 _amountInToken
     ) external view returns (uint256);
 
+    // @Deprecated
     function validateIncreasePosition(
         address _account,
         uint256 _msgValue,
@@ -32,6 +33,17 @@ interface IGatewayUtils {
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong
+    ) external returns (bool);
+
+    function validateIncreasePosition(
+        address _account,
+        uint256 _msgValue,
+        address[] memory _path,
+        address _indexToken,
+        uint256 _sizeDeltaToken,
+        uint16 _leverage,
+        bool _isLong,
+        uint256 _voucherId
     ) external returns (bool);
 
     function validateDecreasePosition(
