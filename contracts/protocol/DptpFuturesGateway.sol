@@ -139,6 +139,7 @@ contract DptpFuturesGateway is
         uint256 amountInToken;
         uint256 feeUsd;
         uint256 positionFeeUsd;
+        uint256 voucherId;
     }
 
     struct DecreasePositionRequest {
@@ -161,6 +162,7 @@ contract DptpFuturesGateway is
         bool isLong;
         bool hasCollateralInETH;
         uint256 positionFeeUsd;
+        uint256 voucherId;
     }
 
     struct AddCollateralRequest {
@@ -260,11 +262,7 @@ contract DptpFuturesGateway is
         uint256 _voucherId
     ) public payable nonReentrant whenNotPaused returns (bytes32) {
         if (_voucherId > 0) {
-            IERC721(futurXVoucher).safeTransferFrom(
-                msg.sender,
-                address(this),
-                _voucherId
-            );
+            _transferInVoucher(_voucherId);
         }
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
             msg.sender,
@@ -321,7 +319,8 @@ contract DptpFuturesGateway is
             _leverage,
             _isLong,
             false,
-            positionFeeUsd
+            positionFeeUsd,
+            _voucherId
         );
         return _createIncreasePosition(params);
     }
@@ -332,7 +331,8 @@ contract DptpFuturesGateway is
         uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
-        bool _isLong
+        bool _isLong,
+        uint256 _voucherId
     ) external payable nonReentrant whenNotPaused returns (bytes32) {
         return 0;
     }
@@ -348,11 +348,7 @@ contract DptpFuturesGateway is
         uint256 _voucherId
     ) external payable nonReentrant whenNotPaused returns (bytes32) {
         if (_voucherId > 0) {
-            IERC721(futurXVoucher).safeTransferFrom(
-                msg.sender,
-                address(this),
-                _voucherId
-            );
+            _transferInVoucher(_voucherId);
         }
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
             msg.sender,
@@ -392,10 +388,7 @@ contract DptpFuturesGateway is
         );
 
         _amountInUsd += totalFeeUsd;
-        uint256 amountInAfterFeeToken = _usdToTokenMin(
-            _path[0],
-            _amountInUsd
-        );
+        uint256 amountInAfterFeeToken = _usdToTokenMin(_path[0], _amountInUsd);
 
         _transferIn(_path[0], amountInAfterFeeToken);
         _transferInETH();
@@ -412,7 +405,8 @@ contract DptpFuturesGateway is
             _leverage,
             _isLong,
             false,
-            positionFeeUsd
+            positionFeeUsd,
+            _voucherId
         );
 
         return _createIncreasePosition(params);
@@ -425,7 +419,8 @@ contract DptpFuturesGateway is
         uint256 _pip,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
-        bool _isLong
+        bool _isLong,
+        uint256 _voucherId
     ) external payable nonReentrant whenNotPaused returns (bytes32) {
         return 0;
     }
@@ -1284,6 +1279,9 @@ contract DptpFuturesGateway is
                 request.amountInToken,
                 request.account
             );
+            if (request.voucherId > 0) {
+                _transferOutVoucher(request.voucherId, request.account);
+            }
         }
         if (_method == Method.ADD_MARGIN) {
             AddCollateralRequest memory request = addCollateralRequests[_key];
@@ -1380,7 +1378,8 @@ contract DptpFuturesGateway is
             param.hasCollateralInETH,
             param.amountInAfterFeeToken,
             param.feeInUsd,
-            param.positionFeeUsd
+            param.positionFeeUsd,
+            param.voucherId
         );
 
         (, bytes32 requestKey) = _storeIncreasePositionRequest(request);
@@ -1637,6 +1636,14 @@ contract DptpFuturesGateway is
         );
     }
 
+    function _transferInVoucher(uint256 _voucherId) internal {
+        ERC721(futurXVoucher).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _voucherId
+        );
+    }
+
     function _transferInETH() internal {
         if (msg.value != 0) {
             IWETH(weth).deposit{value: msg.value}();
@@ -1652,6 +1659,16 @@ contract DptpFuturesGateway is
             return;
         }
         IERC20Upgradeable(_token).safeTransfer(payable(_account), _tokenAmount);
+    }
+
+    function _transferOutVoucher(uint256 _voucherId, address _account)
+        internal
+    {
+        ERC721(futurXVoucher).safeTransferFrom(
+            address(this),
+            _account,
+            _voucherId
+        );
     }
 
     function _transferOutETH(uint256 _amountOut, address payable _account)

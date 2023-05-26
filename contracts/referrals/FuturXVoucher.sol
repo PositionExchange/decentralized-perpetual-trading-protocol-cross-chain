@@ -11,6 +11,7 @@ import "../interfaces/IFuturXVoucher.sol";
 
 contract FuturXVoucher is ERC721Enumerable, Ownable {
     struct Voucher {
+        uint256 id;
         address owner;
         uint256 value;
         uint256 expiredTime;
@@ -27,7 +28,7 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
     mapping(uint8 => uint256) public expireTimeMap;
 
     mapping(address => uint256) public voucherValuePerAccount;
-    uint256 public maxVoucherValuePerAccount = 500000000000000000000;
+    uint256 public maxVoucherValuePerAccount = 500000000000000000000000000000000;
 
     event VoucherDistributed(
         address owner,
@@ -66,6 +67,7 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         globalVoucherId++;
         _mint(_to, globalVoucherId);
         voucherInfo[globalVoucherId] = Voucher({
+            id: globalVoucherId,
             owner: _to,
             value: _value,
             expiredTime: 0,
