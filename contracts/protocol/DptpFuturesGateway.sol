@@ -131,6 +131,12 @@ contract DptpFuturesGateway is
         uint256 usdAmount
     );
 
+    event VoucherApplied(
+        address account,
+        uint256 voucherId,
+        uint256 discountAmount
+    );
+
     struct IncreasePositionRequest {
         address account;
         address[] path;
@@ -281,12 +287,15 @@ contract DptpFuturesGateway is
             _isLong
         );
 
+        uint256 initialAmount = _amountInUsd;
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
         if (_voucherId > 0) {
-            _amountInUsd -= IGatewayUtils(gatewayUtils).calculateDiscountValue(
+            uint256 discountAmount = IGatewayUtils(gatewayUtils).calculateDiscountValue(
                 _voucherId,
                 _amountInUsd
             );
+            _amountInUsd -= discountAmount;
+            emit VoucherApplied(msg.sender, _voucherId, discountAmount);
         }
         uint256 amountInToken = _usdToTokenMin(_path[0], _amountInUsd);
 
@@ -312,7 +321,7 @@ contract DptpFuturesGateway is
             _path,
             _indexToken,
             amountInAfterFeeToken,
-            _amountInUsd,
+            initialAmount,
             totalFeeUsd,
             _sizeDeltaToken,
             0,
@@ -367,12 +376,15 @@ contract DptpFuturesGateway is
             _isLong
         );
 
+        uint256 initialAmount = _amountInUsd;
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
         if (_voucherId > 0) {
-            _amountInUsd -= IGatewayUtils(gatewayUtils).calculateDiscountValue(
+            uint256 discountAmount = IGatewayUtils(gatewayUtils).calculateDiscountValue(
                 _voucherId,
                 _amountInUsd
             );
+            _amountInUsd -= discountAmount;
+            emit VoucherApplied(msg.sender, _voucherId, discountAmount);
         }
         uint256 amountInToken = _usdToTokenMin(_path[0], _amountInUsd);
 
@@ -393,21 +405,26 @@ contract DptpFuturesGateway is
         _transferIn(_path[0], amountInAfterFeeToken);
         _transferInETH();
 
-        CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
-            msg.sender,
-            _path,
-            _indexToken,
-            amountInAfterFeeToken,
-            _amountInUsd,
-            totalFeeUsd,
-            _sizeDeltaToken,
-            _pip,
-            _leverage,
-            _isLong,
-            false,
-            positionFeeUsd,
-            _voucherId
-        );
+        CreateIncreasePositionParam memory params;
+        {
+            address[] memory path = _path;
+            address indexToken = _indexToken;
+            params = CreateIncreasePositionParam(
+                msg.sender,
+                path,
+                indexToken,
+                amountInAfterFeeToken,
+                initialAmount,
+                totalFeeUsd,
+                _sizeDeltaToken,
+                _pip,
+                _leverage,
+                _isLong,
+                false,
+                positionFeeUsd,
+                _voucherId
+            );
+        }
 
         return _createIncreasePosition(params);
     }
@@ -1403,7 +1420,7 @@ contract DptpFuturesGateway is
                         pip,
                         leverage,
                         msg.sender,
-                        amountUsd.div(PRICE_DECIMALS)
+                        amountUsd
                     )
                 );
             } else {
@@ -1418,7 +1435,7 @@ contract DptpFuturesGateway is
                         sizeDelta,
                         leverage,
                         msg.sender,
-                        amountUsd.div(PRICE_DECIMALS)
+                        amountUsd
                     )
                 );
             }
