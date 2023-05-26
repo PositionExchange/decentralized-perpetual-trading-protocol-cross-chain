@@ -131,6 +131,31 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         emit VoucherBurned(voucherInfo[globalVoucherId].owner, globalVoucherId);
     }
 
+    /**
+     * @dev See {IERC721-transferFrom}.
+     */
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override {
+        revert("Not allow");
+    }
+
+    /**
+     * @dev See {IERC721-safeTransferFrom}.
+     */
+//    function safeTransferFrom(
+//        address from,
+//        address to,
+//        uint256 tokenId,
+//        bytes memory data
+//    ) public override {
+//        if (from)
+//        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
+//        _safeTransfer(from, to, tokenId, data);
+//    }
+
     function tokenIdsByOwner(address owner)
         external
         view

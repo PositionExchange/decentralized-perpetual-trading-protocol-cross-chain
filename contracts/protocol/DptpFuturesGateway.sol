@@ -743,20 +743,20 @@ contract DptpFuturesGateway is
         bool _isReduce
     ) external payable nonReentrant whenNotPaused {
         address account;
-        address collateralToken;
+        address indexToken;
 
         if (_isReduce) {
             DecreasePositionRequest memory request = decreasePositionRequests[
                 _key
             ];
             account = request.account;
-            collateralToken = request.path[0];
+            indexToken = request.indexToken;
         } else {
             IncreasePositionRequest memory request = increasePositionRequests[
                 _key
             ];
             account = request.account;
-            collateralToken = request.path[0];
+            indexToken = request.indexToken;
         }
         Require._require(account == msg.sender, "403");
 
@@ -766,7 +766,7 @@ contract DptpFuturesGateway is
             uint8(Method.CANCEL_LIMIT),
             abi.encode(
                 _key,
-                coreManagers[collateralToken],
+                coreManagers[indexToken],
                 _orderIdx,
                 _isReduce,
                 msg.sender
