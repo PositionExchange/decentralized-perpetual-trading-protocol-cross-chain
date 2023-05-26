@@ -37,10 +37,10 @@ contract ReferralStorage is
     event SetAdmin(address admin, bool isActive);
     event SetCounterParty(address counterParty, bool isActive);
     event SetTier(uint256 tierId, uint256 totalRebate, uint256 discountShare);
-    event RegisterCode(address account, bytes32 code);
-    event SetReferrerTier(address referrer, uint256 tierId);
+    event RegisterCode(address account, bytes32 code, uint256 timestamp);
+    event SetReferrerTier(address referrer, uint256 tierId, uint256 timestamp);
     event SetTraderReferralCode(address account, bytes32 code);
-    event SetTraderStatus(address trader, bool isActive);
+    event SetTraderStatus(address trader, bool isActive, uint256 timestamp);
 
     modifier onlyAdmin() {
         require(isAdmin[msg.sender], "ReferralStorage: onlyAdmin");
@@ -93,7 +93,7 @@ contract ReferralStorage is
         uint256 _tierId
     ) external onlyAdmin {
         referrerTiers[_referrer] = _tierId;
-        emit SetReferrerTier(_referrer, _tierId);
+        emit SetReferrerTier(_referrer, _tierId, block.timestamp);
     }
 
     function setTraderStatus(
@@ -101,7 +101,7 @@ contract ReferralStorage is
         bool _isActive
     ) external onlyCounterParty {
         traderStatus[_trader] = _isActive;
-        emit SetTraderStatus(_trader, _isActive);
+        emit SetTraderStatus(_trader, _isActive, block.timestamp);
     }
 
     function registerCode(bytes32 _code) external {
@@ -118,7 +118,7 @@ contract ReferralStorage is
         codes[_code] = msg.sender;
         traderCodes[msg.sender] = _code;
         referrerTiers[msg.sender] = 1;
-        emit RegisterCode(msg.sender, _code);
+        emit RegisterCode(msg.sender, _code, block.timestamp);
     }
 
     function setTraderReferralCode(bytes32 _code) external {
