@@ -570,7 +570,7 @@ export class ContractWrapperFactory {
         }
     }
 
-    async createFuturXVoucher(futurXGateway: string) {
+    async createFuturXVoucher(futurXGateway: string, signer: string) {
         const contractName = 'FuturXVoucher';
         const factory = await this.hre.ethers.getContractFactory(contractName);
         const contractAddress = await this.db.findAddressByKey(contractName);
@@ -584,7 +584,8 @@ export class ContractWrapperFactory {
             console.log(`Upgrade ${contractName}`);
         } else {
             const contractArgs = [
-                futurXGateway
+                futurXGateway,
+                signer
             ]
             const instance = await this.hre.upgrades.deployProxy(
                 factory,

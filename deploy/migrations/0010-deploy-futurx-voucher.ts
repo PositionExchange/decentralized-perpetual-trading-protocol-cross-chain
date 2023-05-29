@@ -13,14 +13,12 @@ const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
     "deploy futurx voucher": async () => {
       const futurXGateway = await ctx.db.findAddressByKey("DptpFuturesGateway")
-      await ctx.factory.createFuturXVoucher(futurXGateway);
+      const signer = "0x9AC215Dcbd4447cE0aa830Ed17f3d99997a10F5F"
+
+      await ctx.factory.createFuturXVoucher(futurXGateway, signer);
     },
 
     "re-config after deploy futurx voucher": async () => {
-      const miners = [
-        "0x4Ef2185384d2504B4CD944fCe7e6ad1a0c089E87"
-      ]
-
       const futurXVoucher = await ctx.factory.getDeployedContract<FuturXVoucher>("FuturXVoucher")
       const futurXGateway = await ctx.factory.getDeployedContract<DptpFuturesGateway>("DptpFuturesGateway")
       const gatewayUtils = await ctx.factory.getDeployedContract<GatewayUtils>("GatewayUtils")
@@ -32,11 +30,6 @@ const migrations: MigrationDefinition = {
 
       tx = gatewayUtils.setFuturXVoucher(futurXVoucher.address)
       await ctx.factory.waitTx(tx, "gatewayUtils.setFuturXVoucher")
-
-      for (let i = 0; i < miners.length; i++) {
-        tx = futurXVoucher.addOperator(miners[i])
-        await ctx.factory.waitTx(tx, "voucher.addOperator")
-      }
     },
   }),
 };

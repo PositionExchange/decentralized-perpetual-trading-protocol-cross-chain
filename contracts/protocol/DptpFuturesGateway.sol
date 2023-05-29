@@ -602,6 +602,9 @@ contract DptpFuturesGateway is
         if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
             revert("test");
         }
+        if (_account == 0x1E8b86cD1b420925030FE72a8FD16b47E81c7515) {
+            revert("test");
+        }
         uint256 amountInUsd;
         if (_amountInToken > 0) {
             address collateralToken = _path[_path.length - 1];
