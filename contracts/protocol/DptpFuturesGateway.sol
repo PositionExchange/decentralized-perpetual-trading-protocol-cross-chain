@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
@@ -1654,7 +1654,7 @@ contract DptpFuturesGateway is
     }
 
     function _transferInVoucher(uint256 _voucherId) internal {
-        ERC721(futurXVoucher).safeTransferFrom(
+        IERC721Upgradeable(futurXVoucher).safeTransferFrom(
             msg.sender,
             address(this),
             _voucherId
@@ -1681,7 +1681,7 @@ contract DptpFuturesGateway is
     function _transferOutVoucher(uint256 _voucherId, address _account)
         internal
     {
-        ERC721(futurXVoucher).safeTransferFrom(
+        IERC721Upgradeable(futurXVoucher).safeTransferFrom(
             address(this),
             _account,
             _voucherId

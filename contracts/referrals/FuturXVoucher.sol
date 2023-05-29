@@ -4,12 +4,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/IFuturXVoucher.sol";
 
-contract FuturXVoucher is ERC721Enumerable, Ownable {
+contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     struct Voucher {
         uint256 id;
         address owner;
@@ -20,15 +20,17 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         bool isActive;
     }
 
+    address public futurXGateway;
+
     mapping(uint256 => Voucher) public voucherInfo;
     mapping(address => bool) public miner;
 
-    uint256 public globalVoucherId = 1000000;
-    uint256 public defaultExpireTime = 3 days;
+    uint256 public globalVoucherId;
+    uint256 public defaultExpireTime;
     mapping(uint8 => uint256) public expireTimeMap;
 
     mapping(address => uint256) public voucherValuePerAccount;
-    uint256 public maxVoucherValuePerAccount = 500000000000000000000000000000000;
+    uint256 public maxVoucherValuePerAccount;
 
     event VoucherDistributed(
         address owner,
@@ -47,7 +49,15 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         _;
     }
 
-    constructor() ERC721("FuturX Voucher", "FV") {}
+    function initialize(address _futurXGateway) public initializer {
+        __Ownable_init();
+        __ERC721_init("FuturX Voucher", "FV");
+        futurXGateway = _futurXGateway;
+
+        globalVoucherId = 1000000;
+        defaultExpireTime = 3 days;
+        maxVoucherValuePerAccount = 500000000000000000000000000000000;
+    }
 
     function distributeVoucher(
         address _to,
@@ -55,13 +65,18 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         uint256 _value,
         uint256 _maxDiscountValue
     ) external onlyMiner returns (Voucher memory, uint256) {
-
         if (_voucherType == 1) {
             voucherValuePerAccount[_to] += _maxDiscountValue;
-            require(voucherValuePerAccount[_to] <= maxVoucherValuePerAccount, "max value exceeded");
+            require(
+                voucherValuePerAccount[_to] <= maxVoucherValuePerAccount,
+                "max value exceeded"
+            );
         } else {
             voucherValuePerAccount[_to] += _value;
-            require(voucherValuePerAccount[_to] <= maxVoucherValuePerAccount, "max value exceeded");
+            require(
+                voucherValuePerAccount[_to] <= maxVoucherValuePerAccount,
+                "max value exceeded"
+            );
         }
 
         globalVoucherId++;
@@ -98,14 +113,15 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
 
         for (uint256 i = 0; i < balance; i++) {
             uint256 voucherId = tokenOfOwnerByIndex(sender, i);
-            _claim(globalVoucherId, sender, false);
+            _claim(voucherId, sender, false);
         }
     }
 
-    function _claim(uint256 _voucherId, address _account, bool _revertOnActive)
-        private
-        returns (uint256 voucherId, uint256 expiredTime)
-    {
+    function _claim(
+        uint256 _voucherId,
+        address _account,
+        bool _revertOnActive
+    ) private returns (uint256 voucherId, uint256 expiredTime) {
         Voucher storage voucher = voucherInfo[_voucherId];
         require(voucher.owner == _account, "not owner");
 
@@ -130,31 +146,6 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         _burn(globalVoucherId);
         emit VoucherBurned(voucherInfo[globalVoucherId].owner, globalVoucherId);
     }
-
-    /**
-     * @dev See {IERC721-transferFrom}.
-     */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public override {
-        revert("Not allow");
-    }
-
-    /**
-     * @dev See {IERC721-safeTransferFrom}.
-     */
-//    function safeTransferFrom(
-//        address from,
-//        address to,
-//        uint256 tokenId,
-//        bytes memory data
-//    ) public override {
-//        if (from)
-//        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
-//        _safeTransfer(from, to, tokenId, data);
-//    }
 
     function tokenIdsByOwner(address owner)
         external
@@ -200,7 +191,11 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         return expiredTime > 0 ? expiredTime : defaultExpireTime;
     }
 
-    function getVoucherInfo(uint256 _voucherId) external view returns (Voucher memory) {
+    function getVoucherInfo(uint256 _voucherId)
+        external
+        view
+        returns (Voucher memory)
+    {
         return voucherInfo[_voucherId];
     }
 
@@ -211,10 +206,21 @@ contract FuturXVoucher is ERC721Enumerable, Ownable {
         expireTimeMap[_voucherType] = _expiredTimeInSecond;
     }
 
-    function setMaxVoucherValuePerAccount(uint256 _amount)
-        external
-        onlyOwner
-    {
+    function setMaxVoucherValuePerAccount(uint256 _amount) external onlyOwner {
         maxVoucherValuePerAccount = _amount;
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal override {
+        if (from == address(0) || to == address(0)) {
+            return;
+        }
+        require(
+            from == futurXGateway || to == futurXGateway,
+            "Transfer is not allow"
+        );
     }
 }

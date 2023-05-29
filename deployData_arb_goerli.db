@@ -1,4 +1,5 @@
 {"address":"yes","key":"0xb9Fb389Da3428ffb7F733c96A2D08ee1A1E21Dc5:verified","_id":"14EqTJnb3n02cMoM"}
+{"address":"0x3b24AdD564d593e16A2Ffee1A3F60BFF71715e36","key":"FuturXVoucher","_id":"1VPx9vEv8zi3SVWl"}
 {"address":"yes","key":"0x84cf7f2288Ee122DdDD3cdd05C849D5AC02A8976:verified","_id":"1hXlg233FIpCcq5a"}
 {"address":"yes","key":"0x4C2a2F5937a25b2F6Ac5EfA3c213ffC385343716:verified","_id":"23hGEffIRdNM1tkL"}
 {"address":"yes","key":"0x3d822bad1DFDEd73641cE7d941F88a8Aad2a581d:verified","_id":"2BWNThP50RgIcR6G"}
@@ -27,7 +28,6 @@
 {"address":"yes","key":"0xc3427B83bb6D783c1272f6B5cFa96ED785563B12:verified","_id":"BQELajny5OLsSjSG"}
 {"address":"yes","key":"0x5b671e985fe1F23197b610d74A4125754f1f83cF:verified","_id":"Bv5ToDgHdwwirK27"}
 {"address":"0x74c0348CC6027b0c60C27c2c6b8Cf32C5510b569","key":"LINK","_id":"CM8N0WUi8hHHU7XN"}
-{"address":"0xC019d4B013F1ba73ba386d2dcE26F0e652714387","key":"FuturXVoucher","_id":"CUJ2j3vebIcsHrt1"}
 {"address":"0x2Bc7C591869bE9aE52Fa0d178dFE83CdC078c71b","key":"GatewayUtils","_id":"Cki8ekDJTQMockLy"}
 {"address":"0x72286b7395456181Fd0f1616D9B7bF9212457aaB","key":"FeePosiTracker","_id":"Co3HTUTWFhkZY6Ww"}
 {"address":"yes","key":"0xae90C9f6bA5517D37D83083c0fBd0165A0A89BBf:verified","_id":"ELQeYGIoAHUemogW"}
@@ -49,6 +49,7 @@
 {"address":"0xA9319C4bf02B24251D1206E770B41CF168EaacB5","key":"StakedPlpDistributor","_id":"LkIDQEsgQzBGnLpC"}
 {"address":"yes","key":"0x5b070d69198420e3cc467E42622BFfCcAcA92AAD:verified","_id":"LmqJGsweQvKj7nXb"}
 {"address":"0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C","key":"DAI","_id":"MSsUTIYqGUkJGx9p"}
+{"address":"yes","key":"0xFEaC55bc5A85c83c43e1D2175f7A3B7524CF9946:verified","_id":"Mll21lpVu1RWcg2D"}
 {"address":"yes","key":"0xFB76a34cFCa103865cA395E6354DB07c53448eeF:verified","_id":"OCvfH5oVyRAHKZov"}
 {"address":"yes","key":"0xaFeb8185C6CfE2fE06Ad5F7Bd6043a72Fe66050a:verified","_id":"ORJyqToc6BoifW2K"}
 {"address":"yes","key":"0xDeb9d86f18805BD391329B0E7aCCaFd4c332631C:verified","_id":"OfbZm3cG23OQzKbM"}
@@ -93,6 +94,7 @@
 {"address":"yes","key":"0xdC9E489c1cDf4bF3CdE71BaCe69F6f4a01064C39:verified","_id":"ZtxaSSlmyVRgAdP0"}
 {"address":"yes","key":"0x41F3E13199005D89f03B41A3d9C1d398434B07C6:verified","_id":"co4sgVQmio5lfMsp"}
 {"address":"yes","key":"0x774f238719F37F580231F37Ea2D9D5BBCC095F42:verified","_id":"d0LkAgwjYclGaxLT"}
+{"address":"yes","key":"0x80CA982BBA27C0bf862C4B18Cdfe87Da65D08975:verified","_id":"dbxRnH5pHeNyOekU"}
 {"address":"0x471385598B0Bdb63C89082F4166C0577C6C0263a","key":"WETH","_id":"doQogaN4jMmuLNuK"}
 {"address":"0xD5Fc27439996C484AAFe7b4D48C4B1c766B6966D","key":"EsPOSI","_id":"drjrDjgeYiIYZLva"}
 {"address":"0x15cd00e6eD7D56F5Ec01c922dD5CCdC5bB245678","key":"ReferralRewardTracker","_id":"eMaAT7HgePLM2IU5"}
@@ -116,6 +118,7 @@
 {"address":"0xb5936DEB165c21Fd8FDf4dc3fb380Af5129227b5","key":"VaultUtilsSplit","_id":"mz1LdPBP4IHhDoHe"}
 {"address":"yes","key":"0x5A181DbF2D774718dcF7fc6Bef680f6741Bf9c80:verified","_id":"n5PdZPgcDO5kSYkl"}
 {"address":"yes","key":"0x695F2D50e937E31B354a9a16c12432E2B705d54b:verified","_id":"nEvaicmlCwvtD4HP"}
+{"address":"yes","key":"0x7b96D5D26976f84b0FE50Aca11b88A186b8eFa7d:verified","_id":"nP0uTS6dnKoDhjUI"}
 {"address":"yes","key":"0xa525e1C3FCd73EE8B14b63F7c8B59dA79a19bd92:verified","_id":"oSm7oyy5vp4jGcv1"}
 {"address":"0x7Ee71735371F9be9F0E45c9D2CC766F445Ab4A00","key":"RewardReader","_id":"oZXimvrgLzXGTwTm"}
 {"address":"yes","key":"0x656CecBbB04aB782dD6Aa95Fcbfa1d78258cF6b9:verified","_id":"of48fqDI9zcUTwqd"}
@@ -133,6 +136,7 @@
 {"address":"yes","key":"0x5cC125fBf8Ae7179CB3b75E61D8e717328092941:verified","_id":"rXP9FHG9hnEuJvYE"}
 {"address":"yes","key":"0xcE92b53E4F0817e80F2A2f2f6ab9bA76BB7894d8:verified","_id":"rdBFJADqWnn6INBF"}
 {"address":"yes","key":"0x2CBDD1E334e94f221c0764F4E3133c5aBC3418D5:verified","_id":"sO0n07bq8Cb1qLRx"}
+{"address":"yes","key":"0x47bd90F4f87680576C0B786d1E9c827A0ed589c2:verified","_id":"sOxG5fJraOilFRYf"}
 {"address":"yes","key":"0x0617FC519ef2DDE047029cd0b3a3267db0730cDA:verified","_id":"sbY1roUsEX2Z6JN5"}
 {"address":"yes","key":"0x1adA26e1e47083Bc80303434eEfe293c1bA61027:verified","_id":"sw81FGJ1NYz0d4Kj"}
 {"address":"yes","key":"0xEDE17F585e0BE221C783350b19b5e9AB78e28e20:verified","_id":"tFmHT32dji3fDT4t"}
@@ -161,4 +165,4 @@
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
 {"address":"yes","key":"0x9ECCfa925822705AD78F70399476f396e282B37b:verified","_id":"zoNXF9UaVZHi8eIG"}
-{"address":"yes","key":"0xFEaC55bc5A85c83c43e1D2175f7A3B7524CF9946:verified","_id":"Mll21lpVu1RWcg2D"}
+{"address":"yes","key":"0x745764eF04b1d0E80b8a346c4432B4e4014D67A5:verified","_id":"e4XfrWUbW3lkoyBL"}
