@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
@@ -291,10 +292,8 @@ contract DptpFuturesGateway is
         uint256 initialAmount = _amountInUsd;
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
         if (_voucherId > 0) {
-            uint256 discountAmount = IGatewayUtils(gatewayUtils).calculateDiscountValue(
-                _voucherId,
-                _amountInUsd
-            );
+            uint256 discountAmount = IGatewayUtils(gatewayUtils)
+                .calculateDiscountValue(_voucherId, _amountInUsd);
             _amountInUsd -= discountAmount;
             emit VoucherApplied(msg.sender, _voucherId, discountAmount);
         }
@@ -380,10 +379,8 @@ contract DptpFuturesGateway is
         uint256 initialAmount = _amountInUsd;
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
         if (_voucherId > 0) {
-            uint256 discountAmount = IGatewayUtils(gatewayUtils).calculateDiscountValue(
-                _voucherId,
-                _amountInUsd
-            );
+            uint256 discountAmount = IGatewayUtils(gatewayUtils)
+                .calculateDiscountValue(_voucherId, _amountInUsd);
             _amountInUsd -= discountAmount;
             emit VoucherApplied(msg.sender, _voucherId, discountAmount);
         }
@@ -1258,14 +1255,13 @@ contract DptpFuturesGateway is
 
         delete latestExecutedCollateral[key];
 
-        uint256 amountOutToken = _usdToTokenMin(
+        uint256 amountOutToken = IVault(vault).claimFund(
             collateralToken,
-            _amountOutUsd.mul(PRICE_DECIMALS)
+            _account,
+            _isLong,
+            _amountOutUsd,
+            address(this)
         );
-        if (amountOutToken == 0) {
-            return;
-        }
-        IVault(vault).withdraw(collateralToken, amountOutToken, address(this));
         _transferOut(collateralToken, amountOutToken, _account);
     }
 
