@@ -402,7 +402,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address collateralToken = _path[_path.length - 1];
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
         uint256 amountInToken = _transferIn(collateralToken);
-        _increasePoolAmount(collateralToken, amountInToken);
+        if (_isLong) {
+            _increasePoolAmount(collateralToken, amountInToken);
+        }
         _updateCumulativeBorrowingRate(collateralToken, _indexToken);
 
         if (_feeToken > 0) {
@@ -419,7 +421,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
-        _decreasePoolAmount(_collateralToken, _amountInToken);
+        if (_isLong) {
+            _decreasePoolAmount(_collateralToken, _amountInToken);
+        }
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         _transferOut(_collateralToken, _amountInToken, msg.sender);
     }
