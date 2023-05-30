@@ -109,7 +109,8 @@ contract DptpFuturesGateway is
         uint256 amountInBeforeFeeToken,
         uint256 positionFee,
         uint256 borrowFee,
-        uint256 swapFee
+        uint256 swapFee,
+        uint256 timestamp
     );
 
     //    event CollateralAdded(address account, address token, uint256 tokenAmount);
@@ -1565,7 +1566,8 @@ contract DptpFuturesGateway is
             _amountInToken,
             positionFeeUsd,
             borrowingFeeUsd,
-            swapFeeUsd
+            swapFeeUsd,
+            block.timestamp
         );
         return (positionFeeUsd, totalFeeUsd);
     }
