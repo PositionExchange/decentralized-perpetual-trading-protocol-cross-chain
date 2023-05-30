@@ -158,13 +158,14 @@ contract GatewayUtils is
         uint256 _msgValue,
         address[] memory _path,
         address _indexToken,
+        uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong,
         uint256 _voucherId
     ) public override returns (bool) {
         if (_voucherId > 0) {
-            validateVoucher(_account, _voucherId);
+            validateVoucher(_account, _voucherId, _amountInUsd);
         }
         require(_msgValue == _getExecutionFee(), "fee");
         require(_path.length == 1 || _path.length == 2, "len");
@@ -209,7 +210,7 @@ contract GatewayUtils is
         return true;
     }
 
-    function validateVoucher(address _account, uint256 _voucherId)
+    function validateVoucher(address _account, uint256 _voucherId, uint256 _amountInUsd)
         public
         returns (bool)
     {
@@ -222,6 +223,16 @@ contract GatewayUtils is
                 block.timestamp,
             "voucher minimum time not met"
         );
+
+        if (voucher.voucherType == 1) {
+            require(_amountInUsd >= 10**30, "insufficient amount for voucher");
+            if (voucher.maxDiscountValue == 100**30) {
+                require(_amountInUsd >= 20**30, "insufficient amount for voucher");
+            }
+        } else {
+            revert("invalid voucher type");
+        }
+
         return true;
     }
 

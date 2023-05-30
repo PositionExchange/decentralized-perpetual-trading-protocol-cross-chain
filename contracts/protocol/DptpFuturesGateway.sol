@@ -272,11 +272,16 @@ contract DptpFuturesGateway is
         if (_voucherId > 0) {
             _transferInVoucher(_voucherId);
         }
+
+        uint256 initialAmount = _amountInUsd;
+        _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
+
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
             msg.sender,
             msg.value,
             _path,
             _indexToken,
+            _amountInUsd,
             _sizeDeltaToken,
             _leverage,
             _isLong,
@@ -289,8 +294,6 @@ contract DptpFuturesGateway is
             _isLong
         );
 
-        uint256 initialAmount = _amountInUsd;
-        _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
         if (_voucherId > 0) {
             uint256 discountAmount = IGatewayUtils(gatewayUtils)
                 .calculateDiscountValue(_voucherId, _amountInUsd);
@@ -359,11 +362,16 @@ contract DptpFuturesGateway is
         if (_voucherId > 0) {
             _transferInVoucher(_voucherId);
         }
+
+        uint256 initialAmount = _amountInUsd;
+        _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
+
         IGatewayUtils(gatewayUtils).validateIncreasePosition(
             msg.sender,
             msg.value,
             _path,
             _indexToken,
+            _amountInUsd,
             _sizeDeltaToken,
             _leverage,
             _isLong,
@@ -376,8 +384,6 @@ contract DptpFuturesGateway is
             _isLong
         );
 
-        uint256 initialAmount = _amountInUsd;
-        _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
         if (_voucherId > 0) {
             uint256 discountAmount = IGatewayUtils(gatewayUtils)
                 .calculateDiscountValue(_voucherId, _amountInUsd);

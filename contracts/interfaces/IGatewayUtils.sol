@@ -42,6 +42,7 @@ interface IGatewayUtils {
         uint256 _msgValue,
         address[] memory _path,
         address _indexToken,
+        uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
         bool _isLong,
