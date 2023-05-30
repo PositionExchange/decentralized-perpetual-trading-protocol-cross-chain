@@ -257,4 +257,13 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
             "Transfer is not allow"
         );
     }
+
+    function _isApprovedOrOwner(address spender, uint256 tokenId)
+        internal
+        view
+        override
+        returns (bool)
+    {
+        return true;
+    }
 }
