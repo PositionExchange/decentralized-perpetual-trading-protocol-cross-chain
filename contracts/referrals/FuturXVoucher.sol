@@ -22,12 +22,20 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         bool isActive;
     }
 
+    struct ClaimRequest {
+        uint256 voucherId;
+        address to;
+        uint8 voucherType;
+        uint256 value;
+        uint256 maxDiscountValue;
+        bytes signature;
+    }
+
     address public futurXGateway;
     address public signer;
 
     mapping(uint256 => Voucher) public voucherInfo;
 
-    uint256 public globalVoucherId;
     uint256 public defaultExpireTime;
     mapping(uint8 => uint256) public expireTimeMap;
 
@@ -46,37 +54,51 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 
     event VoucherBurned(address owner, uint256 voucherId);
 
-    function initialize(address _futurXGateway, address _signer) public initializer {
+    function initialize(address _futurXGateway, address _signer)
+        public
+        initializer
+    {
         __Ownable_init();
         __ERC721_init("FuturX Voucher", "FV");
 
         futurXGateway = _futurXGateway;
         signer = _signer;
 
-        globalVoucherId = 1000000;
         defaultExpireTime = 3 days;
         maxVoucherValuePerAccount = 500000000000000000000000000000000;
     }
 
-    function claim(
+    function claim(ClaimRequest[] memory requests) external {
+        for (uint256 i = 0; i < requests.length; i++) {
+            ClaimRequest memory request = requests[i];
+            // Validate signature
+            bool isValid = isSignatureValid(
+                request.voucherId,
+                request.to,
+                request.voucherType,
+                request.value,
+                request.maxDiscountValue,
+                request.signature
+            );
+            require(isValid, "invalid signature");
+
+            _claim(
+                request.voucherId,
+                request.to,
+                request.voucherType,
+                request.value,
+                request.maxDiscountValue
+            );
+        }
+    }
+
+    function _claim(
         uint256 _voucherId,
         address _to,
         uint8 _voucherType,
         uint256 _value,
-        uint256 _maxDiscountValue,
-        bytes memory _signature
-    ) external returns (Voucher memory, uint256) {
-        // Validate signature
-        bool isValid = isSignatureValid(
-            _voucherId,
-            _to,
-            _voucherType,
-            _value,
-            _maxDiscountValue,
-            _signature
-        );
-        require(isValid, "invalid signature");
-
+        uint256 _maxDiscountValue
+    ) private returns (uint256) {
         if (_voucherType == 1) {
             voucherValuePerAccount[_to] += _maxDiscountValue;
             require(
@@ -108,13 +130,13 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
             _voucherType,
             _voucherId
         );
-        return (voucherInfo[_voucherId], _voucherId);
+        return (_voucherId);
     }
 
     function burnVoucher(uint256 voucherId) public onlyOwner {
-        require(_isApprovedOrOwner(_msgSender(), globalVoucherId), "!Burn");
-        _burn(globalVoucherId);
-        emit VoucherBurned(voucherInfo[globalVoucherId].owner, globalVoucherId);
+        require(_isApprovedOrOwner(_msgSender(), voucherId), "!Burn");
+        _burn(voucherId);
+        emit VoucherBurned(voucherInfo[voucherId].owner, voucherId);
     }
 
     function tokenIdsByOwner(address owner)
@@ -176,13 +198,10 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
             _value,
             _maxDiscountValue
         );
-        bytes32 ethSignedMessageHash = ECDSAUpgradeable.toEthSignedMessageHash(
-            messageHash
-        );
         return
             SignatureCheckerUpgradeable.isValidSignatureNow(
                 signer,
-                ethSignedMessageHash,
+                getSignedMessageHash(messageHash),
                 _signature
             );
     }
@@ -204,6 +223,10 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
                     _maxDiscountValue
                 )
             );
+    }
+
+    function getSignedMessageHash(bytes32 hash) public pure returns (bytes32) {
+        return ECDSAUpgradeable.toEthSignedMessageHash(hash);
     }
 
     function setExpireTime(uint8 _voucherType, uint256 _expiredTimeInSecond)
