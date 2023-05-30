@@ -862,6 +862,9 @@ contract DptpFuturesGateway is
                 request.amountInToken,
                 request.account
             );
+            if (request.voucherId > 0) {
+                _transferOutVoucher(request.voucherId, request.account);
+            }
             return;
         }
 
