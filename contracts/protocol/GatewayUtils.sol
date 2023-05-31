@@ -65,6 +65,7 @@ contract GatewayUtils is
     function initialize(address _vault) public initializer {
         __Ownable_init();
         vault = _vault;
+        minimumVoucherInterval = 3 days;
     }
 
     function calculateMarginFees(
@@ -108,6 +109,25 @@ contract GatewayUtils is
         totalFeeUsd = positionFeeUsd.add(borrowFeeUsd).add(swapFeeUsd);
     }
 
+    function calculateDiscountValue(uint256 _voucherId, uint256 _amountInUsd)
+        external
+        view
+        returns (uint256)
+    {
+        FuturXVoucher.Voucher memory voucher = IFuturXVoucher(futurXVoucher)
+            .getVoucherInfo(_voucherId);
+
+        if (voucher.voucherType == 1) {
+            uint256 discountAmountUsd = (_amountInUsd * voucher.value) / 100;
+            if (discountAmountUsd > voucher.maxDiscountValue) {
+                discountAmountUsd = voucher.maxDiscountValue;
+            }
+            return discountAmountUsd;
+        }
+
+        return 0;
+    }
+
     function getPositionFee(
         address _indexToken,
         uint256 _amountInUsd,
@@ -138,10 +158,15 @@ contract GatewayUtils is
         uint256 _msgValue,
         address[] memory _path,
         address _indexToken,
+        uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
         uint16 _leverage,
-        bool _isLong
+        bool _isLong,
+        uint256 _voucherId
     ) public override returns (bool) {
+        if (_voucherId > 0) {
+            validateVoucher(_account, _voucherId, _amountInUsd);
+        }
         require(_msgValue == _getExecutionFee(), "fee");
         require(_path.length == 1 || _path.length == 2, "len");
         // TODO: Consider move this to manager config
@@ -153,35 +178,6 @@ contract GatewayUtils is
         validateTokens(collateralToken, _indexToken, _isLong);
 
         return true;
-    }
-
-    function validateIncreasePosition(
-        address _account,
-        uint256 _msgValue,
-        address[] memory _path,
-        address _indexToken,
-        uint256 _sizeDeltaToken,
-        uint16 _leverage,
-        bool _isLong,
-        uint256 _voucherId
-    ) public override returns (bool) {
-        if (_voucherId > 0) {
-            FuturXVoucher.Voucher memory voucher = IFuturXVoucher(futurXVoucher)
-                .getVoucherInfo(_voucherId);
-            require(voucher.isActive, "voucher is not active");
-            require(voucher.expiredTime < block.timestamp, "voucher is expired");
-        }
-
-        return
-            validateIncreasePosition(
-                _account,
-                _msgValue,
-                _path,
-                _indexToken,
-                _sizeDeltaToken,
-                _leverage,
-                _isLong
-            );
     }
 
     function validateDecreasePosition(
@@ -214,9 +210,31 @@ contract GatewayUtils is
         return true;
     }
 
-    //    function validateVoucher(uint256 _voucherId) {
-    //        IFuturXGateway
-    //    }
+    function validateVoucher(address _account, uint256 _voucherId, uint256 _amountInUsd)
+        public
+        returns (bool)
+    {
+        FuturXVoucher.Voucher memory voucher = IFuturXVoucher(futurXVoucher)
+            .getVoucherInfo(_voucherId);
+        require(voucher.isActive, "voucher is not active");
+        require(voucher.expiredTime > block.timestamp, "voucher is expired");
+        require(
+            lastVoucherUsage[_account] + minimumVoucherInterval <=
+                block.timestamp,
+            "voucher minimum time not met"
+        );
+
+        if (voucher.voucherType == 1) {
+            require(_amountInUsd >= 10**30, "insufficient amount for voucher");
+            if (voucher.maxDiscountValue == 100**30) {
+                require(_amountInUsd >= 20**30, "insufficient amount for voucher");
+            }
+        } else {
+            revert("invalid voucher type");
+        }
+
+        return true;
+    }
 
     function validateTokens(
         address _collateralToken,
@@ -449,4 +467,6 @@ contract GatewayUtils is
      */
     uint256[49] private __gap;
     address public futurXVoucher;
+    mapping(address => uint256) public lastVoucherUsage;
+    uint256 public minimumVoucherInterval;
 }

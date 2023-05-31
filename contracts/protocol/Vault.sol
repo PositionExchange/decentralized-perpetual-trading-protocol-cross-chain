@@ -5,7 +5,6 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./libraries/TokenConfiguration.sol";
 import "./libraries/VaultInfo.sol";
@@ -85,6 +84,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // positionInfo tracks all open positions entry borrowing rates
     mapping(bytes32 => PositionInfo.Data) public positionInfo;
 
+    mapping(address => uint256) public debtAmount; // TODO: Remove later
+    mapping(address => uint256) public debtAmountUsd;
+
     modifier onlyWhitelistToken(address token) {
         require(
             tokenConfigurations[token].isWhitelisted,
@@ -154,12 +156,18 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _priceFeed = IVaultPriceFeed(vaultPriceFeed_);
         usdp = usdp_;
 
-        mintBurnFeeBasisPoints = 100; // 1%
-        swapFeeBasisPoints = 30; // 0.3%
-        stableSwapFeeBasisPoints = 4; // 0.04%
-        marginFeeBasisPoints = 10; // 0.1%
-        taxBasisPoints = 50; // 0.5%
-        stableTaxBasisPoints = 20; // 0.2%
+        mintBurnFeeBasisPoints = 100;
+        // 1%
+        swapFeeBasisPoints = 30;
+        // 0.3%
+        stableSwapFeeBasisPoints = 4;
+        // 0.04%
+        marginFeeBasisPoints = 10;
+        // 0.1%
+        taxBasisPoints = 50;
+        // 0.5%
+        stableTaxBasisPoints = 20;
+        // 0.2%
 
         hasDynamicFees = false;
         inManagerMode = false;
@@ -290,11 +298,18 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bytes32 key = getPositionInfoKey(_trader, _indexToken, _isLong);
         _updatePositionEntryBorrowingRate(key, _collateralToken);
 
-        if (borrowingFee > _amountOutAfterFeesUsd) {
+        uint256 accountDebtAmountUsd = debtAmountUsd[_trader] + borrowingFee;
+        if (_amountOutAfterFeesUsd == 0) {
+            debtAmountUsd[_trader] += accountDebtAmountUsd;
+        } else if (accountDebtAmountUsd >= _amountOutAfterFeesUsd) {
+            accountDebtAmountUsd -= _amountOutAfterFeesUsd;
             _amountOutAfterFeesUsd = 0;
         } else {
-            _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.sub(borrowingFee);
+            _amountOutAfterFeesUsd -= accountDebtAmountUsd;
+            accountDebtAmountUsd = 0;
         }
+        debtAmountUsd[_trader] = accountDebtAmountUsd;
+
         _feeUsd = _feeUsd.add(borrowingFee);
 
         // Add fee to feeReserves open
@@ -402,7 +417,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address collateralToken = _path[_path.length - 1];
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
         uint256 amountInToken = _transferIn(collateralToken);
-        _increasePoolAmount(collateralToken, amountInToken);
+        if (_isLong) {
+            _increasePoolAmount(collateralToken, amountInToken);
+        }
         _updateCumulativeBorrowingRate(collateralToken, _indexToken);
 
         if (_feeToken > 0) {
@@ -419,7 +436,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) external override nonReentrant {
         _validateCaller(msg.sender);
 
-        _decreasePoolAmount(_collateralToken, _amountInToken);
+        if (_isLong) {
+            _decreasePoolAmount(_collateralToken, _amountInToken);
+        }
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         _transferOut(_collateralToken, _amountInToken, msg.sender);
     }
@@ -653,7 +672,10 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) external override onlyOwner {
         _validate(_borrowingRateInterval >= MIN_BORROWING_RATE_INTERVAL, "10");
         _validate(_borrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, "11");
-        _validate(_stableBorrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, "12");
+        _validate(
+            _stableBorrowingRateFactor <= MAX_BORROWING_RATE_FACTOR,
+            "12"
+        );
         borrowingRateInterval = _borrowingRateInterval;
         borrowingRateFactor = _borrowingRateFactor;
         stableBorrowingRateFactor = _stableBorrowingRateFactor;
@@ -789,17 +811,38 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return _swap(_tokenIn, _tokenOut, _receiver, false);
     }
 
-    function withdraw(
-        address _token,
-        uint256 _amount,
+    function claimFund(
+        address _collateralToken,
+        address _account,
+        bool _isLong,
+        uint256 _amountOutUsd,
         address _receiver
-    ) external override onlyWhitelistToken(_token) {
+    ) external override onlyWhitelistToken(_collateralToken) returns (uint256) {
         _validateCaller(msg.sender);
-        if (_amount == 0) {
-            return;
+        if (_amountOutUsd == 0) {
+            return 0;
         }
-        _transferOut(_token, _amount, _receiver);
-        _decreasePoolAmount(_token, _amount);
+
+        uint256 userDebtAmountUsd = debtAmountUsd[_account];
+        if (_amountOutUsd > userDebtAmountUsd) {
+            _amountOutUsd -= userDebtAmountUsd;
+            userDebtAmountUsd = 0;
+        } else {
+            userDebtAmountUsd -= _amountOutUsd;
+            _amountOutUsd = 0;
+        }
+        debtAmountUsd[_account] = userDebtAmountUsd;
+
+        if (_amountOutUsd == 0) {
+            return 0;
+        }
+
+        uint256 amountOutToken = usdToTokenMin(_collateralToken, _amountOutUsd);
+        _transferOut(_collateralToken, amountOutToken, _receiver);
+        if (_isLong) {
+            _decreasePoolAmount(_collateralToken, amountOutToken);
+        }
+        return amountOutToken;
     }
 
     function poolAmounts(address token)
@@ -1152,7 +1195,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function _transferIn(address _token) private returns (uint256) {
         uint256 prevBalance = tokenBalances[_token];
-        uint256 nextBalance = IERC20Upgradeable(_token).balanceOf(address(this));
+        uint256 nextBalance = IERC20Upgradeable(_token).balanceOf(
+            address(this)
+        );
         tokenBalances[_token] = nextBalance;
         return nextBalance.sub(prevBalance);
     }
@@ -1168,7 +1213,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 prevBalance = tokenBalances[_token];
         require(prevBalance >= _amount, "Vault: insufficient amount");
         IERC20Upgradeable(_token).safeTransfer(_receiver, _amount);
-        tokenBalances[_token] = IERC20Upgradeable(_token).balanceOf(address(this));
+        tokenBalances[_token] = IERC20Upgradeable(_token).balanceOf(
+            address(this)
+        );
     }
 
     /// Calculate and collect swap fees
@@ -1322,7 +1369,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     function _updateTokenBalance(address _token) private {
-        uint256 nextBalance = IERC20Upgradeable(_token).balanceOf(address(this));
+        uint256 nextBalance = IERC20Upgradeable(_token).balanceOf(
+            address(this)
+        );
         tokenBalances[_token] = nextBalance;
     }
 
