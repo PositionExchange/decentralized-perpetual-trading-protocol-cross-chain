@@ -139,6 +139,11 @@ contract DptpFuturesGateway is
         uint256 discountAmount
     );
 
+    event VoucherRefunded(
+        uint256 voucherId,
+        address account
+    );
+
     struct IncreasePositionRequest {
         address account;
         address[] path;
@@ -269,10 +274,6 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _voucherId
     ) public payable nonReentrant whenNotPaused returns (bytes32) {
-        if (_voucherId > 0) {
-            _transferInVoucher(_voucherId);
-        }
-
         uint256 initialAmount = _amountInUsd;
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
 
@@ -295,6 +296,7 @@ contract DptpFuturesGateway is
         );
 
         if (_voucherId > 0) {
+            _applyVoucher(_voucherId);
             uint256 discountAmount = IGatewayUtils(gatewayUtils)
                 .calculateDiscountValue(_voucherId, _amountInUsd);
             _amountInUsd -= discountAmount;
@@ -359,10 +361,6 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _voucherId
     ) external payable nonReentrant whenNotPaused returns (bytes32) {
-        if (_voucherId > 0) {
-            _transferInVoucher(_voucherId);
-        }
-
         uint256 initialAmount = _amountInUsd;
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
 
@@ -385,6 +383,7 @@ contract DptpFuturesGateway is
         );
 
         if (_voucherId > 0) {
+            _applyVoucher(_voucherId);
             uint256 discountAmount = IGatewayUtils(gatewayUtils)
                 .calculateDiscountValue(_voucherId, _amountInUsd);
             _amountInUsd -= discountAmount;
@@ -863,7 +862,7 @@ contract DptpFuturesGateway is
                 request.account
             );
             if (request.voucherId > 0) {
-                _transferOutVoucher(request.voucherId, request.account);
+                _refundVoucher(request.voucherId, request.account);
             }
             return;
         }
@@ -1306,7 +1305,7 @@ contract DptpFuturesGateway is
                 request.account
             );
             if (request.voucherId > 0) {
-                _transferOutVoucher(request.voucherId, request.account);
+                _refundVoucher(request.voucherId, request.account);
             }
         }
         if (_method == Method.ADD_MARGIN) {
@@ -1539,6 +1538,17 @@ contract DptpFuturesGateway is
         );
         (, bytes32 requestKey) = _storeDecreasePositionRequest(request);
         return requestKey;
+    }
+
+    function _applyVoucher(uint256 _voucherId) private {
+        _transferInVoucher(_voucherId);
+        IFuturXVoucher(futurXVoucher).deactivate(_voucherId);
+    }
+
+    function _refundVoucher(uint256 _voucherId, address _account) private {
+        _transferOutVoucher(_voucherId, _account);
+        IFuturXVoucher(futurXVoucher).reActivate(_voucherId);
+        emit VoucherRefunded(_voucherId, _account);
     }
 
     function _collectFees(
