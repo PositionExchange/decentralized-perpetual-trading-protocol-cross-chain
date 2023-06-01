@@ -42,15 +42,14 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     mapping(address => uint256) public voucherValuePerAccount;
     uint256 public maxVoucherValuePerAccount;
 
-    event VoucherDistributed(
+    event VoucherClaim(
         address owner,
         uint256 value,
+        uint256 expiredTime,
         uint256 maxDiscountValue,
         uint8 voucherType,
         uint256 voucherId
     );
-
-    event VoucherClaim(address owner, uint256 voucherId, uint256 expiredTime);
 
     event VoucherBurned(address owner, uint256 voucherId);
 
@@ -114,18 +113,20 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         }
 
         _mint(_to, _voucherId);
+        uint256 expiredTime = block.timestamp + getExpireTime(_voucherType);
         voucherInfo[_voucherId] = Voucher({
             id: _voucherId,
             owner: _to,
             value: _value,
-            expiredTime: block.timestamp + getExpireTime(_voucherType),
+            expiredTime: expiredTime,
             maxDiscountValue: _maxDiscountValue,
             voucherType: _voucherType,
             isActive: true
         });
-        emit VoucherDistributed(
+        emit VoucherClaim(
             _to,
             _value,
+            expiredTime,
             _maxDiscountValue,
             _voucherType,
             _voucherId
@@ -249,6 +250,8 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         address to,
         uint256 tokenId
     ) internal override {
+        super._beforeTokenTransfer(from, to, tokenId);
+
         if (from == address(0) || to == address(0)) {
             return;
         }
@@ -256,6 +259,12 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
             from == futurXGateway || to == futurXGateway,
             "Transfer is not allow"
         );
+        if (from == futurXGateway) {
+            voucherInfo[tokenId].isActive = true;
+        }
+        if (to == futurXGateway) {
+            voucherInfo[tokenId].isActive = false;
+        }
     }
 
     function _isApprovedOrOwner(address spender, uint256 tokenId)
