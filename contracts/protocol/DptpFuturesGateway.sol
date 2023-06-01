@@ -40,8 +40,8 @@ contract DptpFuturesGateway is
 
     enum SetTPSLOption {
         BOTH,
-        ONLY_HIGHER,
-        ONLY_LOWER
+        HIGHER,
+        LOWER
     }
 
     enum Method {
@@ -126,6 +126,7 @@ contract DptpFuturesGateway is
         uint256 usdAmount,
         uint256 swapFee
     );
+
     event CollateralRemoveCreated(
         bytes32 requestKey,
         address account,
@@ -725,7 +726,7 @@ contract DptpFuturesGateway is
             uint8(Method.CANCEL_LIMIT),
             abi.encode(
                 _key,
-                coreManagers[indexToken],
+                _indexTokenToManager(indexToken),
                 _orderIdx,
                 _isReduce,
                 msg.sender
@@ -910,7 +911,7 @@ contract DptpFuturesGateway is
             uint8(Method.ADD_MARGIN),
             abi.encode(
                 requestKey,
-                coreManagers[_indexToken],
+                _indexTokenToManager(_indexToken),
                 amountInUsd.div(PRICE_DECIMALS),
                 msg.sender
             )
@@ -992,7 +993,7 @@ contract DptpFuturesGateway is
             uint8(Method.REMOVE_MARGIN),
             abi.encode(
                 requestKey,
-                coreManagers[_indexToken],
+                _indexTokenToManager(_indexToken),
                 _amountOutUsd,
                 msg.sender
             )
@@ -1056,32 +1057,21 @@ contract DptpFuturesGateway is
             _indexToken,
             _withdrawETH
         );
-        if (_option == SetTPSLOption.ONLY_HIGHER) {
-            _setTPSLToMap(
-                _getTPSLRequestKey(msg.sender, _indexToken, true),
-                requestKey
-            );
-        } else if (_option == SetTPSLOption.ONLY_LOWER) {
-            _setTPSLToMap(
-                _getTPSLRequestKey(msg.sender, _indexToken, false),
-                requestKey
-            );
-        } else if (_option == SetTPSLOption.BOTH) {
-            _setTPSLToMap(
-                _getTPSLRequestKey(msg.sender, _indexToken, true),
-                requestKey
-            );
-            _setTPSLToMap(
-                _getTPSLRequestKey(msg.sender, _indexToken, false),
-                requestKey
-            );
+
+        if (_option == SetTPSLOption.HIGHER || _option == SetTPSLOption.BOTH) {
+            _storeTpslRequest(msg.sender, _indexToken, true, requestKey);
         }
+
+        if (_option == SetTPSLOption.LOWER || _option == SetTPSLOption.BOTH) {
+            _storeTpslRequest(msg.sender, _indexToken, false, requestKey);
+        }
+
         _crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
             uint8(Method.SET_TPSL),
             abi.encode(
-                coreManagers[_indexToken],
+                _indexTokenToManager(_indexToken),
                 msg.sender,
                 _higherPip,
                 _lowerPip,
@@ -1095,23 +1085,14 @@ contract DptpFuturesGateway is
         nonReentrant
         whenNotPaused
     {
-        _deleteDecreasePositionRequest(
-            TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, true)]
-        );
-        _deleteTPSLRequestMap(
-            _getTPSLRequestKey(msg.sender, _indexToken, true)
-        );
-        _deleteDecreasePositionRequest(
-            TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, false)]
-        );
-        _deleteTPSLRequestMap(
-            _getTPSLRequestKey(msg.sender, _indexToken, false)
-        );
+        _deleteTPSLRequestMap(msg.sender, _indexToken, true);
+        _deleteTPSLRequestMap(msg.sender, _indexToken, false);
+
         _crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
             uint8(Method.UNSET_TP_AND_SL),
-            abi.encode(coreManagers[_indexToken], msg.sender)
+            abi.encode(_indexTokenToManager(_indexToken), msg.sender)
         );
     }
 
@@ -1143,7 +1124,7 @@ contract DptpFuturesGateway is
         //            pcsId,
         //            pscCrossChainGateway,
         //            uint8(Method.UNSET_TP_OR_SL),
-        //            abi.encode(coreManagers[_indexToken], msg.sender, _isHigherPrice)
+        //            abi.encode(_indexTokenToManager(_indexToken), msg.sender, _isHigherPrice)
         //        );
     }
 
@@ -1192,7 +1173,7 @@ contract DptpFuturesGateway is
     ) external nonReentrant {
         _validateCaller(msg.sender);
 
-        address indexToken = indexTokens[_manager];
+        address indexToken = _managerToIndexToken(_manager);
         require(indexToken != address(0), "invalid index token");
 
         bytes32 key = getPositionKey(_account, indexToken, _isLong);
@@ -1347,7 +1328,7 @@ contract DptpFuturesGateway is
                     uint8(Method.OPEN_LIMIT),
                     abi.encode(
                         requestKey,
-                        coreManagers[param.indexToken],
+                        _indexTokenToManager(param.indexToken),
                         isLong,
                         sizeDeltaToken,
                         pip,
@@ -1363,7 +1344,7 @@ contract DptpFuturesGateway is
                     uint8(Method.OPEN_MARKET),
                     abi.encode(
                         requestKey,
-                        coreManagers[param.indexToken],
+                        _indexTokenToManager(param.indexToken),
                         isLong,
                         sizeDeltaToken,
                         leverage,
@@ -1412,7 +1393,7 @@ contract DptpFuturesGateway is
                 uint8(Method.CLOSE_POSITION),
                 abi.encode(
                     requestKey,
-                    coreManagers[_indexToken],
+                    _indexTokenToManager(_indexToken),
                     _sizeDeltaToken,
                     msg.sender
                 )
@@ -1424,7 +1405,7 @@ contract DptpFuturesGateway is
                 uint8(Method.CLOSE_LIMIT_POSITION),
                 abi.encode(
                     requestKey,
-                    coreManagers[_indexToken],
+                    _indexTokenToManager(_indexToken),
                     _pip,
                     _sizeDeltaToken,
                     msg.sender
@@ -1797,20 +1778,30 @@ contract DptpFuturesGateway is
         );
     }
 
-    function _deleteTPSLRequestMap(bytes32 _key) private {
-        delete TPSLRequestMap[_key];
+    function _storeTpslRequest(
+        address _account,
+        address _indexToken,
+        bool _isHigherPip,
+        bytes32 _decreasePositionRequestKey
+    ) private {
+        IFuturXGatewayStorage(gatewayStorage).storeTpslRequest(
+            _account,
+            _indexToken,
+            _isHigherPip,
+            _decreasePositionRequestKey
+        );
     }
 
-    function _setTPSLToMap(bytes32 key, bytes32 value) private {
-        TPSLRequestMap[key] = value;
-    }
-
-    function getRequestKey(address _account, uint256 _index)
-        public
-        pure
-        returns (bytes32)
-    {
-        return keccak256(abi.encodePacked(_account, _index));
+    function _deleteTPSLRequestMap(
+        address _account,
+        address _indexToken,
+        bool _isHigherPip
+    ) private {
+        IFuturXGatewayStorage(gatewayStorage).deleteTpslRequest(
+            _account,
+            _indexToken,
+            _isHigherPip
+        );
     }
 
     function getLatestIncreasePendingCollateral(
@@ -1830,12 +1821,20 @@ contract DptpFuturesGateway is
         return keccak256(abi.encodePacked(_account, _indexToken, _isLong));
     }
 
-    function _getTPSLRequestKey(
-        address _account,
-        address _indexToken,
-        bool _isHigherPip
-    ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_account, _indexToken, _isHigherPip));
+    function _indexTokenToManager(address _indexToken)
+        internal
+        view
+        returns (address)
+    {
+        return coreManagers[_indexToken];
+    }
+
+    function _managerToIndexToken(address _manager)
+        internal
+        view
+        returns (address)
+    {
+        return indexTokens[_manager];
     }
 
     function _swap(

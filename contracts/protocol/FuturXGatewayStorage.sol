@@ -23,6 +23,8 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     mapping(bytes32 => UpdateCollateralRequest) public updateCollateralRequests;
     bytes32[] public updateCollateralRequestKeys;
 
+    mapping(bytes32 => bytes32) public tpslRequests;
+
     modifier onlyFuturXGateway() {
         Require._require(
             msg.sender == futurXGateway,
@@ -127,6 +129,26 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         return (index, key);
     }
 
+    function storeTpslRequest(
+        address _account,
+        address _indexToken,
+        bool _isHigherPip,
+        bytes32 _decreasePositionRequestKey
+    ) public onlyFuturXGateway {
+        bytes32 key = _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
+        tpslRequests[key] = _decreasePositionRequestKey;
+    }
+
+    function deleteTpslRequest(
+        address _account,
+        address _indexToken,
+        bool _isHigherPip
+    ) public onlyFuturXGateway {
+        bytes32 key = _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
+        _deleteDecreasePositionRequests(tpslRequests[key]);
+        _deleteTpslRequests(key);
+    }
+
     function getDeleteUpdateCollateralRequest(bytes32 _key)
         public
         onlyFuturXGateway
@@ -140,12 +162,36 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         _deleteUpdateCollateralRequests(_key);
     }
 
+    function getRequestKey(address _account, uint256 _index)
+        external
+        pure
+        returns (bytes32)
+    {
+        return _getRequestKey(_account, _index);
+    }
+
+    function getTPSLRequestKey(
+        address _account,
+        address _indexToken,
+        bool _isHigherPip
+    ) external pure returns (bytes32) {
+        return _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
+    }
+
     function _getRequestKey(address _account, uint256 _index)
         private
         pure
         returns (bytes32)
     {
         return keccak256(abi.encodePacked(_account, _index));
+    }
+
+    function _getTPSLRequestKey(
+        address _account,
+        address _indexToken,
+        bool _isHigherPip
+    ) private pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_account, _indexToken, _isHigherPip));
     }
 
     function _deleteIncreasePositionRequests(bytes32 _key) private {
@@ -158,6 +204,10 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function _deleteUpdateCollateralRequests(bytes32 _key) private {
         delete updateCollateralRequests[_key];
+    }
+
+    function _deleteTpslRequests(bytes32 _key) private {
+        delete tpslRequests[_key];
     }
 
     /**
