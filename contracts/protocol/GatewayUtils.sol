@@ -225,9 +225,9 @@ contract GatewayUtils is
         );
 
         if (voucher.voucherType == 1) {
-            require(_amountInUsd >= 10**30, "insufficient amount for voucher");
-            if (voucher.maxDiscountValue == 100**30) {
-                require(_amountInUsd >= 20**30, "insufficient amount for voucher");
+            require(_amountInUsd >= 10 * 10**30, "insufficient amount for voucher");
+            if (voucher.maxDiscountValue == 10 * 100**30) {
+                require(_amountInUsd >= 10 * 20**30, "insufficient amount for voucher");
             }
         } else {
             revert("invalid voucher type");

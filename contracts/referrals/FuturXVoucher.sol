@@ -53,6 +53,11 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 
     event VoucherBurned(address owner, uint256 voucherId);
 
+    modifier onlyFuturXGateway() {
+        require(msg.sender == futurXGateway, "Voucher: 403");
+        _;
+    }
+
     function initialize(address _futurXGateway, address _signer)
         public
         initializer
@@ -245,6 +250,14 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         signer = _address;
     }
 
+    function reActivate(uint256 _voucherId) external onlyFuturXGateway {
+        voucherInfo[_voucherId].isActive = true;
+    }
+
+    function deactivate(uint256 _voucherId) external onlyFuturXGateway {
+        voucherInfo[_voucherId].isActive = false;
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -259,12 +272,6 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
             from == futurXGateway || to == futurXGateway,
             "Transfer is not allow"
         );
-        if (from == futurXGateway) {
-            voucherInfo[tokenId].isActive = true;
-        }
-        if (to == futurXGateway) {
-            voucherInfo[tokenId].isActive = false;
-        }
     }
 
     function _isApprovedOrOwner(address spender, uint256 tokenId)
