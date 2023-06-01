@@ -62818,6 +62818,515 @@
           }
         }
       }
+    },
+    "3807ad2d56c5d139b7a4c962d7a0f13b4df2cdbf62a24c5b1d501ae8ad378ac0": {
+      "address": "0xAa360Ae560c6fB11279648Ad446545BBf86EA300",
+      "txHash": "0xa908d63a3d5c9e11968deb9fbdd7e7380602940e6734c7fdd6effe6ec86a1823",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "label": "pcsId",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_uint256",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:190"
+          },
+          {
+            "label": "pscCrossChainGateway",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_address",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:191"
+          },
+          {
+            "label": "futuresAdapter",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_address",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:193"
+          },
+          {
+            "label": "vault",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_address",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:194"
+          },
+          {
+            "label": "shortsTracker",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_address",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:195"
+          },
+          {
+            "label": "weth",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_address",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:196"
+          },
+          {
+            "label": "gatewayUtils",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_address",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:197"
+          },
+          {
+            "label": "positionKeepers",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:199"
+          },
+          {
+            "label": "increasePositionsIndex",
+            "offset": 0,
+            "slot": "209",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:201"
+          },
+          {
+            "label": "increasePositionRequests",
+            "offset": 0,
+            "slot": "210",
+            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)6787_storage)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:202"
+          },
+          {
+            "label": "decreasePositionsIndex",
+            "offset": 0,
+            "slot": "211",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:204"
+          },
+          {
+            "label": "decreasePositionRequests",
+            "offset": 0,
+            "slot": "212",
+            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)6797_storage)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:205"
+          },
+          {
+            "label": "maxGlobalLongSizes",
+            "offset": 0,
+            "slot": "213",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:207"
+          },
+          {
+            "label": "maxGlobalShortSizes",
+            "offset": 0,
+            "slot": "214",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:208"
+          },
+          {
+            "label": "increasePositionRequestKeys",
+            "offset": 0,
+            "slot": "215",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:210"
+          },
+          {
+            "label": "decreasePositionRequestKeys",
+            "offset": 0,
+            "slot": "216",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:211"
+          },
+          {
+            "label": "maxTimeDelay",
+            "offset": 0,
+            "slot": "217",
+            "type": "t_uint256",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:213"
+          },
+          {
+            "label": "executionFee",
+            "offset": 0,
+            "slot": "218",
+            "type": "t_uint256",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:214"
+          },
+          {
+            "label": "coreManagers",
+            "offset": 0,
+            "slot": "219",
+            "type": "t_mapping(t_address,t_address)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:217"
+          },
+          {
+            "label": "indexTokens",
+            "offset": 0,
+            "slot": "220",
+            "type": "t_mapping(t_address,t_address)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:219"
+          },
+          {
+            "label": "TPSLRequestMap",
+            "offset": 0,
+            "slot": "221",
+            "type": "t_mapping(t_bytes32,t_bytes32)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:220"
+          },
+          {
+            "label": "addCollateralIndex",
+            "offset": 0,
+            "slot": "222",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:222"
+          },
+          {
+            "label": "addCollateralRequests",
+            "offset": 0,
+            "slot": "223",
+            "type": "t_mapping(t_bytes32,t_struct(AddCollateralRequest)6839_storage)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:223"
+          },
+          {
+            "label": "addCollateralRequestKeys",
+            "offset": 0,
+            "slot": "224",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:224"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "225",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:1976"
+          },
+          {
+            "label": "latestExecutedCollateral",
+            "offset": 0,
+            "slot": "274",
+            "type": "t_mapping(t_bytes32,t_address)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:1977"
+          },
+          {
+            "label": "latestIncreasePendingCollateral",
+            "offset": 0,
+            "slot": "275",
+            "type": "t_mapping(t_bytes32,t_address)",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:1978"
+          },
+          {
+            "label": "referralRewardTracker",
+            "offset": 0,
+            "slot": "276",
+            "type": "t_address",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:1979"
+          },
+          {
+            "label": "futurXVoucher",
+            "offset": 0,
+            "slot": "277",
+            "type": "t_address",
+            "contract": "DptpFuturesGateway",
+            "src": "contracts/protocol/DptpFuturesGateway.sol:1980"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_address)": {
+            "label": "mapping(address => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_address)": {
+            "label": "mapping(bytes32 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_bytes32)": {
+            "label": "mapping(bytes32 => bytes32)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(AddCollateralRequest)6839_storage)": {
+            "label": "mapping(bytes32 => struct DptpFuturesGateway.AddCollateralRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)6797_storage)": {
+            "label": "mapping(bytes32 => struct DptpFuturesGateway.DecreasePositionRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)6787_storage)": {
+            "label": "mapping(bytes32 => struct DptpFuturesGateway.IncreasePositionRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AddCollateralRequest)6839_storage": {
+            "label": "struct DptpFuturesGateway.AddCollateralRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "amountInToken",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "isLong",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "feeToken",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_struct(DecreasePositionRequest)6797_storage": {
+            "label": "struct DptpFuturesGateway.DecreasePositionRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "withdrawETH",
+                "type": "t_bool",
+                "offset": 20,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(IncreasePositionRequest)6787_storage": {
+            "label": "struct DptpFuturesGateway.IncreasePositionRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "hasCollateralInETH",
+                "type": "t_bool",
+                "offset": 20,
+                "slot": "2"
+              },
+              {
+                "label": "amountInToken",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "feeUsd",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "positionFeeUsd",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "voucherId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
     }
   }
 }

@@ -139,6 +139,11 @@ contract DptpFuturesGateway is
         uint256 discountAmount
     );
 
+    event VoucherRefunded(
+        uint256 voucherId,
+        address account
+    );
+
     struct IncreasePositionRequest {
         address account;
         address[] path;
@@ -1543,6 +1548,7 @@ contract DptpFuturesGateway is
     function _refundVoucher(uint256 _voucherId, address _account) private {
         _transferOutVoucher(_voucherId, _account);
         IFuturXVoucher(futurXVoucher).reActivate(_voucherId);
+        emit VoucherRefunded(_voucherId, _account);
     }
 
     function _collectFees(
