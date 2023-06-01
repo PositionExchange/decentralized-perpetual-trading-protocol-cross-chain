@@ -17,6 +17,7 @@ import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IShortsTracker.sol";
 import "../interfaces/IGatewayUtils.sol";
 import "../interfaces/IFuturXVoucher.sol";
+import "../interfaces/IFuturXGatewayStorage.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
 import "../interfaces/IFuturXGateway.sol";
@@ -139,10 +140,7 @@ contract DptpFuturesGateway is
         uint256 discountAmount
     );
 
-    event VoucherRefunded(
-        uint256 voucherId,
-        address account
-    );
+    event VoucherRefunded(uint256 voucherId, address account);
 
     struct IncreasePositionRequest {
         address account;
@@ -178,14 +176,14 @@ contract DptpFuturesGateway is
         uint256 voucherId;
     }
 
-    struct AddCollateralRequest {
-        address account;
-        address[] path;
-        address indexToken;
-        uint256 amountInToken;
-        bool isLong;
-        uint256 feeToken;
-    }
+//    struct AddCollateralRequest {
+//        address account;
+//        address[] path;
+//        address indexToken;
+//        uint256 amountInToken;
+//        bool isLong;
+//        uint256 feeToken;
+//    }
 
     uint256 public pcsId;
     address public pscCrossChainGateway;
@@ -219,9 +217,9 @@ contract DptpFuturesGateway is
     mapping(address => address) public indexTokens;
     mapping(bytes32 => bytes32) public TPSLRequestMap;
 
-    mapping(address => uint256) public addCollateralIndex;
-    mapping(bytes32 => AddCollateralRequest) public addCollateralRequests;
-    bytes32[] public addCollateralRequestKeys;
+    //    mapping(address => uint256) public addCollateralIndex;
+    //    mapping(bytes32 => AddCollateralRequest) public addCollateralRequests;
+    //    bytes32[] public addCollateralRequestKeys;
 
     function initialize(
         uint256 _pcsId,
@@ -277,9 +275,7 @@ contract DptpFuturesGateway is
         uint256 initialAmount = _amountInUsd;
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
 
-        IGatewayUtils(gatewayUtils).validateIncreasePosition(
-            msg.sender,
-            msg.value,
+        _validateIncreasePosition(
             _path,
             _indexToken,
             _amountInUsd,
@@ -364,9 +360,7 @@ contract DptpFuturesGateway is
         uint256 initialAmount = _amountInUsd;
         _amountInUsd = _amountInUsd.mul(PRICE_DECIMALS);
 
-        IGatewayUtils(gatewayUtils).validateIncreasePosition(
-            msg.sender,
-            msg.value,
+        _validateIncreasePosition(
             _path,
             _indexToken,
             _amountInUsd,
@@ -942,18 +936,13 @@ contract DptpFuturesGateway is
             ? 0
             : IGatewayUtils(gatewayUtils).getSwapFee(_path, _amountInToken);
 
-        bytes32 requestKey;
-        {
-            AddCollateralRequest memory request = AddCollateralRequest(
-                msg.sender,
-                _path,
-                _indexToken,
-                _amountInToken,
-                _isLong,
-                swapFeeToken
-            );
-            (, requestKey) = _storeAddCollateralRequest(request);
-        }
+        (, bytes32 requestKey) = _storeUpdateCollateralRequest(
+            _path,
+            _indexToken,
+            _amountInToken,
+            _isLong,
+            swapFeeToken
+        );
 
         uint256 swapFeeUsd = _tokenToUsdMin(collateralToken, swapFeeToken);
         uint256 amountInUsd = _tokenToUsdMin(paidToken, _amountInToken).sub(
@@ -985,10 +974,8 @@ contract DptpFuturesGateway is
     function executeAddCollateral(bytes32 _key) external nonReentrant {
         _validateCaller(msg.sender);
 
-        AddCollateralRequest memory request = addCollateralRequests[_key];
-        Require._require(request.account != address(0), "404");
-
-        _deleteAddCollateralRequests(_key);
+        IFuturXGatewayStorage.AddCollateralRequest
+            memory request = _getDeleteUpdateCollateralRequest(_key);
 
         address paidToken = request.path[0];
         address collateralToken = request.path[request.path.length - 1];
@@ -1036,15 +1023,13 @@ contract DptpFuturesGateway is
             collateralToken,
             amountOutUsdFormatted
         );
-        AddCollateralRequest memory request = AddCollateralRequest(
-            msg.sender,
+        (, bytes32 requestKey) = _storeUpdateCollateralRequest(
             _path,
             _indexToken,
             amountOutToken,
             _isLong,
             0
         );
-        (, bytes32 requestKey) = _storeAddCollateralRequest(request);
 
         _crossBlockchainCall(
             pcsId,
@@ -1072,10 +1057,8 @@ contract DptpFuturesGateway is
     {
         _validateCaller(msg.sender);
 
-        AddCollateralRequest memory request = addCollateralRequests[_key];
-        Require._require(request.account != address(0), "404");
-
-        _deleteAddCollateralRequests(_key);
+        IFuturXGatewayStorage.AddCollateralRequest
+            memory request = _getDeleteUpdateCollateralRequest(_key);
 
         if (_amountOutUsd == 0) {
             return;
@@ -1309,9 +1292,8 @@ contract DptpFuturesGateway is
             }
         }
         if (_method == Method.ADD_MARGIN) {
-            AddCollateralRequest memory request = addCollateralRequests[_key];
-            require(request.account != address(0), "Refund: request not found");
-            _deleteAddCollateralRequests(_key);
+            IFuturXGatewayStorage.AddCollateralRequest
+                memory request = _getDeleteUpdateCollateralRequest(_key);
             _transferOut(
                 request.path[0],
                 request.amountInToken,
@@ -1647,19 +1629,34 @@ contract DptpFuturesGateway is
         return (index, key);
     }
 
-    function _storeAddCollateralRequest(AddCollateralRequest memory _request)
+    function _getDeleteUpdateCollateralRequest(bytes32 _key)
         internal
-        returns (uint256, bytes32)
+        returns (IFuturXGatewayStorage.AddCollateralRequest memory)
     {
-        address account = _request.account;
-        uint256 index = addCollateralIndex[account].add(1);
-        addCollateralIndex[account] = index;
-        bytes32 key = getRequestKey(account, index);
+        return
+            IFuturXGatewayStorage(futurXGatewayStorage)
+                .getDeleteUpdateCollateralRequest(_key);
+    }
 
-        addCollateralRequests[key] = _request;
-        addCollateralRequestKeys.push(key);
-
-        return (index, key);
+    function _storeUpdateCollateralRequest(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountInToken,
+        bool _isLong,
+        uint256 _swapFeeToken
+    ) internal returns (uint256, bytes32) {
+        IFuturXGatewayStorage.AddCollateralRequest
+            memory request = IFuturXGatewayStorage.AddCollateralRequest(
+                msg.sender,
+                _path,
+                _indexToken,
+                _amountInToken,
+                _isLong,
+                _swapFeeToken
+            );
+        return
+            IFuturXGatewayStorage(futurXGatewayStorage)
+                .storeUpdateCollateralRequest(request);
     }
 
     function _transferIn(address _token, uint256 _tokenAmount) internal {
@@ -1724,14 +1721,26 @@ contract DptpFuturesGateway is
         return IVault(vault).adjustDecimalToToken(_token, _tokenAmount);
     }
 
-    function _validatePositionRequest(
+    function _validateIncreasePosition(
         address[] memory _path,
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _sizeDeltaToken,
         uint16 _leverage,
-        bool isValidateLeverage
-    ) internal {
-        Require._require(msg.value == executionFee, "fee");
-        Require._require(_path.length == 1 || _path.length == 2, "len");
-        if (isValidateLeverage) Require._require(_leverage > 1, "min leverage");
+        bool _isLong,
+        uint256 _voucherId
+    ) private {
+        IGatewayUtils(gatewayUtils).validateIncreasePosition(
+            msg.sender,
+            msg.value,
+            _path,
+            _indexToken,
+            _amountInUsd,
+            _sizeDeltaToken,
+            _leverage,
+            _isLong,
+            _voucherId
+        );
     }
 
     function _validateUpdateCollateral(
@@ -1739,23 +1748,21 @@ contract DptpFuturesGateway is
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) internal view returns (bool) {
-        return
-            IGatewayUtils(gatewayUtils).validateUpdateCollateral(
-                _account,
-                _collateralToken,
-                _indexToken,
-                _isLong
-            );
+    ) private {
+        IGatewayUtils(gatewayUtils).validateUpdateCollateral(
+            _account,
+            _collateralToken,
+            _indexToken,
+            _isLong
+        );
     }
 
-    function _validateCaller(address _account) internal view returns (bool) {
+    function _validateCaller(address _account) private {
         Require._require(positionKeepers[_account], "403");
-        return true;
     }
 
     function _usdToTokenMin(address _token, uint256 _usdAmount)
-        internal
+        private
         view
         returns (uint256)
     {
@@ -1763,7 +1770,7 @@ contract DptpFuturesGateway is
     }
 
     function _tokenToUsdMin(address _token, uint256 _tokenAmount)
-        internal
+        private
         view
         returns (uint256)
     {
@@ -1771,7 +1778,7 @@ contract DptpFuturesGateway is
     }
 
     /// @dev This function is used to execute the cross blockchain call to update position call
-    function _executeExecuteUpdatePositionData(bytes32 _requestKey) internal {
+    function _executeExecuteUpdatePositionData(bytes32 _requestKey) private {
         _crossBlockchainCall(
             pcsId,
             pscCrossChainGateway,
@@ -1815,23 +1822,19 @@ contract DptpFuturesGateway is
         );
     }
 
-    function _deleteDecreasePositionRequests(bytes32 _key) internal {
+    function _deleteDecreasePositionRequests(bytes32 _key) private {
         delete decreasePositionRequests[_key];
     }
 
-    function _deleteTPSLRequestMap(bytes32 _key) internal {
+    function _deleteTPSLRequestMap(bytes32 _key) private {
         delete TPSLRequestMap[_key];
     }
 
-    function _deleteIncreasePositionRequests(bytes32 _key) internal {
+    function _deleteIncreasePositionRequests(bytes32 _key) private {
         delete increasePositionRequests[_key];
     }
 
-    function _deleteAddCollateralRequests(bytes32 _key) internal {
-        delete addCollateralRequests[_key];
-    }
-
-    function _setTPSLToMap(bytes32 key, bytes32 value) internal {
+    function _setTPSLToMap(bytes32 key, bytes32 value) private {
         TPSLRequestMap[key] = value;
     }
 
@@ -1847,7 +1850,7 @@ contract DptpFuturesGateway is
         address _account,
         address _indexToken,
         bool _isLong
-    ) public view override returns (address) {
+    ) external view override returns (address) {
         bytes32 key = getPositionKey(_account, _indexToken, _isLong);
         return latestIncreasePendingCollateral[key];
     }
@@ -1978,4 +1981,5 @@ contract DptpFuturesGateway is
     mapping(bytes32 => address) public latestIncreasePendingCollateral;
     address public referralRewardTracker;
     address public futurXVoucher;
+    address public futurXGatewayStorage;
 }
