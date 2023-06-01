@@ -36,11 +36,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         futurXGateway = _futurXGateway;
     }
 
-    function storeIncreasePositionRequest(IncreasePositionRequest memory _request)
-        public
-        onlyFuturXGateway
-        returns (uint256, bytes32)
-    {
+    function storeIncreasePositionRequest(
+        IncreasePositionRequest memory _request
+    ) public onlyFuturXGateway returns (uint256, bytes32) {
         address account = _request.account;
         uint256 index = increasePositionsIndex[account].add(1);
         increasePositionsIndex[account] = index;
@@ -73,11 +71,51 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         _deleteIncreasePositionRequests(_key);
     }
 
-    function storeUpdateCollateralRequest(UpdateCollateralRequest memory _request)
+    function storeDecreasePositionRequest(
+        DecreasePositionRequest memory _request
+    ) public returns (uint256, bytes32) {
+        address account = _request.account;
+        uint256 index = decreasePositionsIndex[account].add(1);
+        decreasePositionsIndex[account] = index;
+        bytes32 key = _getRequestKey(account, index);
+
+        decreasePositionRequests[key] = _request;
+        decreasePositionRequestKeys.push(key);
+
+        return (index, key);
+    }
+
+    function getDecreasePositionRequest(bytes32 _key)
+        public
+        view
+        returns (DecreasePositionRequest memory request)
+    {
+        request = decreasePositionRequests[_key];
+    }
+
+    function getDeleteDecreasePositionRequest(bytes32 _key)
         public
         onlyFuturXGateway
-        returns (uint256, bytes32)
+        returns (DecreasePositionRequest memory request)
     {
+        request = decreasePositionRequests[_key];
+        Require._require(
+            request.account != address(0),
+            "FuturXGatewayStorage: 404"
+        );
+        _deleteDecreasePositionRequests(_key);
+    }
+
+    function deleteDecreasePositionRequest(bytes32 _key)
+        public
+        onlyFuturXGateway
+    {
+        _deleteDecreasePositionRequests(_key);
+    }
+
+    function storeUpdateCollateralRequest(
+        UpdateCollateralRequest memory _request
+    ) public onlyFuturXGateway returns (uint256, bytes32) {
         address account = _request.account;
         uint256 index = updateCollateralIndex[account].add(1);
         updateCollateralIndex[account] = index;
@@ -112,6 +150,10 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function _deleteIncreasePositionRequests(bytes32 _key) private {
         delete increasePositionRequests[_key];
+    }
+
+    function _deleteDecreasePositionRequests(bytes32 _key) private {
+        delete decreasePositionRequests[_key];
     }
 
     function _deleteUpdateCollateralRequests(bytes32 _key) private {

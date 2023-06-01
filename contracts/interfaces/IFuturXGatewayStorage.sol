@@ -29,9 +29,9 @@ interface IFuturXGatewayStorage {
         uint256 feeToken;
     }
 
-    function storeIncreasePositionRequest(IncreasePositionRequest memory _request)
-        external
-        returns (uint256, bytes32);
+    function storeIncreasePositionRequest(
+        IncreasePositionRequest memory _request
+    ) external returns (uint256, bytes32);
 
     function getIncreasePositionRequest(bytes32 _key)
         external
@@ -42,9 +42,24 @@ interface IFuturXGatewayStorage {
         external
         returns (IncreasePositionRequest memory);
 
-    function storeUpdateCollateralRequest(UpdateCollateralRequest memory _request)
+    function storeDecreasePositionRequest(
+        DecreasePositionRequest memory _request
+    ) external returns (uint256, bytes32);
+
+    function getDecreasePositionRequest(bytes32 _key)
         external
-        returns (uint256, bytes32);
+        view
+        returns (DecreasePositionRequest memory);
+
+    function getDeleteDecreasePositionRequest(bytes32 _key)
+        external
+        returns (DecreasePositionRequest memory);
+
+    function deleteDecreasePositionRequest(bytes32 _key) external;
+
+    function storeUpdateCollateralRequest(
+        UpdateCollateralRequest memory _request
+    ) external returns (uint256, bytes32);
 
     function getDeleteUpdateCollateralRequest(bytes32 _key)
         external

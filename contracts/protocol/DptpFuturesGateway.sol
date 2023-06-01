@@ -142,17 +142,6 @@ contract DptpFuturesGateway is
 
     event VoucherRefunded(uint256 voucherId, address account);
 
-    struct IncreasePositionRequest {
-        address account;
-        address[] path;
-        address indexToken;
-        bool hasCollateralInETH;
-        uint256 amountInToken;
-        uint256 feeUsd;
-        uint256 positionFeeUsd;
-        uint256 voucherId;
-    }
-
     struct DecreasePositionRequest {
         address account;
         address[] path;
@@ -187,13 +176,8 @@ contract DptpFuturesGateway is
 
     mapping(address => bool) public positionKeepers;
 
-    mapping(address => uint256) public decreasePositionsIndex;
-    mapping(bytes32 => DecreasePositionRequest) public decreasePositionRequests;
-
     mapping(address => uint256) public override maxGlobalLongSizes;
     mapping(address => uint256) public override maxGlobalShortSizes;
-
-    bytes32[] public decreasePositionRequestKeys;
 
     uint256 public maxTimeDelay;
     uint256 public override executionFee;
@@ -635,10 +619,8 @@ contract DptpFuturesGateway is
     ) public nonReentrant {
         _validateCaller(msg.sender);
 
-        DecreasePositionRequest memory request = decreasePositionRequests[_key];
-        Require._require(request.account != address(0), "404");
-
-        _deleteDecreasePositionRequests(_key);
+        IFuturXGatewayStorage.DecreasePositionRequest
+            memory request = _getDeleteDecreasePositionRequest(_key);
 
         _executeDecreasePosition(
             request.account,
@@ -725,13 +707,13 @@ contract DptpFuturesGateway is
         address indexToken;
 
         if (_isReduce) {
-            DecreasePositionRequest memory request = decreasePositionRequests[
-                _key
-            ];
+            IFuturXGatewayStorage.DecreasePositionRequest
+                memory request = _getDecreasePositionRequest(_key);
             account = request.account;
             indexToken = request.indexToken;
         } else {
-            IFuturXGatewayStorage.IncreasePositionRequest memory request = _getIncreasePositionRequest(_key);
+            IFuturXGatewayStorage.IncreasePositionRequest
+                memory request = _getIncreasePositionRequest(_key);
             account = request.account;
             indexToken = request.indexToken;
         }
@@ -793,14 +775,12 @@ contract DptpFuturesGateway is
         bool _isLong
     ) private {
         if (_sizeDeltaToken == 0 || _amountOutUsd == 0) {
-            _deleteDecreasePositionRequests(_key);
+            _deleteDecreasePositionRequest(_key);
             return;
         }
 
-        DecreasePositionRequest memory request = decreasePositionRequests[_key];
-        Require._require(request.account != address(0), "404");
-
-        _deleteDecreasePositionRequests(_key);
+        IFuturXGatewayStorage.DecreasePositionRequest
+            memory request = _getDeleteDecreasePositionRequest(_key);
 
         _executeDecreasePosition(
             request.account,
@@ -1070,7 +1050,7 @@ contract DptpFuturesGateway is
         uint128 _lowerPip,
         SetTPSLOption _option
     ) external nonReentrant whenNotPaused {
-        bytes32 requestKey = _createTPSLDecreaseOrder(
+        (, bytes32 requestKey) = _storeDecreasePositionRequest(
             msg.sender,
             _path,
             _indexToken,
@@ -1115,13 +1095,13 @@ contract DptpFuturesGateway is
         nonReentrant
         whenNotPaused
     {
-        _deleteDecreasePositionRequests(
+        _deleteDecreasePositionRequest(
             TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, true)]
         );
         _deleteTPSLRequestMap(
             _getTPSLRequestKey(msg.sender, _indexToken, true)
         );
-        _deleteDecreasePositionRequests(
+        _deleteDecreasePositionRequest(
             TPSLRequestMap[_getTPSLRequestKey(msg.sender, _indexToken, false)]
         );
         _deleteTPSLRequestMap(
@@ -1418,14 +1398,12 @@ contract DptpFuturesGateway is
         bool _isLong,
         bool _withdrawETH
     ) internal returns (bytes32) {
-        DecreasePositionRequest memory request = DecreasePositionRequest(
+        (, bytes32 requestKey) = _storeDecreasePositionRequest(
             _account,
             _path,
             _indexToken,
             _withdrawETH
         );
-
-        (, bytes32 requestKey) = _storeDecreasePositionRequest(request);
 
         if (_pip == 0) {
             _crossBlockchainCall(
@@ -1434,7 +1412,7 @@ contract DptpFuturesGateway is
                 uint8(Method.CLOSE_POSITION),
                 abi.encode(
                     requestKey,
-                    coreManagers[request.indexToken],
+                    coreManagers[_indexToken],
                     _sizeDeltaToken,
                     msg.sender
                 )
@@ -1446,7 +1424,7 @@ contract DptpFuturesGateway is
                 uint8(Method.CLOSE_LIMIT_POSITION),
                 abi.encode(
                     requestKey,
-                    coreManagers[request.indexToken],
+                    coreManagers[_indexToken],
                     _pip,
                     _sizeDeltaToken,
                     msg.sender
@@ -1455,9 +1433,9 @@ contract DptpFuturesGateway is
         }
 
         emit CreateDecreasePosition(
-            request.account,
-            request.path,
-            request.indexToken,
+            _account,
+            _path,
+            _indexToken,
             _pip,
             _sizeDeltaToken,
             _isLong,
@@ -1466,22 +1444,6 @@ contract DptpFuturesGateway is
             block.number,
             block.timestamp
         );
-        return requestKey;
-    }
-
-    function _createTPSLDecreaseOrder(
-        address _account,
-        address[] memory _path,
-        address _indexToken,
-        bool _withdrawETH
-    ) internal returns (bytes32) {
-        DecreasePositionRequest memory request = DecreasePositionRequest(
-            _account,
-            _path,
-            _indexToken,
-            _withdrawETH
-        );
-        (, bytes32 requestKey) = _storeDecreasePositionRequest(request);
         return requestKey;
     }
 
@@ -1587,8 +1549,9 @@ contract DptpFuturesGateway is
         returns (IFuturXGatewayStorage.IncreasePositionRequest memory)
     {
         return
-            IFuturXGatewayStorage(gatewayStorage)
-                .getIncreasePositionRequest(_key);
+            IFuturXGatewayStorage(gatewayStorage).getIncreasePositionRequest(
+                _key
+            );
     }
 
     function _getDeleteIncreasePositionRequest(bytes32 _key)
@@ -1601,17 +1564,45 @@ contract DptpFuturesGateway is
     }
 
     function _storeDecreasePositionRequest(
-        DecreasePositionRequest memory _request
+        address _account,
+        address[] memory _path,
+        address _indexToken,
+        bool _withdrawETH
     ) internal returns (uint256, bytes32) {
-        address account = _request.account;
-        uint256 index = decreasePositionsIndex[account].add(1);
-        decreasePositionsIndex[account] = index;
-        bytes32 key = getRequestKey(account, index);
+        return
+            IFuturXGatewayStorage(gatewayStorage).storeDecreasePositionRequest(
+                IFuturXGatewayStorage.DecreasePositionRequest(
+                    _account,
+                    _path,
+                    _indexToken,
+                    _withdrawETH
+                )
+            );
+    }
 
-        decreasePositionRequests[key] = _request;
-        decreasePositionRequestKeys.push(key);
+    function _getDecreasePositionRequest(bytes32 _key)
+        internal
+        returns (IFuturXGatewayStorage.DecreasePositionRequest memory)
+    {
+        return
+            IFuturXGatewayStorage(gatewayStorage).getDecreasePositionRequest(
+                _key
+            );
+    }
 
-        return (index, key);
+    function _getDeleteDecreasePositionRequest(bytes32 _key)
+        internal
+        returns (IFuturXGatewayStorage.DecreasePositionRequest memory)
+    {
+        return
+            IFuturXGatewayStorage(gatewayStorage)
+                .getDeleteDecreasePositionRequest(_key);
+    }
+
+    function _deleteDecreasePositionRequest(bytes32 _key) internal {
+        IFuturXGatewayStorage(gatewayStorage).deleteDecreasePositionRequest(
+            _key
+        );
     }
 
     function _storeUpdateCollateralRequest(
@@ -1804,10 +1795,6 @@ contract DptpFuturesGateway is
             _destMethodID,
             _functionCallData
         );
-    }
-
-    function _deleteDecreasePositionRequests(bytes32 _key) private {
-        delete decreasePositionRequests[_key];
     }
 
     function _deleteTPSLRequestMap(bytes32 _key) private {
