@@ -29,6 +29,17 @@ interface IFuturXGatewayStorage {
         uint256 feeToken;
     }
 
+    function getRequestKey(address _account, uint256 _index)
+        external
+        pure
+        returns (bytes32);
+
+    function getTPSLRequestKey(
+        address _account,
+        address _indexToken,
+        bool _isHigherPip
+    ) external pure returns (bytes32);
+
     function getIncreasePositionRequest(bytes32 _key)
         external
         view

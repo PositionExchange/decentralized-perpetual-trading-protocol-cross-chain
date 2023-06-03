@@ -23,6 +23,8 @@ import {Errors} from "./libraries/helpers/Errors.sol";
 import "../interfaces/IFuturXGateway.sol";
 import "../referrals/interfaces/IReferralRewardTracker.sol";
 
+import "hardhat/console.sol";
+
 contract DptpFuturesGateway is
     IERC721ReceiverUpgradeable,
     PausableUpgradeable,
@@ -169,11 +171,14 @@ contract DptpFuturesGateway is
     uint256 public pcsId;
     address public pscCrossChainGateway;
 
-    address public futuresAdapter;
     address public vault;
+    address public futuresAdapter;
     address public shortsTracker;
     address public weth;
     address public gatewayUtils;
+    address public referralRewardTracker;
+    address public futurXVoucher;
+    address public gatewayStorage;
 
     mapping(address => bool) public positionKeepers;
 
@@ -187,7 +192,9 @@ contract DptpFuturesGateway is
     mapping(address => address) public coreManagers;
     // mapping positionManager with indexToken
     mapping(address => address) public indexTokens;
-    mapping(bytes32 => bytes32) public TPSLRequestMap;
+
+    mapping(bytes32 => address) public latestExecutedCollateral;
+    mapping(bytes32 => address) public latestIncreasePendingCollateral;
 
     function initialize(
         uint256 _pcsId,
@@ -196,39 +203,43 @@ contract DptpFuturesGateway is
         address _vault,
         address _weth,
         address _gatewayUtils,
+        address _gatewayStorage,
         uint256 _executionFee
     ) public initializer {
-        //        __ReentrancyGuard_init();
-        //        __Ownable_init();
-        //        __Pausable_init();
-        //
-        //        pcsId = _pcsId;
-        //
-        //        Require._require(
-        //            _pscCrossChainGateway != address(0),
-        //            Errors.VL_EMPTY_ADDRESS
-        //        );
-        //
-        //        pscCrossChainGateway = _pscCrossChainGateway;
-        //
-        //        Require._require(
-        //            _futuresAdapter != address(0),
-        //            Errors.VL_EMPTY_ADDRESS
-        //        );
-        //
-        //        futuresAdapter = _futuresAdapter;
-        //
-        //        Require._require(_vault != address(0), Errors.VL_EMPTY_ADDRESS);
-        //
-        //        vault = _vault;
-        //
-        //        Require._require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
-        //        weth = _weth;
-        //
-        //        require(_gatewayUtils != address(0), Errors.VL_EMPTY_ADDRESS);
-        //        gatewayUtils = _gatewayUtils;
-        //
-        //        executionFee = _executionFee;
+        __ReentrancyGuard_init();
+        __Ownable_init();
+        __Pausable_init();
+
+        pcsId = _pcsId;
+
+        Require._require(
+            _pscCrossChainGateway != address(0),
+            Errors.VL_EMPTY_ADDRESS
+        );
+
+        pscCrossChainGateway = _pscCrossChainGateway;
+
+        Require._require(
+            _futuresAdapter != address(0),
+            Errors.VL_EMPTY_ADDRESS
+        );
+
+        futuresAdapter = _futuresAdapter;
+
+        Require._require(_vault != address(0), Errors.VL_EMPTY_ADDRESS);
+
+        vault = _vault;
+
+        Require._require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
+        weth = _weth;
+
+        Require._require(_gatewayUtils != address(0), Errors.VL_EMPTY_ADDRESS);
+        gatewayUtils = _gatewayUtils;
+
+        Require._require(_gatewayStorage != address(0), Errors.VL_EMPTY_ADDRESS);
+        gatewayStorage = _gatewayStorage;
+
+        executionFee = _executionFee;
     }
 
     function createIncreasePositionRequest(
@@ -1943,9 +1954,4 @@ contract DptpFuturesGateway is
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
-    mapping(bytes32 => address) public latestExecutedCollateral;
-    mapping(bytes32 => address) public latestIncreasePendingCollateral;
-    address public referralRewardTracker;
-    address public futurXVoucher;
-    address public gatewayStorage;
 }
