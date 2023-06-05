@@ -83,7 +83,6 @@ contract GatewayUtils is
         override
         returns (
             uint256 positionFeeUsd,
-            uint256 borrowFeeUsd,
             uint256 swapFeeUsd,
             uint256 totalFeeUsd
         )
@@ -96,17 +95,10 @@ contract GatewayUtils is
             _isLimitOrder
         );
 
-        borrowFeeUsd = _getBorrowFee(
-            _trader,
-            _path[_path.length - 1],
-            _indexToken,
-            _isLong
-        );
-
         uint256 swapFeeToken = _getSwapFee(_path, _amountInToken);
         swapFeeUsd = _tokenToUsdMin(_path[_path.length - 1], swapFeeToken);
 
-        totalFeeUsd = positionFeeUsd.add(borrowFeeUsd).add(swapFeeUsd);
+        totalFeeUsd = positionFeeUsd.add(swapFeeUsd);
     }
 
     function calculateDiscountValue(uint256 _voucherId, uint256 _amountInUsd)

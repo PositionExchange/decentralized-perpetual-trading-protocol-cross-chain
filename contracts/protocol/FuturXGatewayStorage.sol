@@ -69,7 +69,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         request = increasePositionRequests[_key];
         Require._require(
             request.account != address(0),
-            "FuturXGatewayStorage: 404"
+            "FuturXGatewayStorage: 404001"
         );
         _deleteIncreasePositionRequests(_key);
     }
@@ -104,7 +104,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         request = decreasePositionRequests[_key];
         Require._require(
             request.account != address(0),
-            "FuturXGatewayStorage: 404"
+            "FuturXGatewayStorage: 404002"
         );
         _deleteDecreasePositionRequests(_key);
     }
@@ -158,7 +158,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         request = updateCollateralRequests[_key];
         Require._require(
             request.account != address(0),
-            "FuturXGatewayStorage: 404"
+            "FuturXGatewayStorage: 404003"
         );
         _deleteUpdateCollateralRequests(_key);
     }

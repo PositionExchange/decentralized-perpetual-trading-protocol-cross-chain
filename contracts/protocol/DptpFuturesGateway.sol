@@ -1451,13 +1451,14 @@ contract DptpFuturesGateway is
         uint16 _leverage,
         bool _isLong,
         bool _isLimitOrder
-    ) internal returns (uint256, uint256) {
-        (
-            uint256 positionFeeUsd,
-            uint256 borrowingFeeUsd,
-            uint256 swapFeeUsd,
-            uint256 totalFeeUsd
-        ) = _calculateMarginFees(
+    ) internal returns (uint256 positionFeeUsd, uint256 totalFeeUsd) {
+        {
+            uint256 swapFeeUsd;
+            (
+                positionFeeUsd,
+                swapFeeUsd,
+                totalFeeUsd
+            ) = IGatewayUtils(gatewayUtils).calculateMarginFees(
                 _account,
                 _path,
                 _indexToken,
@@ -1467,47 +1468,15 @@ contract DptpFuturesGateway is
                 _leverage,
                 _isLimitOrder
             );
-
-        emit CollectFees(
-            _amountInToken,
-            positionFeeUsd,
-            borrowingFeeUsd,
-            swapFeeUsd,
-            block.timestamp
-        );
+            emit CollectFees(
+                _amountInToken,
+                positionFeeUsd,
+                0,
+                swapFeeUsd,
+                block.timestamp
+            );
+        }
         return (positionFeeUsd, totalFeeUsd);
-    }
-
-    function _calculateMarginFees(
-        address _account,
-        address[] memory _path,
-        address _indexToken,
-        bool _isLong,
-        uint256 _amountInToken,
-        uint256 _amountInUsd,
-        uint256 _leverage,
-        bool _isLimitOrder
-    )
-        private
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        )
-    {
-        return
-            IGatewayUtils(gatewayUtils).calculateMarginFees(
-                _account,
-                _path,
-                _indexToken,
-                _isLong,
-                _amountInToken,
-                _amountInUsd,
-                _leverage,
-                _isLimitOrder
-            );
     }
 
     function _storeIncreasePositionRequest(

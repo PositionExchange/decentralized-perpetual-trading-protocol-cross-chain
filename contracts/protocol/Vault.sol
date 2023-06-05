@@ -140,6 +140,8 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event IncreaseFeeReserves(address token, uint256 amount);
     event IncreasePositionReserves(uint256 amount);
     event DecreasePositionReserves(uint256 amount);
+    event IncreaseDebtAmount(address account, uint256 amount);
+    event DecreaseDebtAmount(address account, uint256 amount);
 
     event WhitelistCallerChanged(address account, bool oldValue, bool newValue);
     event UpdateBorrowingRate(address token, uint256 borrowingRate);
@@ -191,8 +193,17 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
-        _setCollateralToken(key, _collateralToken);
-        _updatePositionEntryBorrowingRate(key, _collateralToken);
+        {
+            _setCollateralToken(key, _collateralToken);
+            uint256 borrowingFee = _getBorrowingFee(
+                _account,
+                _collateralToken,
+                _indexToken,
+                _isLong
+            );
+            _increaseDebtAmount(_account, borrowingFee);
+            _updatePositionEntryBorrowingRate(key, _collateralToken);
+        }
 
         uint256 collateralDeltaToken = _transferIn(_collateralToken);
         uint256 collateralDeltaUsd = tokenToUsdMin(
@@ -298,17 +309,20 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bytes32 key = getPositionInfoKey(_trader, _indexToken, _isLong);
         _updatePositionEntryBorrowingRate(key, _collateralToken);
 
-        uint256 accountDebtAmountUsd = debtAmountUsd[_trader] + borrowingFee;
-        if (_amountOutAfterFeesUsd == 0) {
-            debtAmountUsd[_trader] += accountDebtAmountUsd;
-        } else if (accountDebtAmountUsd >= _amountOutAfterFeesUsd) {
-            accountDebtAmountUsd -= _amountOutAfterFeesUsd;
-            _amountOutAfterFeesUsd = 0;
+        if (_amountOutAfterFeesUsd > 0) {
+            uint256 prevDebt = _getDebtAmount(_trader);
+            uint256 nextDebt = prevDebt + borrowingFee;
+
+            if (_amountOutAfterFeesUsd > nextDebt) {
+                _decreaseDebtAmount(_trader, prevDebt);
+                _amountOutAfterFeesUsd -= nextDebt;
+            } else {
+                _decreaseDebtAmount(_trader, _amountOutAfterFeesUsd);
+                _amountOutAfterFeesUsd = 0;
+            }
         } else {
-            _amountOutAfterFeesUsd -= accountDebtAmountUsd;
-            accountDebtAmountUsd = 0;
+            _increaseDebtAmount(_trader, borrowingFee);
         }
-        debtAmountUsd[_trader] = accountDebtAmountUsd;
 
         _feeUsd = _feeUsd.add(borrowingFee);
 
@@ -823,15 +837,14 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
             return 0;
         }
 
-        uint256 userDebtAmountUsd = debtAmountUsd[_account];
-        if (_amountOutUsd > userDebtAmountUsd) {
-            _amountOutUsd -= userDebtAmountUsd;
-            userDebtAmountUsd = 0;
+        uint256 prevDebt = _getDebtAmount(_account);
+        if (_amountOutUsd > prevDebt) {
+            _decreaseDebtAmount(_account, prevDebt);
+            _amountOutUsd -= prevDebt;
         } else {
-            userDebtAmountUsd -= _amountOutUsd;
+            _decreaseDebtAmount(_account, _amountOutUsd);
             _amountOutUsd = 0;
         }
-        debtAmountUsd[_account] = userDebtAmountUsd;
 
         if (_amountOutUsd == 0) {
             return 0;
@@ -1366,6 +1379,20 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     ) private {
         vaultInfo[_collateralToken].addFees(_feeToken);
         emit IncreaseFeeReserves(_collateralToken, _feeToken);
+    }
+
+    function _getDebtAmount(address _account) private returns (uint256) {
+        return debtAmountUsd[_account];
+    }
+
+    function _increaseDebtAmount(address _account, uint256 _amount) private {
+        debtAmountUsd[_account] += _amount;
+        emit IncreaseDebtAmount(_account, _amount);
+    }
+
+    function _decreaseDebtAmount(address _account, uint256 _amount) private {
+        debtAmountUsd[_account] -= _amount;
+        emit DecreaseDebtAmount(_account, _amount);
     }
 
     function _updateTokenBalance(address _token) private {

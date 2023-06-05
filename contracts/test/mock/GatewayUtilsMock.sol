@@ -19,11 +19,10 @@ contract GatewayUtilsMock is IGatewayUtils {
         returns (
             uint256,
             uint256,
-            uint256,
             uint256
         )
     {
-        return (0, 0, 0, 0);
+        return (0, 0, 0);
     }
 
     function calculateDiscountValue(uint256 _voucherId, uint256 _amountInUsd)
