@@ -236,7 +236,10 @@ contract DptpFuturesGateway is
         Require._require(_gatewayUtils != address(0), Errors.VL_EMPTY_ADDRESS);
         gatewayUtils = _gatewayUtils;
 
-        Require._require(_gatewayStorage != address(0), Errors.VL_EMPTY_ADDRESS);
+        Require._require(
+            _gatewayStorage != address(0),
+            Errors.VL_EMPTY_ADDRESS
+        );
         gatewayStorage = _gatewayStorage;
 
         executionFee = _executionFee;
@@ -1879,74 +1882,78 @@ contract DptpFuturesGateway is
     // ONLY OWNER FUNCTIONS
     //******************************************************************************************************************
 
-    //    function setExecutionFee(uint256 _executionFee) external onlyOwner {
-    //        executionFee = _executionFee;
-    //    }
+    function setExecutionFee(uint256 _executionFee) external onlyOwner {
+        executionFee = _executionFee;
+    }
 
-    //    function setWeth(address _weth) external onlyOwner {
-    //        weth = _weth;
-    //    }
+    function setWeth(address _weth) external onlyOwner {
+        weth = _weth;
+    }
 
-    //    function setVault(address _vault) external onlyOwner {
-    //        vault = _vault;
-    //    }
+    function setVault(address _vault) external onlyOwner {
+        vault = _vault;
+    }
 
-    //    function setFuturesAdapter(address _futuresAdapter) external onlyOwner {
-    //        futuresAdapter = _futuresAdapter;
-    //    }
-    //
-    //    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
-    //        pcsId = _posiChainId;
-    //    }
+    function setFuturesAdapter(address _futuresAdapter) external onlyOwner {
+        futuresAdapter = _futuresAdapter;
+    }
 
-    //    function setPosiChainCrosschainGatewayContract(address _address)
-    //        external
-    //        onlyOwner
-    //    {
-    //        pscCrossChainGateway = _address;
-    //    }
-    //
-    //    function setPositionKeeper(address _address) external onlyOwner {
-    //        positionKeepers[_address] = true;
-    //    }
-    //
-    //    function setCoreManager(address _token, address _manager)
-    //        external
-    //        onlyOwner
-    //    {
-    //        coreManagers[_token] = _manager;
-    //        indexTokens[_manager] = _token;
-    //    }
-    //
-    //    function setMaxGlobalShortSize(address _token, uint256 _amount)
-    //        external
-    //        onlyOwner
-    //    {
-    //        maxGlobalShortSizes[_token] = _amount;
-    //    }
-    //
-    //    function setMaxGlobalLongSize(address _token, uint256 _amount)
-    //        external
-    //        onlyOwner
-    //    {
-    //        maxGlobalLongSizes[_token] = _amount;
-    //    }
-    //
-    //    function setReferralRewardTracker(address _address) external onlyOwner {
-    //        referralRewardTracker = _address;
-    //    }
+    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
+        pcsId = _posiChainId;
+    }
+
+    function setPosiChainCrosschainGatewayContract(address _address)
+        external
+        onlyOwner
+    {
+        pscCrossChainGateway = _address;
+    }
+
+    function setPositionKeeper(address _address) external onlyOwner {
+        positionKeepers[_address] = true;
+    }
+
+    function setCoreManager(address _token, address _manager)
+        external
+        onlyOwner
+    {
+        coreManagers[_token] = _manager;
+        indexTokens[_manager] = _token;
+    }
+
+    function setMaxGlobalShortSize(address _token, uint256 _amount)
+        external
+        onlyOwner
+    {
+        maxGlobalShortSizes[_token] = _amount;
+    }
+
+    function setMaxGlobalLongSize(address _token, uint256 _amount)
+        external
+        onlyOwner
+    {
+        maxGlobalLongSizes[_token] = _amount;
+    }
+
+    function setReferralRewardTracker(address _address) external onlyOwner {
+        referralRewardTracker = _address;
+    }
 
     function setFuturXVoucher(address _address) external onlyOwner {
         futurXVoucher = _address;
     }
 
-    //    function pause() external onlyOwner {
-    //        _pause();
-    //    }
-    //
-    //    function unpause() external onlyOwner {
-    //        _unpause();
-    //    }
+    function setFuturXGatewayStorage(address _address) external onlyOwner {
+        gatewayStorage = _address;
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

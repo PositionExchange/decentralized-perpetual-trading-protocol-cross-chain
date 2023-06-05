@@ -3,6 +3,7 @@ pragma solidity ^0.8.8;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/IFuturXGatewayStorage.sol";
 
@@ -176,6 +177,10 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bool _isHigherPip
     ) external pure returns (bytes32) {
         return _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
+    }
+
+    function setFuturXGateway(address _address) external onlyOwner {
+        futurXGateway = _address;
     }
 
     function _getRequestKey(address _account, uint256 _index)

@@ -1,6 +1,6 @@
 import { MigrationContext, MigrationDefinition } from "../types";
 import {
-  DptpFuturesGateway,
+  DptpFuturesGateway, FuturXGatewayStorage, FuturXVoucher, GatewayUtils,
   ReferralRewardTracker,
   WETH,
 } from "../../typeChain";
@@ -48,6 +48,21 @@ const migrations: MigrationDefinition = {
           "DptpFuturesGateway"
         );
 
+      const futurXGatewayStorage =
+        await ctx.factory.getDeployedContract<FuturXGatewayStorage>(
+          "FuturXGatewayStorage"
+        );
+
+      const futurXVoucher =
+        await ctx.factory.getDeployedContract<FuturXVoucher>(
+          "FuturXVoucher"
+        );
+
+      const gatewayUtils =
+        await ctx.factory.getDeployedContract<GatewayUtils>(
+          "GatewayUtils"
+        );
+
       let tx: Promise<ContractTransaction>;
 
       tx = futuresGateway.setCoreManager(wbtc, managerBTC);
@@ -68,6 +83,21 @@ const migrations: MigrationDefinition = {
           referralRewardTracker.address
       );
       await ctx.factory.waitTx(tx, "futuresGateway.setReferralRewardTracker");
+
+      tx = futurXGatewayStorage.setFuturXGateway(
+          futuresGateway.address
+      );
+      await ctx.factory.waitTx(tx, "futurXGatewayStorage.setFuturXGateway");
+
+      tx = futurXVoucher.setFuturXGateway(
+          futuresGateway.address
+      );
+      await ctx.factory.waitTx(tx, "futurXVoucher.setFuturXGateway");
+
+      tx = gatewayUtils.setFuturXGateway(
+          futuresGateway.address
+      );
+      await ctx.factory.waitTx(tx, "gatewayUtils.setFuturXGateway");
     },
   }),
 };
