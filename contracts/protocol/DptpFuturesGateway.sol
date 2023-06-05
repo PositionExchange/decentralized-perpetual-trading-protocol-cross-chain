@@ -620,6 +620,9 @@ contract DptpFuturesGateway is
     ) public nonReentrant {
         _validateCaller(msg.sender);
 
+        _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.mul(PRICE_DECIMALS);
+        _feeUsd = _feeUsd.mul(PRICE_DECIMALS);
+
         IFuturXGatewayStorage.DecreasePositionRequest
             memory request = _getDeleteDecreasePositionRequest(_key);
 
@@ -653,8 +656,8 @@ contract DptpFuturesGateway is
             _sizeDeltaToken,
             _isLong,
             address(this),
-            _amountOutAfterFeesUsd.mul(PRICE_DECIMALS),
-            _feeUsd.mul(PRICE_DECIMALS)
+            _amountOutAfterFeesUsd,
+            _feeUsd
         );
 
         _transferOutETH(executionFee, payable(msg.sender));
@@ -744,9 +747,7 @@ contract DptpFuturesGateway is
     ) external nonReentrant {
         _validateCaller(msg.sender);
 
-        if (_amountOutUsd > 0) {
-            _amountOutUsd = _amountOutUsd.mul(PRICE_DECIMALS);
-        }
+        _amountOutUsd = _amountOutUsd.mul(PRICE_DECIMALS);
 
         if (_isReduce) {
             _cancelReduceOrder(
@@ -1172,6 +1173,8 @@ contract DptpFuturesGateway is
         uint256 _amountOutUsd
     ) external nonReentrant {
         _validateCaller(msg.sender);
+
+        _amountOutUsd = _amountOutUsd * PRICE_DECIMALS;
 
         address indexToken = _managerToIndexToken(_manager);
         require(indexToken != address(0), "invalid index token");
