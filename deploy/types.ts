@@ -57,6 +57,7 @@ export interface CreateDptpFuturesGateway {
     vault: string,
     weth: string,
     gatewayUtils: string,
+    futurXGatewayStorage: string,
     executionFee: number,
 }
 

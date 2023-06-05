@@ -213,35 +213,21 @@ contract DptpFuturesGateway is
         pcsId = _pcsId;
 
         Require._require(
-            _pscCrossChainGateway != address(0),
+            _pscCrossChainGateway != address(0) &&
+                _futuresAdapter != address(0) &&
+                _vault != address(0) &&
+                _weth != address(0) &&
+                _gatewayUtils != address(0) &&
+                _gatewayStorage != address(0),
             Errors.VL_EMPTY_ADDRESS
         );
 
         pscCrossChainGateway = _pscCrossChainGateway;
-
-        Require._require(
-            _futuresAdapter != address(0),
-            Errors.VL_EMPTY_ADDRESS
-        );
-
         futuresAdapter = _futuresAdapter;
-
-        Require._require(_vault != address(0), Errors.VL_EMPTY_ADDRESS);
-
         vault = _vault;
-
-        Require._require(_weth != address(0), Errors.VL_EMPTY_ADDRESS);
         weth = _weth;
-
-        Require._require(_gatewayUtils != address(0), Errors.VL_EMPTY_ADDRESS);
         gatewayUtils = _gatewayUtils;
-
-        Require._require(
-            _gatewayStorage != address(0),
-            Errors.VL_EMPTY_ADDRESS
-        );
         gatewayStorage = _gatewayStorage;
-
         executionFee = _executionFee;
     }
 
@@ -1728,7 +1714,7 @@ contract DptpFuturesGateway is
     }
 
     function _validateCaller(address _account) private {
-        Require._require(positionKeepers[_account], "403");
+        Require._require(positionKeepers[_account], "Gateway: 403");
     }
 
     function _usdToTokenMin(address _token, uint256 _usdAmount)

@@ -1,6 +1,6 @@
 import { MigrationContext, MigrationDefinition } from "../types";
 import {
-  DptpFuturesGateway, FuturXGatewayStorage, FuturXVoucher, GatewayUtils,
+  DptpFuturesGateway, FuturesAdapter, FuturXGatewayStorage, FuturXVoucher, GatewayUtils,
   ReferralRewardTracker,
   WETH,
 } from "../../typeChain";
@@ -17,14 +17,18 @@ const migrations: MigrationDefinition = {
       const gatewayUtils = await ctx.factory.db.findAddressByKey(
         "GatewayUtils"
       );
+      const futurXGatewayStorage = await ctx.factory.db.findAddressByKey(
+        "FuturXGatewayStorage"
+      );
 
       await ctx.factory.createDptpFuturesGateway({
         pcsId: 910000,
-        pscCrossChainGateway: "0xadf94555e5f2eae345692b8b39f062640e42b06f",
+        pscCrossChainGateway: "0x3230a2d25c81264F4e1A873729B53c62551Da792",
         futuresAdapter: futuresAdapter,
         vault: vault,
         weth: weth,
         gatewayUtils: gatewayUtils,
+        futurXGatewayStorage: futurXGatewayStorage,
         executionFee: 0,
       });
     },
@@ -46,6 +50,11 @@ const migrations: MigrationDefinition = {
       const futuresGateway =
         await ctx.factory.getDeployedContract<DptpFuturesGateway>(
           "DptpFuturesGateway"
+        );
+
+      const futuresAdapter =
+        await ctx.factory.getDeployedContract<FuturesAdapter>(
+          "FuturesAdapter"
         );
 
       const futurXGatewayStorage =
@@ -75,7 +84,7 @@ const migrations: MigrationDefinition = {
       await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.link");
 
       tx = futuresGateway.setPositionKeeper(
-        "0x9AC215Dcbd4447cE0aa830Ed17f3d99997a10F5F"
+          futuresAdapter.address
       );
       await ctx.factory.waitTx(tx, "futuresGateway.setPositionKeeper");
 

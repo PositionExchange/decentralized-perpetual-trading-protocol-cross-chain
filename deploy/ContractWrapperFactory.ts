@@ -441,6 +441,7 @@ export class ContractWrapperFactory {
                 args.vault,
                 args.weth,
                 args.gatewayUtils,
+                args.futurXGatewayStorage,
                 args.executionFee,
             ];
             const instance = await this.hre.upgrades.deployProxy(
