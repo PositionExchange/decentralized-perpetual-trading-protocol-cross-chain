@@ -17,6 +17,7 @@ import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IShortsTracker.sol";
 import "../interfaces/IGatewayUtils.sol";
 import "../interfaces/IFuturXGateway.sol";
+import "../interfaces/IFuturXGatewayStorage.sol";
 import "../interfaces/IFuturXVoucher.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
@@ -202,10 +203,11 @@ contract GatewayUtils is
         return true;
     }
 
-    function validateVoucher(address _account, uint256 _voucherId, uint256 _amountInUsd)
-        public
-        returns (bool)
-    {
+    function validateVoucher(
+        address _account,
+        uint256 _voucherId,
+        uint256 _amountInUsd
+    ) public returns (bool) {
         FuturXVoucher.Voucher memory voucher = IFuturXVoucher(futurXVoucher)
             .getVoucherInfo(_voucherId);
         require(voucher.isActive, "voucher is not active");
@@ -218,9 +220,15 @@ contract GatewayUtils is
 
         uint256 priceExponent = 10**30;
         if (voucher.voucherType == 1) {
-            require(_amountInUsd >= 10 * priceExponent, "insufficient amount for voucher");
+            require(
+                _amountInUsd >= 10 * priceExponent,
+                "insufficient amount for voucher"
+            );
             if (voucher.maxDiscountValue >= 100 * priceExponent) {
-                require(_amountInUsd >= 20 * priceExponent, "insufficient amount for voucher");
+                require(
+                    _amountInUsd >= 20 * priceExponent,
+                    "insufficient amount for voucher"
+                );
             }
         } else {
             revert("invalid voucher type");
@@ -278,17 +286,15 @@ contract GatewayUtils is
             return true;
         }
 
-        // TODO: DPTP-496 missing case when cancel limit order, must clear pending collateral.
-        //        address pendingCollateral = IFuturXGateway(futurXGateway)
-        //            .getLatestIncreasePendingCollateral(_account, _indexToken, _isLong);
-        //        if (pendingCollateral != address(0)) {
-        //            _validate(
-        //                _collateralToken == pendingCollateral,
-        //                "invalid pending collateral"
-        //            );
-        //            return true;
-        //        }
-
+        IFuturXGatewayStorage.PendingCollateral
+            memory pendingCollateral = IFuturXGatewayStorage(gatewayStorage)
+                .getPendingCollateral(_account, _indexToken);
+        if (pendingCollateral.count > 0) {
+            _validate(
+                _collateralToken == pendingCollateral.collateral,
+                "invalid pending collateral"
+            );
+        }
         return true;
     }
 
@@ -462,4 +468,5 @@ contract GatewayUtils is
     address public futurXVoucher;
     mapping(address => uint256) public lastVoucherUsage;
     uint256 public minimumVoucherInterval;
+    address public gatewayStorage;
 }

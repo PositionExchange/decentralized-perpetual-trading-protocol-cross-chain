@@ -193,7 +193,7 @@ contract DptpFuturesGateway is
     // mapping positionManager with indexToken
     mapping(address => address) public indexTokens;
 
-    mapping(bytes32 => address) public latestExecutedCollateral;
+    mapping(bytes32 => address) public latestExecutedCollateral; // For claim fund
     mapping(bytes32 => address) public latestIncreasePendingCollateral;
 
     function initialize(
@@ -252,11 +252,12 @@ contract DptpFuturesGateway is
             _isLong,
             _voucherId
         );
-        _updateLatestIncreasePendingCollateral(
+        _updatePendingCollateral(
             msg.sender,
-            _path[_path.length - 1],
             _indexToken,
-            _isLong
+            _path[_path.length - 1],
+            _isLong,
+            1
         );
 
         if (_voucherId > 0) {
@@ -337,11 +338,12 @@ contract DptpFuturesGateway is
             _isLong,
             _voucherId
         );
-        _updateLatestIncreasePendingCollateral(
+        _updatePendingCollateral(
             msg.sender,
-            _path[_path.length - 1],
             _indexToken,
-            _isLong
+            _path[_path.length - 1],
+            _isLong,
+            1
         );
 
         if (_voucherId > 0) {
@@ -490,6 +492,14 @@ contract DptpFuturesGateway is
 
         request.amountInToken = _sizeDeltaInToken;
 
+        _updatePendingCollateral(
+            request.account,
+            request.indexToken,
+            request.path[request.path.length - 1],
+            _isLong,
+            2
+        );
+
         _executeIncreasePosition(
             request.account,
             request.path,
@@ -527,6 +537,14 @@ contract DptpFuturesGateway is
 
         IFuturXGatewayStorage.IncreasePositionRequest
             memory request = _getDeleteIncreasePositionRequest(_key);
+
+        _updatePendingCollateral(
+            request.account,
+            request.indexToken,
+            request.path[request.path.length - 1],
+            _isLong,
+            2
+        );
 
         _executeIncreasePosition(
             request.account,
@@ -812,6 +830,14 @@ contract DptpFuturesGateway is
     ) private {
         IFuturXGatewayStorage.IncreasePositionRequest
             memory request = _getDeleteIncreasePositionRequest(_key);
+
+        _updatePendingCollateral(
+            request.account,
+            request.indexToken,
+            request.path[request.path.length - 1],
+            _isLong,
+            2
+        );
 
         if (_sizeDeltaToken == 0) {
             _transferOut(
@@ -1462,20 +1488,18 @@ contract DptpFuturesGateway is
     ) internal returns (uint256 positionFeeUsd, uint256 totalFeeUsd) {
         {
             uint256 swapFeeUsd;
-            (
-                positionFeeUsd,
-                swapFeeUsd,
-                totalFeeUsd
-            ) = IGatewayUtils(gatewayUtils).calculateMarginFees(
-                _account,
-                _path,
-                _indexToken,
-                _isLong,
-                _amountInToken,
-                _amountInUsd,
-                _leverage,
-                _isLimitOrder
-            );
+            (positionFeeUsd, swapFeeUsd, totalFeeUsd) = IGatewayUtils(
+                gatewayUtils
+            ).calculateMarginFees(
+                    _account,
+                    _path,
+                    _indexToken,
+                    _isLong,
+                    _amountInToken,
+                    _amountInUsd,
+                    _leverage,
+                    _isLimitOrder
+                );
             emit CollectFees(
                 _amountInToken,
                 positionFeeUsd,
@@ -1731,17 +1755,23 @@ contract DptpFuturesGateway is
     ) private {
         bytes32 key = getPositionKey(_account, _indexToken, _isLong);
         latestExecutedCollateral[key] = _collateralToken;
-        delete latestIncreasePendingCollateral[key];
     }
 
-    function _updateLatestIncreasePendingCollateral(
+    function _updatePendingCollateral(
         address _account,
-        address _collateralToken,
         address _indexToken,
-        bool _isLong
+        address _collateralToken,
+        bool _isLong,
+        uint8 _op
     ) private {
-        bytes32 key = getPositionKey(_account, _indexToken, _isLong);
-        latestIncreasePendingCollateral[key] = _collateralToken;
+        IFuturXGatewayStorage.UpPendingCollateralParam
+            memory params = IFuturXGatewayStorage.UpPendingCollateralParam(
+                _account,
+                _indexToken,
+                _collateralToken,
+                _op
+            );
+        IFuturXGatewayStorage(gatewayStorage).updatePendingCollateral(params);
     }
 
     function _crossBlockchainCall(
@@ -1782,15 +1812,6 @@ contract DptpFuturesGateway is
             _indexToken,
             _isHigherPip
         );
-    }
-
-    function getLatestIncreasePendingCollateral(
-        address _account,
-        address _indexToken,
-        bool _isLong
-    ) external view override returns (address) {
-        bytes32 key = getPositionKey(_account, _indexToken, _isLong);
-        return latestIncreasePendingCollateral[key];
     }
 
     function getPositionKey(

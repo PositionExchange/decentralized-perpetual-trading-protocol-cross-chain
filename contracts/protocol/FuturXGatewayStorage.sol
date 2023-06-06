@@ -39,6 +39,45 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         futurXGateway = _futurXGateway;
     }
 
+    function getPendingCollateral(address _account, address _indexToken)
+        public
+        returns (PendingCollateral memory)
+    {
+        bytes32 key = _getPendingCollateralKey(_account, _indexToken);
+        return pendingCollaterals[key];
+    }
+
+    function updatePendingCollateral(UpPendingCollateralParam memory param)
+        public
+        onlyFuturXGateway
+        returns (bytes32)
+    {
+        bytes32 key = _getPendingCollateralKey(param.account, param.indexToken);
+        PendingCollateral storage data = pendingCollaterals[key];
+
+        // Operation = 1 means increase count
+        if (param.op == 1) {
+            if (data.count > 0) {
+                require(data.collateral == param.collateralToken);
+            } else {
+                data.collateral = param.collateralToken;
+            }
+            data.count++;
+        }
+
+        // Operation = 2 means decrease count
+        if (param.op == 2) {
+            if (data.count > 0) {
+                data.count--;
+            }
+            if (data.count == 0) {
+                data.collateral = address(0);
+            }
+        }
+
+        return key;
+    }
+
     function storeIncreasePositionRequest(
         IncreasePositionRequest memory _request
     ) public onlyFuturXGateway returns (uint256, bytes32) {
@@ -193,10 +232,6 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         return _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
     }
 
-    function setFuturXGateway(address _address) external onlyOwner {
-        futurXGateway = _address;
-    }
-
     function _getRequestKey(address _account, uint256 _index)
         private
         pure
@@ -211,6 +246,14 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bool _isHigherPip
     ) private pure returns (bytes32) {
         return keccak256(abi.encodePacked(_account, _indexToken, _isHigherPip));
+    }
+
+    function _getPendingCollateralKey(address _account, address _indexToken)
+        private
+        pure
+        returns (bytes32)
+    {
+        return keccak256(abi.encodePacked(_account, _indexToken));
     }
 
     function _deleteIncreasePositionRequests(bytes32 _key) private {
@@ -229,10 +272,18 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         delete tpslRequests[_key];
     }
 
+    /*************************
+     ** ONLY OWNER FUNCTION **
+     *************************/
+    function setFuturXGateway(address _address) external onlyOwner {
+        futurXGateway = _address;
+    }
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
+    mapping(bytes32 => PendingCollateral) pendingCollaterals;
 }
