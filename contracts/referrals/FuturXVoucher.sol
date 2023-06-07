@@ -258,6 +258,10 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         voucherInfo[_voucherId].isActive = false;
     }
 
+    function setFuturXGateway(address _address) external onlyOwner {
+        futurXGateway = _address;
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,

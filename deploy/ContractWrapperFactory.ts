@@ -441,6 +441,7 @@ export class ContractWrapperFactory {
                 args.vault,
                 args.weth,
                 args.gatewayUtils,
+                args.futurXGatewayStorage,
                 args.executionFee,
             ];
             const instance = await this.hre.upgrades.deployProxy(
@@ -586,6 +587,37 @@ export class ContractWrapperFactory {
             const contractArgs = [
                 futurXGateway,
                 signer
+            ]
+            const instance = await this.hre.upgrades.deployProxy(
+                factory,
+                contractArgs
+            );
+            console.log(`wait for deploy ${contractName}`);
+            await instance.deployed();
+
+            const address = instance.address.toString();
+            console.log(`Address ${contractName}: ${address}`);
+
+            await this.db.saveAddressByKey(contractName, address);
+            await this.verifyProxy(address);
+        }
+    }
+
+    async createFuturXGatewayStorage(futurXGateway: string) {
+        const contractName = 'FuturXGatewayStorage';
+        const factory = await this.hre.ethers.getContractFactory(contractName);
+        const contractAddress = await this.db.findAddressByKey(contractName);
+        if (contractAddress) {
+            const upgraded = await this.hre.upgrades.upgradeProxy(
+                contractAddress,
+                factory
+            );
+            console.log(`Starting verify upgrade ${contractName}`);
+            await this.verifyImplContract(upgraded.deployTransaction);
+            console.log(`Upgrade ${contractName}`);
+        } else {
+            const contractArgs = [
+                futurXGateway
             ]
             const instance = await this.hre.upgrades.deployProxy(
                 factory,

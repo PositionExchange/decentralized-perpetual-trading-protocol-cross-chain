@@ -7,27 +7,33 @@ contract VaultMock {
 
     uint256 public tokenPriceMock = 1000;
     uint256 public tokenDecimalsMock = 1;
-    mapping(bytes32 => uint256) public positionEntryBorrowingRates;
-    mapping(address => uint256) public cumulativeBorrowingRates;
+    mapping(address => uint256) public tokenConfigurations;
+    mapping(address => uint256) public priceMock;
 
-    function usdToTokenMin(
-        address,
-        uint256 _usdAmount
-    ) public view returns (uint256) {
-        return _usdAmount.div(tokenPriceMock);
+    function usdToTokenMin(address _token, uint256 _usdAmount)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 decimals = tokenConfigurations[_token];
+        uint256 price = priceMock[_token];
+
+        return _usdAmount.mul(10**decimals).div(price);
     }
 
-    function tokenToUsdMin(
-        address,
-        uint256 _tokenAmount
-    ) public view returns (uint256) {
+    function tokenToUsdMin(address, uint256 _tokenAmount)
+        public
+        view
+        returns (uint256)
+    {
         return _tokenAmount.mul(tokenPriceMock);
     }
 
-    function tokenToUsdMinWithAdjustment(
-        address,
-        uint256 _tokenAmount
-    ) public view returns (uint256) {
+    function tokenToUsdMinWithAdjustment(address, uint256 _tokenAmount)
+        public
+        view
+        returns (uint256)
+    {
         return _tokenAmount.mul(tokenPriceMock);
     }
 
@@ -38,5 +44,13 @@ contract VaultMock {
         bool _isLong
     ) external view returns (uint256) {
         return 0;
+    }
+
+    function setTokenConfigurations(address _token, uint256 _decimal) external {
+        tokenConfigurations[_token] = _decimal;
+    }
+
+    function setPriceMock(address _token, uint256 _price) external {
+        priceMock[_token] = _price;
     }
 }

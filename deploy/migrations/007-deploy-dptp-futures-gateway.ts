@@ -1,6 +1,6 @@
 import { MigrationContext, MigrationDefinition } from "../types";
 import {
-  DptpFuturesGateway,
+  DptpFuturesGateway, FuturesAdapter, FuturXGatewayStorage, FuturXVoucher, GatewayUtils,
   ReferralRewardTracker,
   WETH,
 } from "../../typeChain";
@@ -17,14 +17,18 @@ const migrations: MigrationDefinition = {
       const gatewayUtils = await ctx.factory.db.findAddressByKey(
         "GatewayUtils"
       );
+      const futurXGatewayStorage = await ctx.factory.db.findAddressByKey(
+        "FuturXGatewayStorage"
+      );
 
       await ctx.factory.createDptpFuturesGateway({
         pcsId: 910000,
-        pscCrossChainGateway: "0xadf94555e5f2eae345692b8b39f062640e42b06f",
+        pscCrossChainGateway: "0x3230a2d25c81264F4e1A873729B53c62551Da792",
         futuresAdapter: futuresAdapter,
         vault: vault,
         weth: weth,
         gatewayUtils: gatewayUtils,
+        futurXGatewayStorage: futurXGatewayStorage,
         executionFee: 0,
       });
     },
@@ -48,6 +52,26 @@ const migrations: MigrationDefinition = {
           "DptpFuturesGateway"
         );
 
+      const futuresAdapter =
+        await ctx.factory.getDeployedContract<FuturesAdapter>(
+          "FuturesAdapter"
+        );
+
+      const futurXGatewayStorage =
+        await ctx.factory.getDeployedContract<FuturXGatewayStorage>(
+          "FuturXGatewayStorage"
+        );
+
+      const futurXVoucher =
+        await ctx.factory.getDeployedContract<FuturXVoucher>(
+          "FuturXVoucher"
+        );
+
+      const gatewayUtils =
+        await ctx.factory.getDeployedContract<GatewayUtils>(
+          "GatewayUtils"
+        );
+
       let tx: Promise<ContractTransaction>;
 
       tx = futuresGateway.setCoreManager(wbtc, managerBTC);
@@ -60,7 +84,7 @@ const migrations: MigrationDefinition = {
       await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.link");
 
       tx = futuresGateway.setPositionKeeper(
-        "0x9AC215Dcbd4447cE0aa830Ed17f3d99997a10F5F"
+          futuresAdapter.address
       );
       await ctx.factory.waitTx(tx, "futuresGateway.setPositionKeeper");
 
@@ -68,6 +92,21 @@ const migrations: MigrationDefinition = {
           referralRewardTracker.address
       );
       await ctx.factory.waitTx(tx, "futuresGateway.setReferralRewardTracker");
+
+      tx = futurXGatewayStorage.setFuturXGateway(
+          futuresGateway.address
+      );
+      await ctx.factory.waitTx(tx, "futurXGatewayStorage.setFuturXGateway");
+
+      tx = futurXVoucher.setFuturXGateway(
+          futuresGateway.address
+      );
+      await ctx.factory.waitTx(tx, "futurXVoucher.setFuturXGateway");
+
+      tx = gatewayUtils.setFuturXGateway(
+          futuresGateway.address
+      );
+      await ctx.factory.waitTx(tx, "gatewayUtils.setFuturXGateway");
     },
   }),
 };
