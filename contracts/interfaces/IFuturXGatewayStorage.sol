@@ -49,6 +49,10 @@ interface IFuturXGatewayStorage {
         external
         returns (IncreasePositionRequest memory);
 
+    function getUpdateIncreasePositionRequest(bytes32 _key, uint256 amountInToken)
+        external
+        returns (IncreasePositionRequest memory);
+
     function getDecreasePositionRequest(bytes32 _key)
         external
         view

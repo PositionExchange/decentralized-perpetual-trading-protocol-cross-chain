@@ -74,6 +74,20 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         _deleteIncreasePositionRequests(_key);
     }
 
+    function getUpdateIncreasePositionRequest(bytes32 _key, uint256 amountInToken)
+        public
+        onlyFuturXGateway
+        returns (IncreasePositionRequest memory request)
+    {
+        request = increasePositionRequests[_key];
+        Require._require(
+            request.account != address(0),
+            "FuturXGatewayStorage: 404001"
+        );
+
+        increasePositionRequests[_key].amountInToken = request.amountInToken - amountInToken;
+    }
+
     function storeDecreasePositionRequest(
         DecreasePositionRequest memory _request
     ) public returns (uint256, bytes32) {
