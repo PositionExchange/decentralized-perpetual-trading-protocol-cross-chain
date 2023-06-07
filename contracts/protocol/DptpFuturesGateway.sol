@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
@@ -97,6 +96,7 @@ contract DptpFuturesGateway is
         uint256 sizeDelta,
         bool isLong,
         uint256 feeUsd,
+        uint256 voucherId,
         uint256 timestamp
     );
 
@@ -495,7 +495,8 @@ contract DptpFuturesGateway is
             request.feeUsd,
             _entryPrice,
             _sizeDeltaInToken,
-            _isLong
+            _isLong,
+            request.voucherId
         );
 
         IReferralRewardTracker(referralRewardTracker).updateRefereeStatus(
@@ -532,7 +533,8 @@ contract DptpFuturesGateway is
             request.feeUsd,
             _entryPrice,
             _sizeDeltaInToken,
-            _isLong
+            _isLong,
+            request.voucherId
         );
 
         IReferralRewardTracker(referralRewardTracker).updateRefereeStatus(
@@ -558,7 +560,8 @@ contract DptpFuturesGateway is
         uint256 _feeUsd,
         uint256 _entryPrice,
         uint256 _sizeDeltaInToken,
-        bool _isLong
+        bool _isLong,
+        uint256 _voucherId
     ) internal {
         if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
             revert("test");
@@ -606,6 +609,7 @@ contract DptpFuturesGateway is
             _sizeDeltaInToken,
             _isLong,
             _feeUsd,
+            _voucherId,
             block.timestamp
         );
     }
@@ -847,7 +851,8 @@ contract DptpFuturesGateway is
             0,
             _entryPrice,
             _sizeDeltaToken,
-            _isLong
+            _isLong,
+            0
         );
     }
 
