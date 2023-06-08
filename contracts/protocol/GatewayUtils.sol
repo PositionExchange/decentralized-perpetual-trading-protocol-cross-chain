@@ -169,6 +169,7 @@ contract GatewayUtils is
         validateCollateral(_account, collateralToken, _indexToken, _isLong);
         validateSize(_indexToken, _sizeDeltaToken, false);
         validateTokens(collateralToken, _indexToken, _isLong);
+        validateReservedAmount(collateralToken, _sizeDeltaToken);
 
         return true;
     }
@@ -350,6 +351,19 @@ contract GatewayUtils is
         //                revert("max shorts exceeded");
         //            }
         //        }
+        return true;
+    }
+
+    function validateReservedAmount(
+        address _collateralToken,
+        uint256 _sizeDeltaToken
+    ) public view override returns (bool) {
+        uint256 poolAmounts = IVault(vault).poolAmounts(_collateralToken);
+        _sizeDeltaToken = IVault(vault).adjustDecimalToToken(
+            _collateralToken,
+            _sizeDeltaToken
+        );
+        require(poolAmounts >= _sizeDeltaToken, "insufficient pool amount");
         return true;
     }
 
