@@ -256,7 +256,6 @@ contract DptpFuturesGateway is
             msg.sender,
             _indexToken,
             _path[_path.length - 1],
-            _isLong,
             1
         );
 
@@ -342,7 +341,6 @@ contract DptpFuturesGateway is
             msg.sender,
             _indexToken,
             _path[_path.length - 1],
-            _isLong,
             1
         );
 
@@ -496,7 +494,6 @@ contract DptpFuturesGateway is
             request.account,
             request.indexToken,
             request.path[request.path.length - 1],
-            _isLong,
             2
         );
 
@@ -542,7 +539,6 @@ contract DptpFuturesGateway is
             request.account,
             request.indexToken,
             request.path[request.path.length - 1],
-            _isLong,
             2
         );
 
@@ -835,7 +831,6 @@ contract DptpFuturesGateway is
             request.account,
             request.indexToken,
             request.path[request.path.length - 1],
-            _isLong,
             2
         );
 
@@ -1253,6 +1248,13 @@ contract DptpFuturesGateway is
 
             IFuturXGatewayStorage.IncreasePositionRequest
                 memory request = _getDeleteIncreasePositionRequest(_key);
+
+            _updatePendingCollateral(
+                request.account,
+                request.indexToken,
+                request.path[request.path.length - 1],
+                2
+            );
 
             _transferOut(
                 request.path[0],
@@ -1761,7 +1763,6 @@ contract DptpFuturesGateway is
         address _account,
         address _indexToken,
         address _collateralToken,
-        bool _isLong,
         uint8 _op
     ) private {
         IFuturXGatewayStorage.UpPendingCollateralParam

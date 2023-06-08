@@ -290,6 +290,7 @@ contract GatewayUtils is
                 position.collateralToken == _collateralToken,
                 "collateral"
             );
+            return true;
         }
 
         IFuturXGatewayStorage.PendingCollateral
