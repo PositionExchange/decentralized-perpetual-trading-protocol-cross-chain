@@ -175,7 +175,7 @@ contract GatewayUtils is
         validateCollateral(_account, collateralToken, _indexToken, _isLong);
         validateSize(_indexToken, _sizeDeltaToken, false);
         validateTokens(collateralToken, _indexToken, _isLong);
-        validateReservedAmount(collateralToken, _sizeDeltaToken);
+        // validateReservedAmount(collateralToken, _sizeDeltaToken); // TODO: Un-comment me
 
         return true;
     }
@@ -364,11 +364,27 @@ contract GatewayUtils is
         address _collateralToken,
         uint256 _sizeDeltaToken
     ) public view returns (bool) {
-        uint256 poolAmounts = IVault(vault).poolAmounts(_collateralToken);
+        uint256 availableReservedAmount = IVault(vault)
+            .getAvailableReservedAmount(_collateralToken);
+
+        // Calculate entry price
+        // If limit => pip > 0
+        ManagerData memory managerConfigData = positionManagerConfigData[
+            _indexToken
+        ];
+
+        uint256 entryPrice = (_pip * PRICE_DECIMALS) /
+            managerConfigData.basisPoint;
+        uint256 entryPrice = (_amountInUsd * _leverage) / _sizeDeltaToken;
+
         _sizeDeltaToken = IVault(vault).adjustDecimalToToken(
             _collateralToken,
             _sizeDeltaToken
         );
+        _sizeDeltaToken = _isLong
+            ? _sizeDeltaToken
+            : _entryPrice.mul(_sizeDeltaToken).div(WEI_DECIMALS);
+
         require(poolAmounts >= _sizeDeltaToken, "insufficient pool amount");
         return true;
     }
