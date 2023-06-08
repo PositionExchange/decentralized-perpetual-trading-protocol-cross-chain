@@ -485,7 +485,10 @@ contract DptpFuturesGateway is
         _validateCaller(msg.sender);
 
         IFuturXGatewayStorage.IncreasePositionRequest
-            memory request = _getDeleteIncreasePositionRequest(_key);
+            memory request = IFuturXGatewayStorage(gatewayStorage)
+                    .getUpdateIncreasePositionRequest(_key, _sizeDeltaInToken);
+
+        request.amountInToken = _sizeDeltaInToken;
 
         _executeIncreasePosition(
             request.account,
