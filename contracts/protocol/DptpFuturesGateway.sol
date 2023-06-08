@@ -1668,7 +1668,7 @@ contract DptpFuturesGateway is
     function _transferOutETH(uint256 _amountOut, address payable _account)
         internal
     {
-        if (msg.value != 0) {
+        if (_amountOut > 0) {
             IWETH(weth).transfer(_account, _amountOut);
         }
     }

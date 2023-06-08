@@ -198,7 +198,7 @@ contract GatewayUtils is
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) external view override returns (bool) {
+    ) external override returns (bool) {
         validateTokens(_collateralToken, _indexToken, _isLong);
         validateCollateral(_account, _collateralToken, _indexToken, _isLong);
         return true;
@@ -270,7 +270,7 @@ contract GatewayUtils is
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) public view returns (bool) {
+    ) public returns (bool) {
         PositionInfo.Data memory position = IVault(vault).getPositionInfo(
             _account,
             _indexToken,
@@ -357,7 +357,7 @@ contract GatewayUtils is
     function validateReservedAmount(
         address _collateralToken,
         uint256 _sizeDeltaToken
-    ) public view override returns (bool) {
+    ) public view returns (bool) {
         uint256 poolAmounts = IVault(vault).poolAmounts(_collateralToken);
         _sizeDeltaToken = IVault(vault).adjustDecimalToToken(
             _collateralToken,
