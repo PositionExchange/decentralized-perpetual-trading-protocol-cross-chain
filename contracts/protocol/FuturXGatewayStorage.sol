@@ -41,10 +41,19 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function getPendingCollateral(address _account, address _indexToken)
         public
+        view
         returns (PendingCollateral memory)
     {
         bytes32 key = _getPendingCollateralKey(_account, _indexToken);
         return pendingCollaterals[key];
+    }
+
+    function clearPendingCollateral(address _account, address _indexToken)
+        public
+    {
+        bytes32 key = _getPendingCollateralKey(_account, _indexToken);
+        pendingCollaterals[key].count = 0;
+        pendingCollaterals[key].collateral = address(0);
     }
 
     function updatePendingCollateral(UpPendingCollateralParam memory param)
@@ -54,7 +63,6 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     {
         bytes32 key = _getPendingCollateralKey(param.account, param.indexToken);
         PendingCollateral storage data = pendingCollaterals[key];
-
         // Operation = 1 means increase count
         if (param.op == 1) {
             if (data.count > 0) {
@@ -74,7 +82,8 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
                 data.collateral = address(0);
             }
         }
-
+        // TODO: Don't know why `storage` alone doesn't persist here
+        pendingCollaterals[key] = data;
         return key;
     }
 

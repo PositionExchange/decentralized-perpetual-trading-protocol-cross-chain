@@ -63,9 +63,15 @@ contract GatewayUtils is
 
     mapping(address => ManagerData) public positionManagerConfigData;
 
-    function initialize(address _vault) public initializer {
+    function initialize(
+        address _vault,
+        address _futurXGateway,
+        address _futurXGatewayStorage
+    ) public initializer {
         __Ownable_init();
         vault = _vault;
+        futurXGateway = _futurXGateway;
+        gatewayStorage = _futurXGatewayStorage;
         minimumVoucherInterval = 3 days;
     }
 
@@ -284,7 +290,6 @@ contract GatewayUtils is
                 position.collateralToken == _collateralToken,
                 "collateral"
             );
-            return true;
         }
 
         IFuturXGatewayStorage.PendingCollateral
@@ -471,6 +476,10 @@ contract GatewayUtils is
 
     function setFuturXVoucher(address _address) external onlyOwner {
         futurXVoucher = _address;
+    }
+
+    function setFuturXGatewayStorage(address _address) external onlyOwner {
+        gatewayStorage = _address;
     }
 
     /**
