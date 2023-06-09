@@ -13,6 +13,7 @@
 {"address":"yes","key":"0xe50cB53e5e031458430bdC52374D65A6F743206A:verified","_id":"4Ai8T5UMtMQtzfoF"}
 {"address":"yes","key":"0x4726aEbE93290f1fEf0d31a1D8C79DD20D245c0E:verified","_id":"4Q0VingkXVQ25Hh2"}
 {"address":"yes","key":"0x598AEdA864c9B0c483a56c88cF09Bb43ACfa7c14:verified","_id":"5EfnuJSIxpZMAvew"}
+{"address":"yes","key":"0x82b9Ca8Fed90b07bd5aCc8613539b26F6835EA4a:verified","_id":"5RWbR2WXfd0qcaie"}
 {"address":"yes","key":"0x492B7BA28e59A8e2BFbA6583a1E03d6695BC437a:verified","_id":"5jUKtG01vr8nmC7T"}
 {"address":"yes","key":"0x186F5C5aC97cdD6FC73770B65996247FFF998B8f:verified","_id":"5u0KEABdusgn8VqI"}
 {"address":"yes","key":"0x6FEE344250b35F51e849Fa29BbAbf6f76F1a1a24:verified","_id":"5vLq4MQOiINYvDI6"}
@@ -60,6 +61,8 @@
 {"address":"yes","key":"0x73674c92b90F0a711c7Fc7ea70cA0Ba2d74313D5:verified","_id":"H7Eo6hRqlKHpmTDs"}
 {"address":"0x8CDC832b593A63b876ef44203b4CE93368872c5e","key":"FuturXGatewayStorage","_id":"HJwTdwccASG4f6kh"}
 {"address":"yes","key":"0x261d610A48E8A5164a31D272981B0F446bADa19C:verified","_id":"HOBx3Zkko03nAto8"}
+{"address":"yes","key":"0xa216F4A20965B7d0A8b9f7ec7C25D6458575a063:verified","_id":"HRbZvnXnhwQYHtCw"}
+{"address":"yes","key":"0xb8338DcdD4050214C1882617Dc0191e06C8957d1:verified","_id":"IAuoyMq99PJ6ZG7Y"}
 {"address":"yes","key":"0x3Da8872E0E223fb8D6e57627039F51D11944e7D9:verified","_id":"IQ2eZ3BEGijjn5uz"}
 {"address":"yes","key":"0xd30d97Ba7f1F91c3d7874E6751348E5c26D09396:verified","_id":"IQrVmTsj65JXvXwY"}
 {"address":"0xE2D7DC14eAE9339593612804AFd8Ed4fcBA30D6C","key":"MintableBaseToken","_id":"K3o85dBvqVeGz344"}
@@ -134,6 +137,7 @@
 {"address":"yes","key":"0x81136A14b0Cd297be1Ba00a183Bf5AAa185AD6f6:verified","_id":"cIyV0yGuTknG1HtH"}
 {"address":"yes","key":"0x41F3E13199005D89f03B41A3d9C1d398434B07C6:verified","_id":"co4sgVQmio5lfMsp"}
 {"address":"yes","key":"0x774f238719F37F580231F37Ea2D9D5BBCC095F42:verified","_id":"d0LkAgwjYclGaxLT"}
+{"address":"yes","key":"0xF7354F39934C21391436bA38137795b67fF2253c:verified","_id":"dQTZRwbiiHxOnpus"}
 {"address":"yes","key":"0x80CA982BBA27C0bf862C4B18Cdfe87Da65D08975:verified","_id":"dbxRnH5pHeNyOekU"}
 {"address":"0x471385598B0Bdb63C89082F4166C0577C6C0263a","key":"WETH","_id":"doQogaN4jMmuLNuK"}
 {"address":"0xD5Fc27439996C484AAFe7b4D48C4B1c766B6966D","key":"EsPOSI","_id":"drjrDjgeYiIYZLva"}
@@ -225,3 +229,4 @@
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
 {"address":"yes","key":"0x9ECCfa925822705AD78F70399476f396e282B37b:verified","_id":"zoNXF9UaVZHi8eIG"}
+{"address":"yes","key":"0xB4e54c6ae180a89F08dF3C5cFA7D9c4f75A25401:verified","_id":"f5jbltwW8KWjPNgy"}
