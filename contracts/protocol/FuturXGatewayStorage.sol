@@ -137,7 +137,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         increasePositionRequests[_key].amountInToken = request.amountInToken - amountInToken;
     }
 
-    function getUpdateOrDeleteIncreasePositionRequest(bytes32 _key, uint256 amountInToken, bool isExecuteDone, IVault vault)
+    function getUpdateOrDeleteIncreasePositionRequest(bytes32 _key, uint256 amountInToken, bool isExecutedFully, IVault vault)
         public
         onlyFuturXGateway
         returns (IncreasePositionRequest memory request)
@@ -148,7 +148,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
             "FuturXGatewayStorage: 404001"
         );
 
-        if (isExecuteDone) {
+        if (isExecutedFully) {
             delete increasePositionRequests[_key];
         }else {
             uint256 amountAdjust = vault.adjustDecimalToToken(request.indexToken,amountInToken );
