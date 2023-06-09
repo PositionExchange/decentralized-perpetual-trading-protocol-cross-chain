@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
@@ -237,6 +238,7 @@ contract DptpFuturesGateway is
             _indexToken,
             _amountInUsd,
             _sizeDeltaToken,
+            0,
             _leverage,
             _isLong,
             _voucherId
@@ -322,6 +324,7 @@ contract DptpFuturesGateway is
             _indexToken,
             _amountInUsd,
             _sizeDeltaToken,
+            _pip,
             _leverage,
             _isLong,
             _voucherId
@@ -1683,6 +1686,7 @@ contract DptpFuturesGateway is
         address _indexToken,
         uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
+        uint256 _pip,
         uint16 _leverage,
         bool _isLong,
         uint256 _voucherId
@@ -1694,6 +1698,7 @@ contract DptpFuturesGateway is
             _indexToken,
             _amountInUsd,
             _sizeDeltaToken,
+            _pip,
             _leverage,
             _isLong,
             _voucherId
@@ -1930,13 +1935,17 @@ contract DptpFuturesGateway is
         gatewayStorage = _address;
     }
 
-    function pause() external onlyOwner {
-        _pause();
+    function setFuturXGatewayUtils(address _address) external onlyOwner {
+        gatewayUtils = _address;
     }
 
-    function unpause() external onlyOwner {
-        _unpause();
-    }
+//    function pause() external onlyOwner {
+//        _pause();
+//    }
+//
+//    function unpause() external onlyOwner {
+//        _unpause();
+//    }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

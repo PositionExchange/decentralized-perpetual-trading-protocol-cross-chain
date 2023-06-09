@@ -43,7 +43,7 @@
 {"address":"yes","key":"0xc3427B83bb6D783c1272f6B5cFa96ED785563B12:verified","_id":"BQELajny5OLsSjSG"}
 {"address":"yes","key":"0x5b671e985fe1F23197b610d74A4125754f1f83cF:verified","_id":"Bv5ToDgHdwwirK27"}
 {"address":"0x74c0348CC6027b0c60C27c2c6b8Cf32C5510b569","key":"LINK","_id":"CM8N0WUi8hHHU7XN"}
-{"address":"0x2Bc7C591869bE9aE52Fa0d178dFE83CdC078c71b","key":"GatewayUtils","_id":"Cki8ekDJTQMockLy"}
+{"address":"0xce88e19C8Da844E31Fedb4c401107217fCdA0A20","key":"GatewayUtils","_id":"Cee09BoFMvpEdUSb"}
 {"address":"0x72286b7395456181Fd0f1616D9B7bF9212457aaB","key":"FeePosiTracker","_id":"Co3HTUTWFhkZY6Ww"}
 {"address":"yes","key":"0xbf61E435E42FB860Cd53931Ad71E41A957aBb0d3:verified","_id":"D5Fw0IXreM1NZZFo"}
 {"address":"yes","key":"0x9D5b2f03DcE4B2c8219199040415C1A6Be767FD5:verified","_id":"DMqkOrOVSiR0WSUT"}
@@ -73,6 +73,7 @@
 {"address":"yes","key":"0xB62c515BEfFd1f84d787C81C93feFf444fdc6D2A:verified","_id":"LBRBj78kFQWA3YQo"}
 {"address":"0xA9319C4bf02B24251D1206E770B41CF168EaacB5","key":"StakedPlpDistributor","_id":"LkIDQEsgQzBGnLpC"}
 {"address":"yes","key":"0x5b070d69198420e3cc467E42622BFfCcAcA92AAD:verified","_id":"LmqJGsweQvKj7nXb"}
+{"address":"yes","key":"0x4DfB55A1279c3149e8Fe863f5A9a900FE76c444e:verified","_id":"Ls6dmWRZ505X8kaG"}
 {"address":"yes","key":"0x771dFc4A01CD70fb2b406Cd6e4cFfE61eaf6c90E:verified","_id":"LszlAGtZvfd1BWXP"}
 {"address":"0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C","key":"DAI","_id":"MSsUTIYqGUkJGx9p"}
 {"address":"yes","key":"0xFEaC55bc5A85c83c43e1D2175f7A3B7524CF9946:verified","_id":"Mll21lpVu1RWcg2D"}
@@ -99,8 +100,10 @@
 {"address":"yes","key":"0x789c6c03C08925CB981973173ca5c7B42a3E5A64:verified","_id":"Qfqo1jbImQi5l7vO"}
 {"address":"0x8557e89E7F86479bA8C55DA4257f7D2FA5030C8a","key":"BUSD","_id":"RACeeMfpdIpN4dS3"}
 {"address":"yes","key":"0xac0B039393B3D5492Caf05e472E84451f51f47d7:verified","_id":"RKTMxZbm3Sq4ZMf3"}
+{"address":"yes","key":"0x0A76EFf691F34a506C205FB85b6a74e1cBD78489:verified","_id":"RovHdJwKLL1CVdfA"}
 {"address":"yes","key":"0xaBb18b707E6049517143444f05c5395d79939761:verified","_id":"SPUcUdNTXE8oxaCG"}
 {"address":"yes","key":"0xFC87D5f66A60D5e5e310b9AB0373C905DDAd4F47:verified","_id":"SkYx5QE0X4tgElwD"}
+{"address":"yes","key":"0x451F98FC082D0B5B014A0e3C6476BfBA6bA2d8D3:verified","_id":"T5vCpuUDibjnnHrN"}
 {"address":"0x900Db664f23f15afa6cCBE9dC7eD341047BA92bF","key":"StakedPosiDistributor","_id":"T7LTJTCnYcignSOG"}
 {"address":"yes","key":"0xC0095536547192350ED1fb46d1DC8B15e917a034:verified","_id":"TCVcPNCNUMcT6gzx"}
 {"address":"yes","key":"0x9B1De81E93f43bC09291E3b4eF64490904D214D5:verified","_id":"TGPrNh3jmAKB0jwV"}
@@ -149,6 +152,7 @@
 {"address":"yes","key":"0x57EA99a7D458614236C77Ece0834e744D50aF583:verified","_id":"eR417SeJiE9UGWrF"}
 {"address":"yes","key":"0x5B24eA7b38aee39256dcEf6205EBe6E4bD7Ba12f:verified","_id":"egDoyQDEGYHG7ZCR"}
 {"address":"yes","key":"0xbd21D219cca3B37696504fD6937790E758edd43b:verified","_id":"emIfUCRvDD46catp"}
+{"address":"yes","key":"0xc357a701d436E1219cd98E5e6f1E8D8735586FC8:verified","_id":"ewGaqV66cGktCsXc"}
 {"address":"yes","key":"0xB4e54c6ae180a89F08dF3C5cFA7D9c4f75A25401:verified","_id":"f5jbltwW8KWjPNgy"}
 {"address":"0xd6bd9a3025e7294a9899a6d5fbf999b75b71e699","key":"ChainLinkPriceFeed","_id":"fWwNNhvBTDU1LzBA"}
 {"address":"yes","key":"0xAF4d82b19AB131fa330821F84F7Eaa852B63c18F:verified","_id":"fdvwjHvIkrfwGy9f"}
@@ -165,6 +169,7 @@
 {"address":"yes","key":"0x6b3f3cFC914aEAEecdE3c714F12A7FE0fdF326e5:verified","_id":"jsE5NwubRYQ5d2Xj"}
 {"address":"yes","key":"0xfB501DB19aEC623a4C7585F033b38DD16D53db37:verified","_id":"jvYPQtIz1O4pguRz"}
 {"address":"0xee09A2509e847f2974096064CfA0e05DFA57C602","key":"StakedPlpTracker","_id":"k13qfSuvrfDlDaV4"}
+{"address":"yes","key":"0x7054cB8546bb951CE4a0b03E99A1e908fb9E4b07:verified","_id":"lJugxqSrDB0FQAbF"}
 {"address":"0xbf3d20e4b16C10A63144bCe84a23CC8B24CbAf2C","key":"PLP","_id":"lsefaJXd3XnlI2VW"}
 {"address":"yes","key":"0x238570feB5BdC720302988a5BEC1C12fb29778e4:verified","_id":"mRpLUyzhqRXALjMn"}
 {"address":"0x6B9F5f7Ec5FfebdED65f2040c413BB3611F5236d","key":"StakedPosiTracker","_id":"mhE9cDFy0vUfe7ed"}
@@ -232,3 +237,4 @@
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
 {"address":"yes","key":"0x9ECCfa925822705AD78F70399476f396e282B37b:verified","_id":"zoNXF9UaVZHi8eIG"}
+{"address":"yes","key":"0x32592dCD387C594Fcd37417DEBA77c82376313D6:verified","_id":"X9IwvDFDoDA1IFol"}

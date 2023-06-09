@@ -4,6 +4,11 @@ pragma solidity ^0.8.0;
 import "./IVault.sol";
 
 interface IFuturXGatewayStorage {
+    enum OpCode {
+        IncreasePosition,
+        DecreasePosition,
+        UpdateCollateral
+    }
     struct IncreasePositionRequest {
         address account;
         address[] path;
@@ -43,7 +48,7 @@ interface IFuturXGatewayStorage {
         uint8 op;
     }
 
-    function getRequestKey(address _account, uint256 _index)
+    function getRequestKey(address _account, uint256 _index, OpCode _op)
         external
         view
         returns (bytes32);

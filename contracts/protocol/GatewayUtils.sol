@@ -10,7 +10,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+//import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
@@ -66,12 +66,16 @@ contract GatewayUtils is
     function initialize(
         address _vault,
         address _futurXGateway,
-        address _futurXGatewayStorage
+        address _futurXGatewayStorage,
+        address _futurXVoucher
     ) public initializer {
         __Ownable_init();
+
         vault = _vault;
         futurXGateway = _futurXGateway;
         gatewayStorage = _futurXGatewayStorage;
+        futurXVoucher = _futurXVoucher;
+
         minimumVoucherInterval = 3 days;
     }
 
@@ -159,6 +163,7 @@ contract GatewayUtils is
         address _indexToken,
         uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
+        uint256 _pip,
         uint16 _leverage,
         bool _isLong,
         uint256 _voucherId
@@ -175,7 +180,16 @@ contract GatewayUtils is
         validateCollateral(_account, collateralToken, _indexToken, _isLong);
         validateSize(_indexToken, _sizeDeltaToken, false);
         validateTokens(collateralToken, _indexToken, _isLong);
-        // validateReservedAmount(collateralToken, _sizeDeltaToken); // TODO: Un-comment me
+//        Client should validate this to save gas
+//        validateReservedAmount(
+//            _indexToken,
+//            collateralToken,
+//            _sizeDeltaToken,
+//            _amountInUsd,
+//            _pip,
+//            _leverage,
+//            _isLong
+//        );
 
         return true;
     }
@@ -360,34 +374,57 @@ contract GatewayUtils is
         return true;
     }
 
-//    function validateReservedAmount(
-//        address _collateralToken,
-//        uint256 _sizeDeltaToken
-//    ) public view returns (bool) {
-//        uint256 availableReservedAmount = IVault(vault)
-//            .getAvailableReservedAmount(_collateralToken);
-//
-//        // Calculate entry price
-//        // If limit => pip > 0
-//        ManagerData memory managerConfigData = positionManagerConfigData[
-//            _indexToken
-//        ];
-//
-//        uint256 entryPrice = (_pip * PRICE_DECIMALS) /
-//            managerConfigData.basisPoint;
-//        uint256 entryPrice = (_amountInUsd * _leverage) / _sizeDeltaToken;
-//
-//        _sizeDeltaToken = IVault(vault).adjustDecimalToToken(
-//            _collateralToken,
-//            _sizeDeltaToken
-//        );
-//        _sizeDeltaToken = _isLong
-//            ? _sizeDeltaToken
-//            : _entryPrice.mul(_sizeDeltaToken).div(WEI_DECIMALS);
-//
-//        require(poolAmounts >= _sizeDeltaToken, "insufficient pool amount");
-//        return true;
-//    }
+    function validateReservedAmount(
+        address _indexToken,
+        address _collateralToken,
+        uint256 _sizeDeltaToken,
+        uint256 _amountInUsd,
+        uint256 _pip,
+        uint256 _leverage,
+        bool _isLong
+    ) public view returns (bool) {
+        // Calculate entry price
+        // If limit => pip > 0
+        uint256 entryPrice = calculateEntryPrice(
+            _indexToken,
+            _sizeDeltaToken,
+            _amountInUsd,
+            _pip,
+            _leverage
+        );
+        _sizeDeltaToken = _isLong
+            ? _sizeDeltaToken
+            : entryPrice.mul(_sizeDeltaToken).div(WEI_DECIMALS);
+
+        uint256 availableReservedAmount = IVault(vault)
+            .getAvailableReservedAmount(_collateralToken);
+
+        require(
+            availableReservedAmount >= _sizeDeltaToken,
+            "insufficient available reserved amount"
+        );
+        return true;
+    }
+
+    function calculateEntryPrice(
+        address _indexToken,
+        uint256 _sizeDeltaToken,
+        uint256 _amountInUsd,
+        uint256 _pip,
+        uint256 _leverage
+    ) public view returns (uint256) {
+        ManagerData memory managerConfigData = positionManagerConfigData[
+            _indexToken
+        ];
+
+        if (_pip > 0) {
+            return (_pip * WEI_DECIMALS) / managerConfigData.basicPoint;
+        }
+
+        return
+            (((_amountInUsd / PRICE_DECIMALS) * _leverage) / _sizeDeltaToken) *
+            WEI_DECIMALS;
+    }
 
     function setPositionManagerConfigData(
         address _positionManager,
