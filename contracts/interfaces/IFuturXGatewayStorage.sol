@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import "./IVault.sol";
+
 interface IFuturXGatewayStorage {
     struct IncreasePositionRequest {
         address account;
@@ -64,6 +66,15 @@ interface IFuturXGatewayStorage {
     function getUpdateIncreasePositionRequest(bytes32 _key, uint256 amountInToken)
         external
         returns (IncreasePositionRequest memory);
+
+    function getUpdateOrDeleteIncreasePositionRequest(
+        bytes32 _key,
+        uint256 amountInToken,
+        bool isExecutedFully,
+        IVault vault
+    )   external
+        returns (IncreasePositionRequest memory);
+
 
     function getDecreasePositionRequest(bytes32 _key)
         external

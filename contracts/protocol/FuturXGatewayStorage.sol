@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/IFuturXGatewayStorage.sol";
+import "../interfaces/IVault.sol";
 
 contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     using SafeMathUpgradeable for uint256;
@@ -134,6 +135,26 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         );
 
         increasePositionRequests[_key].amountInToken = request.amountInToken - amountInToken;
+    }
+
+    function getUpdateOrDeleteIncreasePositionRequest(bytes32 _key, uint256 amountInToken, bool isExecutedFully, IVault vault)
+        public
+        onlyFuturXGateway
+        returns (IncreasePositionRequest memory request)
+    {
+        request = increasePositionRequests[_key];
+        Require._require(
+            request.account != address(0),
+            "FuturXGatewayStorage: 404001"
+        );
+
+        if (isExecutedFully) {
+            delete increasePositionRequests[_key];
+        }else {
+            uint256 amountAdjust = vault.adjustDecimalToToken(request.indexToken,amountInToken );
+            increasePositionRequests[_key].amountInToken = request.amountInToken - amountAdjust;
+            request.amountInToken = amountAdjust;
+        }
     }
 
     function storeDecreasePositionRequest(

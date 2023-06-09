@@ -480,15 +480,19 @@ contract DptpFuturesGateway is
         bytes32 _key,
         uint256 _entryPrice,
         uint256 _sizeDeltaInToken,
-        bool _isLong
+        bool _isLong,
+        bool _isExecutedFully
     ) public nonReentrant {
         _validateCaller(msg.sender);
 
         IFuturXGatewayStorage.IncreasePositionRequest
             memory request = IFuturXGatewayStorage(gatewayStorage)
-                    .getUpdateIncreasePositionRequest(_key, _sizeDeltaInToken);
-
-        request.amountInToken = _sizeDeltaInToken;
+                    .getUpdateOrDeleteIncreasePositionRequest(
+                        _key,
+                        _sizeDeltaInToken,
+                        _isExecutedFully,
+                        IVault(vault)
+                    );
 
         _updatePendingCollateral(
             request.account,

@@ -360,34 +360,34 @@ contract GatewayUtils is
         return true;
     }
 
-    function validateReservedAmount(
-        address _collateralToken,
-        uint256 _sizeDeltaToken
-    ) public view returns (bool) {
-        uint256 availableReservedAmount = IVault(vault)
-            .getAvailableReservedAmount(_collateralToken);
-
-        // Calculate entry price
-        // If limit => pip > 0
-        ManagerData memory managerConfigData = positionManagerConfigData[
-            _indexToken
-        ];
-
-        uint256 entryPrice = (_pip * PRICE_DECIMALS) /
-            managerConfigData.basisPoint;
-        uint256 entryPrice = (_amountInUsd * _leverage) / _sizeDeltaToken;
-
-        _sizeDeltaToken = IVault(vault).adjustDecimalToToken(
-            _collateralToken,
-            _sizeDeltaToken
-        );
-        _sizeDeltaToken = _isLong
-            ? _sizeDeltaToken
-            : _entryPrice.mul(_sizeDeltaToken).div(WEI_DECIMALS);
-
-        require(poolAmounts >= _sizeDeltaToken, "insufficient pool amount");
-        return true;
-    }
+//    function validateReservedAmount(
+//        address _collateralToken,
+//        uint256 _sizeDeltaToken
+//    ) public view returns (bool) {
+//        uint256 availableReservedAmount = IVault(vault)
+//            .getAvailableReservedAmount(_collateralToken);
+//
+//        // Calculate entry price
+//        // If limit => pip > 0
+//        ManagerData memory managerConfigData = positionManagerConfigData[
+//            _indexToken
+//        ];
+//
+//        uint256 entryPrice = (_pip * PRICE_DECIMALS) /
+//            managerConfigData.basisPoint;
+//        uint256 entryPrice = (_amountInUsd * _leverage) / _sizeDeltaToken;
+//
+//        _sizeDeltaToken = IVault(vault).adjustDecimalToToken(
+//            _collateralToken,
+//            _sizeDeltaToken
+//        );
+//        _sizeDeltaToken = _isLong
+//            ? _sizeDeltaToken
+//            : _entryPrice.mul(_sizeDeltaToken).div(WEI_DECIMALS);
+//
+//        require(poolAmounts >= _sizeDeltaToken, "insufficient pool amount");
+//        return true;
+//    }
 
     function setPositionManagerConfigData(
         address _positionManager,
