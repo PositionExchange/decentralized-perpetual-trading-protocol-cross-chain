@@ -45,7 +45,7 @@ interface IFuturXGatewayStorage {
 
     function getRequestKey(address _account, uint256 _index)
         external
-        pure
+        view
         returns (bytes32);
 
     function getTPSLRequestKey(
@@ -60,10 +60,6 @@ interface IFuturXGatewayStorage {
         returns (IncreasePositionRequest memory);
 
     function getDeleteIncreasePositionRequest(bytes32 _key)
-        external
-        returns (IncreasePositionRequest memory);
-
-    function getUpdateIncreasePositionRequest(bytes32 _key, uint256 amountInToken)
         external
         returns (IncreasePositionRequest memory);
 
