@@ -211,17 +211,6 @@ contract DptpFuturesGateway is
         __Pausable_init();
 
         pcsId = _pcsId;
-
-        Require._require(
-            _pscCrossChainGateway != address(0) &&
-                _futuresAdapter != address(0) &&
-                _vault != address(0) &&
-                _weth != address(0) &&
-                _gatewayUtils != address(0) &&
-                _gatewayStorage != address(0),
-            Errors.VL_EMPTY_ADDRESS
-        );
-
         pscCrossChainGateway = _pscCrossChainGateway;
         futuresAdapter = _futuresAdapter;
         vault = _vault;
