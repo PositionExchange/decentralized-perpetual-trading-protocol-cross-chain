@@ -17,6 +17,7 @@ import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IShortsTracker.sol";
 import "../interfaces/IGatewayUtils.sol";
 import "../interfaces/IFuturXGateway.sol";
+import "../interfaces/IFuturXGatewayStorage.sol";
 import "../interfaces/IFuturXVoucher.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
@@ -62,9 +63,15 @@ contract GatewayUtils is
 
     mapping(address => ManagerData) public positionManagerConfigData;
 
-    function initialize(address _vault) public initializer {
+    function initialize(
+        address _vault,
+        address _futurXGateway,
+        address _futurXGatewayStorage
+    ) public initializer {
         __Ownable_init();
         vault = _vault;
+        futurXGateway = _futurXGateway;
+        gatewayStorage = _futurXGatewayStorage;
         minimumVoucherInterval = 3 days;
     }
 
@@ -168,6 +175,7 @@ contract GatewayUtils is
         validateCollateral(_account, collateralToken, _indexToken, _isLong);
         validateSize(_indexToken, _sizeDeltaToken, false);
         validateTokens(collateralToken, _indexToken, _isLong);
+        // validateReservedAmount(collateralToken, _sizeDeltaToken); // TODO: Un-comment me
 
         return true;
     }
@@ -196,16 +204,17 @@ contract GatewayUtils is
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) external view override returns (bool) {
+    ) external override returns (bool) {
         validateTokens(_collateralToken, _indexToken, _isLong);
         validateCollateral(_account, _collateralToken, _indexToken, _isLong);
         return true;
     }
 
-    function validateVoucher(address _account, uint256 _voucherId, uint256 _amountInUsd)
-        public
-        returns (bool)
-    {
+    function validateVoucher(
+        address _account,
+        uint256 _voucherId,
+        uint256 _amountInUsd
+    ) public returns (bool) {
         FuturXVoucher.Voucher memory voucher = IFuturXVoucher(futurXVoucher)
             .getVoucherInfo(_voucherId);
         require(voucher.isActive, "voucher is not active");
@@ -218,9 +227,15 @@ contract GatewayUtils is
 
         uint256 priceExponent = 10**30;
         if (voucher.voucherType == 1) {
-            require(_amountInUsd >= 10 * priceExponent, "insufficient amount for voucher");
+            require(
+                _amountInUsd >= 10 * priceExponent,
+                "insufficient amount for voucher"
+            );
             if (voucher.maxDiscountValue >= 100 * priceExponent) {
-                require(_amountInUsd >= 20 * priceExponent, "insufficient amount for voucher");
+                require(
+                    _amountInUsd >= 20 * priceExponent,
+                    "insufficient amount for voucher"
+                );
             }
         } else {
             revert("invalid voucher type");
@@ -261,7 +276,7 @@ contract GatewayUtils is
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) public view returns (bool) {
+    ) public returns (bool) {
         PositionInfo.Data memory position = IVault(vault).getPositionInfo(
             _account,
             _indexToken,
@@ -278,17 +293,15 @@ contract GatewayUtils is
             return true;
         }
 
-        // TODO: DPTP-496 missing case when cancel limit order, must clear pending collateral.
-        //        address pendingCollateral = IFuturXGateway(futurXGateway)
-        //            .getLatestIncreasePendingCollateral(_account, _indexToken, _isLong);
-        //        if (pendingCollateral != address(0)) {
-        //            _validate(
-        //                _collateralToken == pendingCollateral,
-        //                "invalid pending collateral"
-        //            );
-        //            return true;
-        //        }
-
+        IFuturXGatewayStorage.PendingCollateral
+            memory pendingCollateral = IFuturXGatewayStorage(gatewayStorage)
+                .getPendingCollateral(_account, _indexToken);
+        if (pendingCollateral.count > 0) {
+            _validate(
+                _collateralToken == pendingCollateral.collateral,
+                "invalid pending collateral"
+            );
+        }
         return true;
     }
 
@@ -344,6 +357,35 @@ contract GatewayUtils is
         //                revert("max shorts exceeded");
         //            }
         //        }
+        return true;
+    }
+
+    function validateReservedAmount(
+        address _collateralToken,
+        uint256 _sizeDeltaToken
+    ) public view returns (bool) {
+        uint256 availableReservedAmount = IVault(vault)
+            .getAvailableReservedAmount(_collateralToken);
+
+        // Calculate entry price
+        // If limit => pip > 0
+        ManagerData memory managerConfigData = positionManagerConfigData[
+            _indexToken
+        ];
+
+        uint256 entryPrice = (_pip * PRICE_DECIMALS) /
+            managerConfigData.basisPoint;
+        uint256 entryPrice = (_amountInUsd * _leverage) / _sizeDeltaToken;
+
+        _sizeDeltaToken = IVault(vault).adjustDecimalToToken(
+            _collateralToken,
+            _sizeDeltaToken
+        );
+        _sizeDeltaToken = _isLong
+            ? _sizeDeltaToken
+            : _entryPrice.mul(_sizeDeltaToken).div(WEI_DECIMALS);
+
+        require(poolAmounts >= _sizeDeltaToken, "insufficient pool amount");
         return true;
     }
 
@@ -453,6 +495,10 @@ contract GatewayUtils is
         futurXVoucher = _address;
     }
 
+    function setFuturXGatewayStorage(address _address) external onlyOwner {
+        gatewayStorage = _address;
+    }
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
@@ -462,4 +508,5 @@ contract GatewayUtils is
     address public futurXVoucher;
     mapping(address => uint256) public lastVoucherUsage;
     uint256 public minimumVoucherInterval;
+    address public gatewayStorage;
 }

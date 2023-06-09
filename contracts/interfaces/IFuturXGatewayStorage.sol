@@ -29,6 +29,18 @@ interface IFuturXGatewayStorage {
         uint256 feeToken;
     }
 
+    struct PendingCollateral {
+        uint16 count;
+        address collateral;
+    }
+
+    struct UpPendingCollateralParam {
+        address account;
+        address indexToken;
+        address collateralToken;
+        uint8 op;
+    }
+
     function getRequestKey(address _account, uint256 _index)
         external
         pure
@@ -66,6 +78,10 @@ interface IFuturXGatewayStorage {
         external
         returns (UpdateCollateralRequest memory);
 
+    function getPendingCollateral(address _account, address _indexToken)
+        external
+        returns (PendingCollateral memory);
+
     function storeIncreasePositionRequest(
         IncreasePositionRequest memory _request
     ) external returns (uint256, bytes32);
@@ -92,4 +108,8 @@ interface IFuturXGatewayStorage {
         address _indexToken,
         bool _isHigherPip
     ) external;
+
+    function updatePendingCollateral(UpPendingCollateralParam memory param)
+        external
+        returns (bytes32);
 }

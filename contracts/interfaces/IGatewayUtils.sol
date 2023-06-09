@@ -74,7 +74,7 @@ interface IGatewayUtils {
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) external view returns (bool);
+    ) external returns (bool);
 
     function validateTokens(
         address _collateralToken,

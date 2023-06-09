@@ -290,6 +290,10 @@ interface IVault {
         bool _isLong
     ) external view returns (PositionInfo.Data memory);
 
+    function getAvailableReservedAmount(
+        address _collateralToken
+    ) external view returns (uint256);
+
     function adjustDecimalToUsd(
         address _token,
         uint256 _amount

@@ -506,6 +506,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return positionInfo[key];
     }
 
+    function getAvailableReservedAmount(
+        address _collateralToken
+    ) external view returns (uint256) {
+        VaultInfo.Data memory info = vaultInfo[_collateralToken];
+        return info.poolAmounts - info.reservedAmounts;
+    }
+
     /** OWNER FUNCTIONS **/
 
     function setConfigToken(
