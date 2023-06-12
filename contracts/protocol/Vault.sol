@@ -88,6 +88,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     mapping(address => uint256) public debtAmount; // TODO: Remove later
     mapping(address => uint256) public debtAmountUsd;
 
+    // guaranteedUsd tracks the amount of USD that is "guaranteed" by opened leverage positions
+    // this value is used to calculate the redemption values for selling of USDG
+    // this is an estimated amount, it is possible for the actual guaranteed value to be lower
+    // in the case of sudden price decreases, the guaranteed value should be corrected
+    // after liquidations are carried out
+    mapping (address => uint256) private _guaranteedUsd;
+
     modifier onlyWhitelistToken(address token) {
         require(
             tokenConfigurations[token].isWhitelisted,
@@ -138,6 +145,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event IncreaseReservedAmount(address token, uint256 amount);
     event DecreaseReservedAmount(address token, uint256 amount);
     event IncreaseGuaranteedUsd(address token, uint256 amount);
+    event DecreaseGuaranteedUsd(address token, uint256 amount);
     event IncreaseFeeReserves(address token, uint256 amount);
     event IncreasePositionReserves(uint256 amount);
     event DecreasePositionReserves(uint256 amount);
@@ -1358,13 +1366,15 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function _increaseGuaranteedUsd(address _token, uint256 _usdAmount)
         private
     {
-        // TODO: Implement me
+        _guaranteedUsd[_token] = _guaranteedUsd[_token].add(_usdAmount);
+        emit IncreaseGuaranteedUsd(_token, _usdAmount);
     }
 
     function _decreaseGuaranteedUsd(address _token, uint256 _usdAmount)
         private
     {
-        // TODO: Implement me
+        _guaranteedUsd[_token] = _guaranteedUsd[_token].sub(_usdAmount);
+        emit DecreaseGuaranteedUsd(_token, _usdAmount);
     }
 
     function _increaseFeeReserves(address _collateralToken, uint256 _feeUsd)
@@ -1489,7 +1499,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         returns (uint256)
     {
-        // TODO implement
+        return _guaranteedUsd[_token];
     }
 
     function reservedAmounts(address _token)
