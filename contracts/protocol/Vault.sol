@@ -507,9 +507,11 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return positionInfo[key];
     }
 
-    function getAvailableReservedAmount(
-        address _collateralToken
-    ) external view returns (uint256) {
+    function getAvailableReservedAmount(address _collateralToken)
+        external
+        view
+        returns (uint256)
+    {
         VaultInfo.Data memory info = vaultInfo[_collateralToken];
         return info.poolAmounts - info.reservedAmounts;
     }
@@ -612,8 +614,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         onlyOwner
     {
-        // TODO implement me
-        revert("setUsdgAmount not implement");
+        uint256 usdgAmount = usdgAmounts(_token);
+        if (_amount > usdgAmount) {
+            _increaseUsdpAmount(_token, _amount.sub(usdgAmount));
+            return;
+        }
+
+        _decreaseUsdpAmount(_token, usdgAmount.sub(_amount));
     }
 
     function setBufferAmount(address _token, uint256 _amount)
@@ -1496,7 +1503,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     // @deprecated use usdpAmount
     function usdgAmounts(address _token)
-        external
+        public
         view
         override
         returns (uint256)
