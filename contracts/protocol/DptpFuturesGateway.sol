@@ -471,7 +471,8 @@ contract DptpFuturesGateway is
         uint256 _entryPrice,
         uint256 _sizeDeltaInToken,
         bool _isLong,
-        bool _isExecutedFully
+        bool _isExecutedFully,
+        uint16 _leverage
     ) public nonReentrant {
         _validateCaller(msg.sender);
 
@@ -481,7 +482,8 @@ contract DptpFuturesGateway is
                         _key,
                         _sizeDeltaInToken,
                         _isExecutedFully,
-                        IVault(vault)
+                        IVault(vault),
+                        _leverage
                     );
 
         _updatePendingCollateral(
