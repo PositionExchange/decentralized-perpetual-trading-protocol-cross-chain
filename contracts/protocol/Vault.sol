@@ -648,8 +648,11 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         onlyOwner
         returns (uint256)
     {
-        // TODO implement me
-        revert("withdrawFees not implement");
+        uint256 amount = uint256(vaultInfo[_token].feeReserves);
+        if(amount == 0) { return 0; }
+        vaultInfo[_token].feeReserves = 0;
+        _transferOut(_token, amount, _receiver);
+        return amount;
     }
 
     function setInManagerMode(bool _inManagerMode) external override onlyOwner {
