@@ -4,6 +4,11 @@ pragma solidity ^0.8.0;
 import "./IVault.sol";
 
 interface IFuturXGatewayStorage {
+    enum OpCode {
+        IncreasePosition,
+        DecreasePosition,
+        UpdateCollateral
+    }
     struct IncreasePositionRequest {
         address account;
         address[] path;
@@ -43,9 +48,9 @@ interface IFuturXGatewayStorage {
         uint8 op;
     }
 
-    function getRequestKey(address _account, uint256 _index)
+    function getRequestKey(address _account, uint256 _index, OpCode _op)
         external
-        pure
+        view
         returns (bytes32);
 
     function getTPSLRequestKey(
@@ -63,8 +68,12 @@ interface IFuturXGatewayStorage {
         external
         returns (IncreasePositionRequest memory);
 
-    function getUpdateIncreasePositionRequest(bytes32 _key, uint256 amountInToken)
-        external
+    function getUpdateOrDeleteIncreasePositionRequest(
+        bytes32 _key,
+        uint256 amountInToken,
+        bool isExecutedFully,
+        IVault vault
+    )   external
         returns (IncreasePositionRequest memory);
 
     function getUpdateOrDeleteIncreasePositionRequest(

@@ -457,7 +457,7 @@ export class ContractWrapperFactory {
         }
     }
 
-    async createGatewayUtils(vault: string, futurXGateway: string, gatewayStorage: string) {
+    async createGatewayUtils(vault: string, futurXGateway: string, gatewayStorage: string, futurXVoucher: string) {
         const contractName = 'GatewayUtils';
         const factory = await this.hre.ethers.getContractFactory(contractName);
         const contractAddress = await this.db.findAddressByKey(contractName);
@@ -473,7 +473,8 @@ export class ContractWrapperFactory {
             const contractArgs = [
                 vault,
                 futurXGateway,
-                gatewayStorage
+                gatewayStorage,
+                futurXVoucher
             ];
             const instance = await this.hre.upgrades.deployProxy(
                 factory,

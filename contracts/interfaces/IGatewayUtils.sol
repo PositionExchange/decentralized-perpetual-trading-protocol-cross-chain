@@ -43,6 +43,7 @@ interface IGatewayUtils {
         address _indexToken,
         uint256 _amountInUsd,
         uint256 _sizeDeltaToken,
+        uint256 _pip,
         uint16 _leverage,
         bool _isLong,
         uint256 _voucherId
