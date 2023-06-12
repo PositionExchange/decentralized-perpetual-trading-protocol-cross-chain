@@ -95,6 +95,8 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // after liquidations are carried out
     mapping (address => uint256) private _guaranteedUsd;
 
+    address public futurXGateway;
+
     modifier onlyWhitelistToken(address token) {
         require(
             tokenConfigurations[token].isWhitelisted,
@@ -198,7 +200,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _feeUsd
     ) external override nonReentrant {
-        _validateCaller(_account);
+        _onlyFuturXGateway(_account);
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
@@ -279,7 +281,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd
     ) external override nonReentrant returns (uint256) {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
 
         return
             _decreasePosition(
@@ -389,7 +391,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _positionMargin,
         bool _isLong
     ) external override nonReentrant {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
 
@@ -435,7 +437,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _feeToken
     ) external override nonReentrant {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
 
         address collateralToken = _path[_path.length - 1];
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
@@ -457,7 +459,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _amountInToken
     ) external override nonReentrant {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
 
         if (_isLong) {
             _decreasePoolAmount(_collateralToken, _amountInToken);
@@ -644,26 +646,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         onlyOwner
     {
-        // TODO implement me
-        revert("setMaxGlobalShortSize not implement");
-    }
-
-    function setInPrivateLiquidationMode(bool _inPrivateLiquidationMode)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setInPrivateLiquidationMode not implement");
-    }
-
-    function setLiquidator(address _liquidator, bool _isActive)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setLiquidator not implement");
+        maxGlobalShortSizes[_token] = _amount;
     }
 
     function setPriceFeed(address _feed) external override onlyOwner {
@@ -830,7 +813,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         onlyWhitelistToken(_tokenOut)
         returns (uint256)
     {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
         return _swap(_tokenIn, _tokenOut, _receiver, false);
     }
 
@@ -841,7 +824,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _amountOutUsd,
         address _receiver
     ) external override onlyWhitelistToken(_collateralToken) returns (uint256) {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
         if (_amountOutUsd == 0) {
             return 0;
         }
@@ -1658,8 +1641,8 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
-    function _validateCaller(address _account) private view {
-        // TODO: Validate caller
+    function _onlyFuturXGateway(address _account) private view {
+        require(_account == futurXGateway, "Vault: onlyFuturXGateway");
     }
 
     function _validatePosition(uint256 _size, uint256 _collateral)

@@ -494,21 +494,6 @@ contract Timelock is ITimelock {
         }
     }
 
-    function setInPrivateLiquidationMode(
-        address _vault,
-        bool _inPrivateLiquidationMode
-    ) external onlyAdmin {
-        IVault(_vault).setInPrivateLiquidationMode(_inPrivateLiquidationMode);
-    }
-
-    function setLiquidator(
-        address _vault,
-        address _liquidator,
-        bool _isActive
-    ) external onlyAdmin {
-        IVault(_vault).setLiquidator(_liquidator, _isActive);
-    }
-
     function setInPrivateTransferMode(
         address _token,
         bool _inPrivateTransferMode

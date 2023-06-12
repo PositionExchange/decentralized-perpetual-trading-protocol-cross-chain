@@ -142,12 +142,6 @@ interface IVault {
 
     function setMaxGlobalShortSize(address _token, uint256 _amount) external;
 
-    function setInPrivateLiquidationMode(
-        bool _inPrivateLiquidationMode
-    ) external;
-
-    function setLiquidator(address _liquidator, bool _isActive) external;
-
     function setPriceFeed(address _priceFeed) external;
 
     function setVaultUtils(IVaultUtils _vaultUtils) external;
