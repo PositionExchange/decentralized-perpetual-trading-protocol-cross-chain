@@ -23,8 +23,6 @@ import {Errors} from "./libraries/helpers/Errors.sol";
 import "../interfaces/IFuturXGateway.sol";
 import "../referrals/interfaces/IReferralRewardTracker.sol";
 
-import "hardhat/console.sol";
-
 contract DptpFuturesGateway is
     IERC721ReceiverUpgradeable,
     PausableUpgradeable,

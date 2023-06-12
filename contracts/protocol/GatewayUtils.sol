@@ -180,16 +180,16 @@ contract GatewayUtils is
         validateCollateral(_account, collateralToken, _indexToken, _isLong);
         validateSize(_indexToken, _sizeDeltaToken, false);
         validateTokens(collateralToken, _indexToken, _isLong);
-//        Client should validate this to save gas
-//        validateReservedAmount(
-//            _indexToken,
-//            collateralToken,
-//            _sizeDeltaToken,
-//            _amountInUsd,
-//            _pip,
-//            _leverage,
-//            _isLong
-//        );
+        // TODO: Client should validate this to save gas
+        validateReservedAmount(
+            _indexToken,
+            collateralToken,
+            _sizeDeltaToken,
+            _amountInUsd,
+            _pip,
+            _leverage,
+            _isLong
+        );
 
         return true;
     }
@@ -398,6 +398,10 @@ contract GatewayUtils is
 
         uint256 availableReservedAmount = IVault(vault)
             .getAvailableReservedAmount(_collateralToken);
+        availableReservedAmount = IVault(vault).adjustDecimalToUsd(
+            _collateralToken,
+            availableReservedAmount
+        );
 
         require(
             availableReservedAmount >= _sizeDeltaToken,
@@ -422,8 +426,8 @@ contract GatewayUtils is
         }
 
         return
-            (((_amountInUsd / PRICE_DECIMALS) * _leverage) / _sizeDeltaToken) *
-            WEI_DECIMALS;
+            (((_amountInUsd / PRICE_DECIMALS) * _leverage) * WEI_DECIMALS) /
+            _sizeDeltaToken;
     }
 
     function setPositionManagerConfigData(

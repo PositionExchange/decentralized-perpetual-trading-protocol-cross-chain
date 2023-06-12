@@ -136,7 +136,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         request = increasePositionRequests[_key];
         Require._require(
             request.account != address(0),
-            "FuturXGatewayStorage: 404001"
+            "FuturXGatewayStorage: 404004"
         );
 
         if (isExecutedFully) {
