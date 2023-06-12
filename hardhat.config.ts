@@ -85,6 +85,11 @@ module.exports = {
             chainId: 421613,
             accounts: PRIV_TESTNET_ACCOUNT ? [PRIV_TESTNET_ACCOUNT] : [],
         },
+        arbitrumOne: {
+            url: "https://arb-mainnet-public.unifra.io",
+            chainId: 42161,
+            accounts: PRIV_TESTNET_ACCOUNT ? [PRIV_TESTNET_ACCOUNT] : [],
+        },
     },
 
     solidity: {
@@ -142,7 +147,8 @@ module.exports = {
             posi_testnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             bscTestnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
             bsc: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
-            arbitrumGoerli: ARB_API_KEY
+            arbitrumGoerli: ARB_API_KEY,
+            arbitrumOne: ARB_API_KEY,
         },
         customChains: [
             {
