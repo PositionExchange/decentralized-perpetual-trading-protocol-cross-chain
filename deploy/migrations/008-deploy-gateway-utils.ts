@@ -1,5 +1,5 @@
 import { MigrationContext, MigrationDefinition } from "../types";
-import { GatewayUtils, WETH } from "../../typeChain";
+import {DptpFuturesGateway, GatewayUtils, WETH} from "../../typeChain";
 import { BTCBUSD, ETHBUSD, LINKBUSD } from "../config_production";
 import { ContractTransaction } from "ethers";
 
@@ -9,7 +9,8 @@ const migrations: MigrationDefinition = {
       const vault = await ctx.factory.db.findAddressByKey("Vault");
       const futurXGateway = await ctx.factory.db.findAddressByKey("DptpFuturesGateway");
       const gatewayStorage = await ctx.factory.db.findAddressByKey("FuturXGatewayStorage");
-      await ctx.factory.createGatewayUtils(vault, futurXGateway, gatewayStorage);
+      const futurXVoucher = await ctx.factory.db.findAddressByKey("FuturXVoucher");
+      await ctx.factory.createGatewayUtils(vault, futurXGateway, gatewayStorage, futurXVoucher);
     },
 
     "re-config after deploy new gateway utils": async () => {
@@ -23,11 +24,14 @@ const migrations: MigrationDefinition = {
         "GatewayUtils"
       );
 
+      const futurXGateway = await ctx.factory.getDeployedContract<DptpFuturesGateway>(
+        "DptpFuturesGateway"
+      );
+
       let tx: Promise<ContractTransaction>;
 
-      tx = gatewayUtils.setFuturXGatewayStorage(gatewayStorage);
-      await ctx.factory.waitTx(tx, "gatewayUtils.setVault");
-
+      tx = futurXGateway.setFuturXGatewayUtils(gatewayUtils.address);
+      await ctx.factory.waitTx(tx, "futurXGateway.setFuturXGatewayUtils");
 
       // tx = gatewayUtils.setPositionManagerConfigData(
       //   wbtc,

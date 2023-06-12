@@ -94,7 +94,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         address account = _request.account;
         uint256 index = increasePositionsIndex[account].add(1);
         increasePositionsIndex[account] = index;
-        bytes32 key = _getRequestKey(account, index);
+        bytes32 key = _getRequestKey(account, index, OpCode.IncreasePosition);
 
         increasePositionRequests[key] = _request;
         increasePositionRequestKeys.push(key);
@@ -136,7 +136,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         request = increasePositionRequests[_key];
         Require._require(
             request.account != address(0),
-            "FuturXGatewayStorage: 404001"
+            "FuturXGatewayStorage: 404004"
         );
 
         if (isExecutedFully) {
@@ -159,7 +159,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         address account = _request.account;
         uint256 index = decreasePositionsIndex[account].add(1);
         decreasePositionsIndex[account] = index;
-        bytes32 key = _getRequestKey(account, index);
+        bytes32 key = _getRequestKey(account, index, OpCode.DecreasePosition);
 
         decreasePositionRequests[key] = _request;
         decreasePositionRequestKeys.push(key);
@@ -201,7 +201,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         address account = _request.account;
         uint256 index = updateCollateralIndex[account].add(1);
         updateCollateralIndex[account] = index;
-        bytes32 key = _getRequestKey(account, index);
+        bytes32 key = _getRequestKey(account, index, OpCode.UpdateCollateral);
 
         updateCollateralRequests[key] = _request;
         updateCollateralRequestKeys.push(key);
@@ -242,12 +242,12 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         _deleteUpdateCollateralRequests(_key);
     }
 
-    function getRequestKey(address _account, uint256 _index)
+    function getRequestKey(address _account, uint256 _index, OpCode _op)
         external
         view
         returns (bytes32)
     {
-        return _getRequestKey(_account, _index);
+        return _getRequestKey(_account, _index, _op);
     }
 
     function getTPSLRequestKey(
@@ -258,12 +258,12 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         return _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
     }
 
-    function _getRequestKey(address _account, uint256 _index)
+    function _getRequestKey(address _account, uint256 _index, OpCode _op)
         private
         view
         returns (bytes32)
     {
-        return keccak256(abi.encodePacked(_account, _index, address(this)));
+        return keccak256(abi.encodePacked(_account, _index, _op, address(this)));
     }
 
     function _getTPSLRequestKey(
