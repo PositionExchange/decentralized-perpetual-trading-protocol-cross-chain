@@ -71,7 +71,8 @@ interface IFuturXGatewayStorage {
         bytes32 _key,
         uint256 amountInToken,
         bool isExecutedFully,
-        IVault vault
+        IVault vault,
+        uint16 leverage
     )   external
         returns (IncreasePositionRequest memory);
 
