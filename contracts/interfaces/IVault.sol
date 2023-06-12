@@ -128,15 +128,11 @@ interface IVault {
         bool _isShortable
     ) external;
 
-    function setMaxLeverage(uint256 _maxLeverage) external;
-
     function setInManagerMode(bool _inManagerMode) external;
 
     function setManager(address _manager, bool _isManager) external;
 
     function setIsSwapEnabled(bool _isSwapEnabled) external;
-
-    function setIsLeverageEnabled(bool _isLeverageEnabled) external;
 
     function setMaxGasPrice(uint256 _maxGasPrice) external;
 

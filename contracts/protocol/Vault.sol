@@ -589,11 +589,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         revert("setUsdpAmount not implement");
     }
 
-    function setMaxLeverage(uint256 _maxLeverage) external override onlyOwner {
-        // TODO implement me
-        revert("setMaxLeverage not implement");
-    }
-
     function setManager(address _manager, bool _isManager)
         external
         override
@@ -605,15 +600,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function setIsSwapEnabled(bool _isSwapEnabled) external override onlyOwner {
         isSwapEnabled = _isSwapEnabled;
-    }
-
-    function setIsLeverageEnabled(bool _isLeverageEnabled)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setIsLeverageEnabled not implement");
     }
 
     function setMaxGasPrice(uint256 _maxGasPrice) external override onlyOwner {
