@@ -592,24 +592,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         whitelistCaller[caller] = val;
     }
 
-    function setUsdpAmount(address _token, uint256 _amount)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setUsdpAmount not implement");
-    }
-
-    function setManager(address _manager, bool _isManager)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setManager not implement");
-    }
-
     function setIsSwapEnabled(bool _isSwapEnabled) external override onlyOwner {
         isSwapEnabled = _isSwapEnabled;
     }
@@ -1514,7 +1496,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         returns (uint256)
     {
-        // TODO impment me
+        return uint256(tokenConfigurations[_token].maxUsdpAmount());
     }
 
     function tokenToUsdMin(address _token, uint256 _tokenAmount)

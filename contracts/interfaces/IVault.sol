@@ -116,8 +116,6 @@ interface IVault {
         bool _hasDynamicFees
     ) external;
 
-    function setUsdpAmount(address _token, uint256 _amount) external;
-
     function setConfigToken(
         address _token,
         uint8 _tokenDecimals,
@@ -129,8 +127,6 @@ interface IVault {
     ) external;
 
     function setInManagerMode(bool _inManagerMode) external;
-
-    function setManager(address _manager, bool _isManager) external;
 
     function setIsSwapEnabled(bool _isSwapEnabled) external;
 
