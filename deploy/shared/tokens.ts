@@ -114,7 +114,8 @@ export const USDT = new MultiChainToken<IExtraTokenConfig>('USDT', 'USDT', 6, {
 export const DAI = new MultiChainToken<IExtraTokenConfig>('DAI', 'DAI', 18, {
   56: '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3',
   97: '0xB202545C693631eEeBC83E600c74cFf4EE54F39c',
-  421613: '0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C'
+  421613: '0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C',
+  42161: '0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C',
 },
 {
   97: {

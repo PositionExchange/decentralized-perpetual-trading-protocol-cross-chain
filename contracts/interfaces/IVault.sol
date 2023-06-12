@@ -16,8 +16,6 @@ interface IVault {
 
     function poolAmounts(address token) external view returns (uint256);
 
-    function whitelistedTokenCount() external view returns (uint256);
-
     function minProfitTime() external returns (uint256);
 
     function inManagerMode() external view returns (bool);
@@ -116,8 +114,6 @@ interface IVault {
         bool _hasDynamicFees
     ) external;
 
-    function setUsdpAmount(address _token, uint256 _amount) external;
-
     function setConfigToken(
         address _token,
         uint8 _tokenDecimals,
@@ -128,15 +124,9 @@ interface IVault {
         bool _isShortable
     ) external;
 
-    function setMaxLeverage(uint256 _maxLeverage) external;
-
     function setInManagerMode(bool _inManagerMode) external;
 
-    function setManager(address _manager, bool _isManager) external;
-
     function setIsSwapEnabled(bool _isSwapEnabled) external;
-
-    function setIsLeverageEnabled(bool _isLeverageEnabled) external;
 
     function setMaxGasPrice(uint256 _maxGasPrice) external;
 
@@ -145,12 +135,6 @@ interface IVault {
     function setBufferAmount(address _token, uint256 _amount) external;
 
     function setMaxGlobalShortSize(address _token, uint256 _amount) external;
-
-    function setInPrivateLiquidationMode(
-        bool _inPrivateLiquidationMode
-    ) external;
-
-    function setLiquidator(address _liquidator, bool _isActive) external;
 
     function setPriceFeed(address _priceFeed) external;
 

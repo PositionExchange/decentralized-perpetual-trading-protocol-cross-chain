@@ -39,7 +39,20 @@ export const stageConfig: StageConfig<AvailableStageConfig,any> = {
       ],
       native_token: WETH.forChain(421613)
     }
-  }
+  },
+  // 'arbitrumOne': {
+  //   42161: {
+  //     whitelist: [
+  //       DAI.forChain(42161),
+  //       USDT.forChain(42161),
+  //       USDC.forChain(42161),
+  //       WETH.forChain(42161),
+  //       BTC.forChain(42161),
+  //       LINK.forChain(42161),
+  //     ],
+  //     native_token: WETH.forChain(42161)
+  //   }
+  // }
 }
 
 // if the contract doesn't exist, it will create a mock address

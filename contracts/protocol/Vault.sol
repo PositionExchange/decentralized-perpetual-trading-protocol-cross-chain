@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+//import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./libraries/TokenConfiguration.sol";
 import "./libraries/VaultInfo.sol";
@@ -88,6 +88,17 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     mapping(address => uint256) public debtAmount; // TODO: Remove later
     mapping(address => uint256) public debtAmountUsd;
 
+    // guaranteedUsd tracks the amount of USD that is "guaranteed" by opened leverage positions
+    // this value is used to calculate the redemption values for selling of USDG
+    // this is an estimated amount, it is possible for the actual guaranteed value to be lower
+    // in the case of sudden price decreases, the guaranteed value should be corrected
+    // after liquidations are carried out
+    mapping (address => uint256) private _guaranteedUsd;
+
+    address public futurXGateway;
+
+    uint256 public maxGasPrice;
+
     modifier onlyWhitelistToken(address token) {
         require(
             tokenConfigurations[token].isWhitelisted,
@@ -138,6 +149,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     event IncreaseReservedAmount(address token, uint256 amount);
     event DecreaseReservedAmount(address token, uint256 amount);
     event IncreaseGuaranteedUsd(address token, uint256 amount);
+    event DecreaseGuaranteedUsd(address token, uint256 amount);
     event IncreaseFeeReserves(address token, uint256 amount);
     event IncreasePositionReserves(uint256 amount);
     event DecreasePositionReserves(uint256 amount);
@@ -190,7 +202,8 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _feeUsd
     ) external override nonReentrant {
-        _validateCaller(_account);
+        _onlyFuturXGateway(_account);
+        _validateGasPrice();
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
@@ -271,7 +284,8 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd
     ) external override nonReentrant returns (uint256) {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
+        _validateGasPrice();
 
         return
             _decreasePosition(
@@ -381,7 +395,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _positionMargin,
         bool _isLong
     ) external override nonReentrant {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
 
@@ -427,7 +441,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _feeToken
     ) external override nonReentrant {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
 
         address collateralToken = _path[_path.length - 1];
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
@@ -449,7 +463,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _amountInToken
     ) external override nonReentrant {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
 
         if (_isLong) {
             _decreasePoolAmount(_collateralToken, _amountInToken);
@@ -507,9 +521,11 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return positionInfo[key];
     }
 
-    function getAvailableReservedAmount(
-        address _collateralToken
-    ) external view returns (uint256) {
+    function getAvailableReservedAmount(address _collateralToken)
+        external
+        view
+        returns (uint256)
+    {
         VaultInfo.Data memory info = vaultInfo[_collateralToken];
         return info.poolAmounts - info.reservedAmounts;
     }
@@ -580,45 +596,12 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         whitelistCaller[caller] = val;
     }
 
-    function setUsdpAmount(address _token, uint256 _amount)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setUsdpAmount not implement");
-    }
-
-    function setMaxLeverage(uint256 _maxLeverage) external override onlyOwner {
-        // TODO implement me
-        revert("setMaxLeverage not implement");
-    }
-
-    function setManager(address _manager, bool _isManager)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setManager not implement");
-    }
-
     function setIsSwapEnabled(bool _isSwapEnabled) external override onlyOwner {
         isSwapEnabled = _isSwapEnabled;
     }
 
-    function setIsLeverageEnabled(bool _isLeverageEnabled)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setIsLeverageEnabled not implement");
-    }
-
     function setMaxGasPrice(uint256 _maxGasPrice) external override onlyOwner {
-        // TODO implement me
-        revert("setMaxGasPrice not implement");
+        maxGasPrice = _maxGasPrice;
     }
 
     function setUsdgAmount(address _token, uint256 _amount)
@@ -626,8 +609,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         onlyOwner
     {
-        // TODO implement me
-        revert("setUsdgAmount not implement");
+        uint256 usdgAmount = usdgAmounts(_token);
+        if (_amount > usdgAmount) {
+            _increaseUsdpAmount(_token, _amount.sub(usdgAmount));
+            return;
+        }
+
+        _decreaseUsdpAmount(_token, usdgAmount.sub(_amount));
     }
 
     function setBufferAmount(address _token, uint256 _amount)
@@ -643,26 +631,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         onlyOwner
     {
-        // TODO implement me
-        revert("setMaxGlobalShortSize not implement");
-    }
-
-    function setInPrivateLiquidationMode(bool _inPrivateLiquidationMode)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setInPrivateLiquidationMode not implement");
-    }
-
-    function setLiquidator(address _liquidator, bool _isActive)
-        external
-        override
-        onlyOwner
-    {
-        // TODO implement me
-        revert("setLiquidator not implement");
+        maxGlobalShortSizes[_token] = _amount;
     }
 
     function setPriceFeed(address _feed) external override onlyOwner {
@@ -679,8 +648,11 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         onlyOwner
         returns (uint256)
     {
-        // TODO implement me
-        revert("withdrawFees not implement");
+        uint256 amount = uint256(vaultInfo[_token].feeReserves);
+        if(amount == 0) { return 0; }
+        vaultInfo[_token].feeReserves = 0;
+        _transferOut(_token, amount, _receiver);
+        return amount;
     }
 
     function setInManagerMode(bool _inManagerMode) external override onlyOwner {
@@ -829,7 +801,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         onlyWhitelistToken(_tokenOut)
         returns (uint256)
     {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
         return _swap(_tokenIn, _tokenOut, _receiver, false);
     }
 
@@ -840,7 +812,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _amountOutUsd,
         address _receiver
     ) external override onlyWhitelistToken(_collateralToken) returns (uint256) {
-        _validateCaller(msg.sender);
+        _onlyFuturXGateway(msg.sender);
         if (_amountOutUsd == 0) {
             return 0;
         }
@@ -1365,13 +1337,15 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function _increaseGuaranteedUsd(address _token, uint256 _usdAmount)
         private
     {
-        // TODO: Implement me
+        _guaranteedUsd[_token] = _guaranteedUsd[_token].add(_usdAmount);
+        emit IncreaseGuaranteedUsd(_token, _usdAmount);
     }
 
     function _decreaseGuaranteedUsd(address _token, uint256 _usdAmount)
         private
     {
-        // TODO: Implement me
+        _guaranteedUsd[_token] = _guaranteedUsd[_token].sub(_usdAmount);
+        emit DecreaseGuaranteedUsd(_token, _usdAmount);
     }
 
     function _increaseFeeReserves(address _collateralToken, uint256 _feeUsd)
@@ -1496,7 +1470,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         returns (uint256)
     {
-        // TODO implement
+        return _guaranteedUsd[_token];
     }
 
     function reservedAmounts(address _token)
@@ -1510,7 +1484,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     // @deprecated use usdpAmount
     function usdgAmounts(address _token)
-        external
+        public
         view
         override
         returns (uint256)
@@ -1528,7 +1502,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         returns (uint256)
     {
-        // TODO impment me
+        return uint256(tokenConfigurations[_token].getMaxUsdpAmount());
     }
 
     function tokenToUsdMin(address _token, uint256 _tokenAmount)
@@ -1627,11 +1601,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return IVaultPriceFeed(_priceFeed).getPrice(_token, false);
     }
 
-    function whitelistedTokenCount() external view override returns (uint256) {
-        // TODO implement me
-        revert("Vault not implemented");
-    }
-
     function isWhitelistedTokens(address _token)
         external
         view
@@ -1655,8 +1624,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
-    function _validateCaller(address _account) private view {
-        // TODO: Validate caller
+    // we have this validation as a function instead of a modifier to reduce contract size
+    function _onlyFuturXGateway(address _account) private view {
+        require(_account == futurXGateway, "Vault: onlyFuturXGateway");
     }
 
     function _validatePosition(uint256 _size, uint256 _collateral)
@@ -1668,6 +1638,12 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
             return;
         }
         _validate(_size >= _collateral, "40");
+    }
+
+    // we have this validation as a function instead of a modifier to reduce contract size
+    function _validateGasPrice() private view {
+        if (maxGasPrice == 0) { return; }
+        _validate(tx.gasprice <= maxGasPrice, "55");
     }
 
     function _validate(bool _condition, string memory _errorCode) private view {

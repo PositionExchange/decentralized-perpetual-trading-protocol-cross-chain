@@ -379,7 +379,7 @@ contract Timelock is ITimelock {
 
         IVault(_vault).setBufferAmount(_token, _bufferAmount);
 
-        IVault(_vault).setUsdpAmount(_token, _usdgAmount);
+        IVault(_vault).setUsdgAmount(_token, _usdgAmount);
     }
 
     function setUsdgAmounts(
@@ -388,7 +388,7 @@ contract Timelock is ITimelock {
         uint256[] memory _usdgAmounts
     ) external onlyKeeperAndAbove {
         for (uint256 i = 0; i < _tokens.length; i++) {
-            IVault(_vault).setUsdpAmount(_tokens[i], _usdgAmounts[i]);
+            IVault(_vault).setUsdgAmount(_tokens[i], _usdgAmounts[i]);
         }
     }
 
@@ -492,21 +492,6 @@ contract Timelock is ITimelock {
         for (uint256 i = 0; i < _tokens.length; i++) {
             IVault(_vault).withdrawFees(_tokens[i], admin);
         }
-    }
-
-    function setInPrivateLiquidationMode(
-        address _vault,
-        bool _inPrivateLiquidationMode
-    ) external onlyAdmin {
-        IVault(_vault).setInPrivateLiquidationMode(_inPrivateLiquidationMode);
-    }
-
-    function setLiquidator(
-        address _vault,
-        address _liquidator,
-        bool _isActive
-    ) external onlyAdmin {
-        IVault(_vault).setLiquidator(_liquidator, _isActive);
     }
 
     function setInPrivateTransferMode(
@@ -723,7 +708,7 @@ contract Timelock is ITimelock {
         _clearAction(action);
 
         address usdp = IVault(_vault).usdp();
-        IVault(_vault).setManager(address(this), true);
+        IVault(_vault).setWhitelistCaller(address(this), true);
         IUSDP(usdp).addVault(address(this));
 
         IUSDP(usdp).mint(address(this), _amount);
@@ -731,7 +716,7 @@ contract Timelock is ITimelock {
 
         IVault(_vault).sellUSDP(_token, mintReceiver);
 
-        IVault(_vault).setManager(address(this), false);
+        IVault(_vault).setWhitelistCaller(address(this), false);
         IUSDP(usdp).removeVault(address(this));
     }
 
