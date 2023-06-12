@@ -97,6 +97,8 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     address public futurXGateway;
 
+    uint256 public maxGasPrice;
+
     modifier onlyWhitelistToken(address token) {
         require(
             tokenConfigurations[token].isWhitelisted,
@@ -201,6 +203,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _feeUsd
     ) external override nonReentrant {
         _onlyFuturXGateway(_account);
+        _validateGasPrice();
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
@@ -282,6 +285,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _feeUsd
     ) external override nonReentrant returns (uint256) {
         _onlyFuturXGateway(msg.sender);
+        _validateGasPrice();
 
         return
             _decreasePosition(
@@ -597,8 +601,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     function setMaxGasPrice(uint256 _maxGasPrice) external override onlyOwner {
-        // TODO implement me
-        revert("setMaxGasPrice not implement");
+        maxGasPrice = _maxGasPrice;
     }
 
     function setUsdgAmount(address _token, uint256 _amount)
@@ -1496,7 +1499,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         returns (uint256)
     {
-        return uint256(tokenConfigurations[_token].maxUsdpAmount());
+        return uint256(tokenConfigurations[_token].getMaxUsdpAmount());
     }
 
     function tokenToUsdMin(address _token, uint256 _tokenAmount)
@@ -1623,6 +1626,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
+    // we have this validation as a function instead of a modifier to reduce contract size
     function _onlyFuturXGateway(address _account) private view {
         require(_account == futurXGateway, "Vault: onlyFuturXGateway");
     }
@@ -1636,6 +1640,12 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
             return;
         }
         _validate(_size >= _collateral, "40");
+    }
+
+    // we have this validation as a function instead of a modifier to reduce contract size
+    function _validateGasPrice() private view {
+        if (maxGasPrice == 0) { return; }
+        _validate(tx.gasprice <= maxGasPrice, "55");
     }
 
     function _validate(bool _condition, string memory _errorCode) private view {
