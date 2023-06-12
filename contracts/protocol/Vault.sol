@@ -1598,11 +1598,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return IVaultPriceFeed(_priceFeed).getPrice(_token, false);
     }
 
-    function whitelistedTokenCount() external view override returns (uint256) {
-        // TODO implement me
-        revert("Vault not implemented");
-    }
-
     function isWhitelistedTokens(address _token)
         external
         view
