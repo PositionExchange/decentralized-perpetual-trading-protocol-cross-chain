@@ -16,8 +16,6 @@ interface IVault {
 
     function poolAmounts(address token) external view returns (uint256);
 
-    function whitelistedTokenCount() external view returns (uint256);
-
     function minProfitTime() external returns (uint256);
 
     function inManagerMode() external view returns (bool);
