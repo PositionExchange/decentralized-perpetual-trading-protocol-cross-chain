@@ -30,6 +30,14 @@ const migrations: MigrationDefinition = {
           return;
         }
       },
+      "force import vault": async () => {
+        const vault = await ctx.db.findAddressByKey("Vault");
+        const factory = await ctx.hre.ethers.getContractFactory("Vault");
+        if (vault) {
+          await ctx.hre.upgrades.forceImport(vault, factory);
+          return;
+        }
+      },
       "deploy core vault & config": async () => {
         const { usdp, plp, vaultUtils, vaultPriceFeed, vault, plpManager } =
           await ctx.factory.createCoreVaultContracts();

@@ -171,10 +171,16 @@ contract GatewayUtils is
         if (_voucherId > 0) {
             validateVoucher(_account, _voucherId, _amountInUsd);
         }
-        require(_msgValue == _getExecutionFee(), "fee");
-        require(_path.length == 1 || _path.length == 2, "len");
+        _validate(
+            _msgValue == _getExecutionFee(),
+            Errors.FGWU_EXECUTION_FEE_MISMATCHED
+        );
+        _validate(
+            _path.length == 1 || _path.length == 2,
+            Errors.FGWU_INVALID_PATH_LENGTH
+        );
         // TODO: Consider move this to manager config
-        require(_leverage > 1, "min leverage");
+        _validate(_leverage > 1, Errors.FGWU_MIN_LEVERAGE_NOT_REACHED);
 
         address collateralToken = _path[_path.length - 1];
         validateCollateral(_account, collateralToken, _indexToken, _isLong);
@@ -202,12 +208,18 @@ contract GatewayUtils is
         uint256 _sizeDeltaToken,
         bool _isLong
     ) public override returns (bool) {
-        require(_msgValue == _getExecutionFee(), "fee");
-        require(_path.length == 1 || _path.length == 2, "len");
+        _validate(
+            _msgValue == _getExecutionFee(),
+            Errors.FGWU_EXECUTION_FEE_MISMATCHED
+        );
+        _validate(
+            _path.length == 1 || _path.length == 2,
+            Errors.FGWU_INVALID_PATH_LENGTH
+        );
 
         address collateralToken = _path[0];
         validateCollateral(_account, collateralToken, _indexToken, _isLong);
-        validateSize(_indexToken, _sizeDeltaToken, false);
+        validateSize(_indexToken, _sizeDeltaToken, true);
         validateTokens(collateralToken, _indexToken, _isLong);
 
         return true;
@@ -231,24 +243,27 @@ contract GatewayUtils is
     ) public returns (bool) {
         FuturXVoucher.Voucher memory voucher = IFuturXVoucher(futurXVoucher)
             .getVoucherInfo(_voucherId);
-        require(voucher.isActive, "voucher is not active");
-        require(voucher.expiredTime > block.timestamp, "voucher is expired");
-        require(
+        _validate(voucher.isActive, Errors.FGWU_VOUCHER_IS_INACTIVE);
+        _validate(
+            voucher.expiredTime > block.timestamp,
+            Errors.FGWU_VOUCHER_IS_EXPIRED
+        );
+        _validate(
             lastVoucherUsage[_account] + minimumVoucherInterval <=
                 block.timestamp,
-            "voucher minimum time not met"
+            Errors.FGWU_VOUCHER_MINIMUM_TIME_NOT_MET
         );
 
         uint256 priceExponent = 10**30;
         if (voucher.voucherType == 1) {
-            require(
+            _validate(
                 _amountInUsd >= 10 * priceExponent,
-                "insufficient amount for voucher"
+                Errors.FGWU_V1_INSUFFICIENT_AMOUNT_01
             );
             if (voucher.maxDiscountValue >= 100 * priceExponent) {
-                require(
+                _validate(
                     _amountInUsd >= 20 * priceExponent,
-                    "insufficient amount for voucher"
+                    Errors.FGWU_V1_INSUFFICIENT_AMOUNT_02
                 );
             }
         } else {
@@ -267,20 +282,41 @@ contract GatewayUtils is
             .getTokenConfiguration(_collateralToken);
 
         if (_isLong) {
-            _validate(_collateralToken == _indexToken, "42");
-            _validate(cTokenCfg.isWhitelisted, "43");
-            _validate(!cTokenCfg.isStableToken, "44");
+            _validate(
+                _collateralToken == _indexToken,
+                Errors.FGWU_COLLATERAL_AND_INDEX_MISMATCHED
+            );
+            _validate(
+                cTokenCfg.isWhitelisted,
+                Errors.FGWU_COLLATERAL_NOT_WHITELISTED_01
+            );
+            _validate(
+                !cTokenCfg.isStableToken,
+                Errors.FGWU_COLLATERAL_MUST_NOT_BE_STABLE
+            );
             return true;
         }
 
-        _validate(cTokenCfg.isWhitelisted, "45");
-        _validate(cTokenCfg.isStableToken, "46");
+        _validate(
+            cTokenCfg.isWhitelisted,
+            Errors.FGWU_COLLATERAL_NOT_WHITELISTED_02
+        );
+        _validate(
+            cTokenCfg.isStableToken,
+            Errors.FGWU_COLLATERAL_MUST_BE_STABLE
+        );
 
         TokenConfiguration.Data memory iTokenCfg = IVault(vault)
             .getTokenConfiguration(_indexToken);
 
-        _validate(!iTokenCfg.isStableToken, "47");
-        _validate(iTokenCfg.isShortableToken, "48");
+        _validate(
+            !iTokenCfg.isStableToken,
+            Errors.FGWU_INDEX_TOKEN_MUST_NOT_BE_STABLE
+        );
+        _validate(
+            iTokenCfg.isShortableToken,
+            Errors.FGWU_INDEX_TOKEN_MUST_BE_SHORTABLE
+        );
 
         return true;
     }
@@ -302,7 +338,7 @@ contract GatewayUtils is
         ) {
             _validate(
                 position.collateralToken == _collateralToken,
-                "collateral"
+                Errors.FGWU_INVALID_POSITION_COLLATERAL
             );
             return true;
         }
@@ -313,7 +349,7 @@ contract GatewayUtils is
         if (pendingCollateral.count > 0) {
             _validate(
                 _collateralToken == pendingCollateral.collateral,
-                "invalid pending collateral"
+                Errors.FGWU_INVALID_PENDING_COLLATERAL
             );
         }
         return true;
@@ -330,15 +366,15 @@ contract GatewayUtils is
 
         // not validate minimumOrderQuantity if it's a close order
         if (!_isCloseOrder) {
-            require(
+            _validate(
                 _sizeDelta >= managerConfigData.minimumOrderQuantity,
-                Errors.VL_INVALID_QUANTITY
+                Errors.FGWU_MINIMUM_SIZE_NOT_REACHED
             );
         }
         if (managerConfigData.stepBaseSize != 0) {
             uint256 remainder = _sizeDelta %
                 (WEI_DECIMALS / managerConfigData.stepBaseSize);
-            require(remainder == 0, Errors.VL_INVALID_QUANTITY);
+            _validate(remainder == 0, Errors.FGWU_INVALID_STEP_BASE_SIZE);
         }
         return true;
     }
@@ -403,9 +439,9 @@ contract GatewayUtils is
             availableReservedAmount
         );
 
-        require(
+        _validate(
             availableReservedAmount >= _sizeDeltaToken,
-            "insufficient available reserved amount"
+            Errors.FGWU_INSUFFICIENT_RESERVED_AMOUNT
         );
         return true;
     }
@@ -441,7 +477,7 @@ contract GatewayUtils is
         uint80 _minimumOrderQuantity,
         uint32 _stepBaseSize
     ) external onlyOwner {
-        require(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
+        _validate(_positionManager != address(0), Errors.VL_EMPTY_ADDRESS);
         positionManagerConfigData[_positionManager]
             .takerTollRatio = _takerTollRatio;
         positionManagerConfigData[_positionManager]
@@ -528,16 +564,16 @@ contract GatewayUtils is
         return IVault(vault).tokenToUsdMin(_token, _tokenAmount);
     }
 
-    function _validate(bool _condition, string memory _errorCode) private view {
-        require(_condition, _errorCode);
-    }
-
     function setFuturXVoucher(address _address) external onlyOwner {
         futurXVoucher = _address;
     }
 
     function setFuturXGatewayStorage(address _address) external onlyOwner {
         gatewayStorage = _address;
+    }
+
+    function _validate(bool _condition, string memory _errorCode) private view {
+        require(_condition, _errorCode);
     }
 
     /**

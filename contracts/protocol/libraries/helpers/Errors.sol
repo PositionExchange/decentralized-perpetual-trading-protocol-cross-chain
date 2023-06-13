@@ -52,6 +52,61 @@ library Errors {
     string public constant VL_INVALID_CONDITION = "32";
     string public constant VL_MUST_BE_INTEGER = "33";
 
+    string public constant V_CALLER_NOT_WHITELISTED = "V-40101";
+    string public constant V_ONLY_FUTURX_GATEWAY = "V-40102";
+    string public constant V_TOKEN_NOT_WHITELISTED = "V-40001";
+    string public constant V_COLLATERAL_LESS_THAN_FEE = "V-40002";
+    string public constant V_MIN_BORROWING_RATE_NOT_REACHED = "V-40003";
+    string public constant V_MAX_BORROWING_RATE_EXCEEDED = "V-40004";
+    string public constant V_MAX_BORROWING_RATE_FACTOR_EXCEEDED = "V-40005";
+    string public constant V_DEPOSIT_AMOUNT_MUST_NOT_BE_ZERO = "V-40006";
+    string public constant V_SWAP_IS_NOT_SUPPORTED = "V-40007";
+    string public constant V_DUPLICATE_TOKENS = "V-40008";
+    string public constant V_WITHDRAW_AMOUNT_MUST_NOT_BE_ZERO = "V-50001";
+    string public constant V_MISSING_VAULT_UTILS = "V-50002";
+    string public constant V_MISSING_VAULT_PRICE_FEED = "V-50002";
+    string public constant V_USDP_AMOUNT_MUST_NOT_BE_ZERO = "V-50003";
+    string public constant V_REDEMPTION_AMOUNT_MUST_NOT_BE_ZERO = "V-50004";
+    string public constant V_INSUFFICIENT_BALANCE = "V-50005";
+    string public constant V_INSUFFICIENT_POOL_AMOUNT = "V-50006";
+    string public constant V_MAX_SHORTS_EXCEEDED = "V-50007";
+    string public constant V_MAX_GAS_PRICE_EXCEEDED = "V-50008";
+
+    string public constant FGW_CALLER_NOT_WHITELISTED = "FGW-40101";
+    string public constant FGW_NOT_OWNER_OF_ORDER = "FGW-40102";
+    string public constant FGW_TOKEN_MUST_BE_ETH = "FGW-40001";
+    string public constant FGW_INDEX_TOKEN_MUST_NOT_BE_EMPTY = "FGW-40002";
+    string public constant FGW_COLLATERAL_MUST_NOT_BE_EMPTY = "FGW-40003";
+    string public constant FGW_INVALID_PATH_LENGTH = "FGW-40004";
+
+    string public constant FGWS_CALLER_NOT_WHITELISTED = "FGWS-40101";
+    string public constant FGWS_PENDING_COLLATERAL_MISMATCHED = "FGWS-40001";
+    string public constant FGWS_MISSING_ACCOUNT_01 = "FGWS-40002";
+    string public constant FGWS_MISSING_ACCOUNT_02 = "FGWS-40003";
+    string public constant FGWS_MISSING_ACCOUNT_03 = "FGWS-40004";
+    string public constant FGWS_MISSING_ACCOUNT_04 = "FGWS-40005";
+
+    string public constant FGWU_EXECUTION_FEE_MISMATCHED = "FGWU-40001";
+    string public constant FGWU_INVALID_PATH_LENGTH = "FGWU-40002";
+    string public constant FGWU_MIN_LEVERAGE_NOT_REACHED = "FGWU-40003";
+    string public constant FGWU_VOUCHER_IS_INACTIVE = "FGWU-40004";
+    string public constant FGWU_VOUCHER_IS_EXPIRED = "FGWU-40005";
+    string public constant FGWU_VOUCHER_MINIMUM_TIME_NOT_MET = "FGWU-40006";
+    string public constant FGWU_V1_INSUFFICIENT_AMOUNT_01 = "FGWU-40007";
+    string public constant FGWU_V1_INSUFFICIENT_AMOUNT_02 = "FGWU-40008";
+    string public constant FGWU_COLLATERAL_AND_INDEX_MISMATCHED = "FGWU-40009";
+    string public constant FGWU_COLLATERAL_NOT_WHITELISTED_01 = "FGWU-40010";
+    string public constant FGWU_COLLATERAL_NOT_WHITELISTED_02 = "FGWU-40011";
+    string public constant FGWU_COLLATERAL_MUST_NOT_BE_STABLE = "FGWU-40012";
+    string public constant FGWU_COLLATERAL_MUST_BE_STABLE = "FGWU-40013";
+    string public constant FGWU_INDEX_TOKEN_MUST_NOT_BE_STABLE = "FGWU-40014";
+    string public constant FGWU_INDEX_TOKEN_MUST_BE_SHORTABLE = "FGWU-40015";
+    string public constant FGWU_INVALID_POSITION_COLLATERAL = "FGWU-40016";
+    string public constant FGWU_INVALID_PENDING_COLLATERAL = "FGWU-40017";
+    string public constant FGWU_MINIMUM_SIZE_NOT_REACHED = "FGWU-40018";
+    string public constant FGWU_INVALID_STEP_BASE_SIZE = "FGWU-40019";
+    string public constant FGWU_INSUFFICIENT_RESERVED_AMOUNT = "FGWU-50001";
+
     enum CollateralManagerErrors {
         NO_ERROR
     }
