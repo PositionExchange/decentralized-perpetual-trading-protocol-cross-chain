@@ -10,7 +10,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradea
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 //import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultUtils.sol";
@@ -414,7 +413,10 @@ contract DptpFuturesGateway is
         );
 
         if (_withdrawETH) {
-            Require._require(_path[_path.length - 1] == weth, "path");
+            _validate(
+                _path[_path.length - 1] == weth,
+                Errors.FGW_TOKEN_IS_NOT_ETH
+            );
         }
 
         _transferInETH();
@@ -449,7 +451,10 @@ contract DptpFuturesGateway is
         );
 
         if (_withdrawETH) {
-            Require._require(_path[_path.length - 1] == weth, "path");
+            _validate(
+                _path[_path.length - 1] == weth,
+                Errors.FGW_TOKEN_IS_NOT_ETH
+            );
         }
 
         _transferInETH();
@@ -478,13 +483,13 @@ contract DptpFuturesGateway is
 
         IFuturXGatewayStorage.IncreasePositionRequest
             memory request = IFuturXGatewayStorage(gatewayStorage)
-                    .getUpdateOrDeleteIncreasePositionRequest(
-                        _key,
-                        _sizeDeltaInToken,
-                        _isExecutedFully,
-                        IVault(vault),
-                        _leverage
-                    );
+                .getUpdateOrDeleteIncreasePositionRequest(
+                    _key,
+                    _sizeDeltaInToken,
+                    _isExecutedFully,
+                    IVault(vault),
+                    _leverage
+                );
 
         _updatePendingCollateral(
             request.account,
@@ -740,7 +745,7 @@ contract DptpFuturesGateway is
             account = request.account;
             indexToken = request.indexToken;
         }
-        Require._require(account == msg.sender, "403");
+        _validate(account == msg.sender, Errors.FGW_NOT_OWNER_OF_ORDER);
 
         _crossBlockchainCall(
             pcsId,
@@ -1204,11 +1209,14 @@ contract DptpFuturesGateway is
         _amountOutUsd = _amountOutUsd * PRICE_DECIMALS;
 
         address indexToken = _managerToIndexToken(_manager);
-        require(indexToken != address(0), "invalid index token");
+        _validate(indexToken != address(0), Errors.FGW_INDEX_TOKEN_IS_EMPTY);
 
         bytes32 key = getPositionKey(_account, indexToken, _isLong);
         address collateralToken = latestExecutedCollateral[key];
-        require(collateralToken != address(0), "invalid collateral token");
+        _validate(
+            collateralToken != address(0),
+            Errors.FGW_COLLATERAL_TOKEN_IS_EMPTY
+        );
 
         delete latestExecutedCollateral[key];
 
@@ -1720,7 +1728,7 @@ contract DptpFuturesGateway is
     }
 
     function _validateCaller(address _account) private {
-        Require._require(positionKeepers[_account], "Gateway: 403");
+        _validate(positionKeepers[_account], Errors.FGW_CALLER_NOT_WHITELISTED);
     }
 
     function _usdToTokenMin(address _token, uint256 _usdAmount)
@@ -1844,7 +1852,7 @@ contract DptpFuturesGateway is
         address _receiver,
         bool _shouldCollectFee
     ) internal returns (uint256) {
-        require(_path.length == 2, "invalid _path.length");
+        _validate(_path.length == 2, Errors.FGW_INVALID_PATH_LENGTH);
 
         if (_shouldCollectFee) {
             return IVault(vault).swap(_path[0], _path[1], _receiver);
@@ -1939,13 +1947,17 @@ contract DptpFuturesGateway is
         gatewayUtils = _address;
     }
 
-//    function pause() external onlyOwner {
-//        _pause();
-//    }
-//
-//    function unpause() external onlyOwner {
-//        _unpause();
-//    }
+    //    function pause() external onlyOwner {
+    //        _pause();
+    //    }
+    //
+    //    function unpause() external onlyOwner {
+    //        _unpause();
+    //    }
+
+    function _validate(bool _condition, string memory _errorCode) private view {
+        require(_condition, _errorCode);
+    }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

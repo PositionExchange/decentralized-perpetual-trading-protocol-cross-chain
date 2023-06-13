@@ -60,10 +60,10 @@ library Errors {
     string public constant V_MIN_BORROWING_RATE_NOT_REACHED = "V-06";
     string public constant V_MAX_BORROWING_RATE_EXCEEDED = "V-06";
     string public constant V_MAX_BORROWING_RATE_FACTOR_EXCEEDED = "V-07";
-    string public constant V_INVALID_DEPOSIT_AMOUNT  = "V-08";
-    string public constant V_INVALID_WITHDRAW_AMOUNT  = "V-09";
-    string public constant V_INVALID_USDP_AMOUNT  = "V-10";
-    string public constant V_INVALID_REDEMPTION_AMOUNT  = "V-11";
+    string public constant V_DEPOSIT_AMOUNT_IS_ZERO = "V-08";
+    string public constant V_WITHDRAW_AMOUNT_IS_ZERO = "V-09";
+    string public constant V_USDP_AMOUNT_IS_ZERO = "V-10";
+    string public constant V_REDEMPTION_AMOUNT_IS_ZERO = "V-11";
     string public constant V_SWAP_IS_NOT_SUPPORTED  = "V-12";
     string public constant V_DUPLICATE_TOKENS = "V-13";
     string public constant V_INSUFFICIENT_BALANCE  = "V-14";
@@ -71,6 +71,13 @@ library Errors {
     string public constant V_MAX_SHORTS_EXCEEDED  = "V-16";
     string public constant V_ONLY_FUTURX_GATEWAY  = "V-17";
     string public constant V_MAX_GAS_PRICE_EXCEEDED  = "V-18";
+
+    string public constant FGW_TOKEN_IS_NOT_ETH = "FGW-01";
+    string public constant FGW_NOT_OWNER_OF_ORDER = "FGW-02";
+    string public constant FGW_CALLER_NOT_WHITELISTED = "FGW-03";
+    string public constant FGW_INDEX_TOKEN_IS_EMPTY = "FGW-04";
+    string public constant FGW_COLLATERAL_TOKEN_IS_EMPTY = "FGW-05";
+    string public constant FGW_INVALID_PATH_LENGTH = "FGW-06";
 
     enum CollateralManagerErrors {
         NO_ERROR
