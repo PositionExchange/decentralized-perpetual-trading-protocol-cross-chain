@@ -707,14 +707,14 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint256 tokenAmount = _transferIn(_token);
-        _validate(tokenAmount > 0, Errors.V_DEPOSIT_AMOUNT_IS_ZERO);
+        _validate(tokenAmount > 0, Errors.V_DEPOSIT_AMOUNT_MUST_NOT_BE_ZERO);
 
         _updateCumulativeBorrowingRate(_token, _token);
         uint256 price = getAskPrice(_token);
 
         uint256 usdpAmount = tokenAmount.mul(price).div(PRICE_PRECISION);
         usdpAmount = adjustForDecimals(usdpAmount, _token, usdp);
-        _validate(usdpAmount > 0, Errors.V_USDP_AMOUNT_IS_ZERO);
+        _validate(usdpAmount > 0, Errors.V_USDP_AMOUNT_MUST_NOT_BE_ZERO);
 
         uint256 feeBasisPoints = _vaultUtils.getBuyUsdgFeeBasisPoints(
             _token,
@@ -756,12 +756,12 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint256 usdpAmount = _transferIn(usdp);
-        _validate(usdpAmount > 0, Errors.V_DEPOSIT_AMOUNT_IS_ZERO);
+        _validate(usdpAmount > 0, Errors.V_DEPOSIT_AMOUNT_MUST_NOT_BE_ZERO);
 
         _updateCumulativeBorrowingRate(_token, _token);
 
         uint256 redemptionAmount = getRedemptionAmount(_token, usdpAmount);
-        _validate(redemptionAmount > 0, Errors.V_REDEMPTION_AMOUNT_IS_ZERO);
+        _validate(redemptionAmount > 0, Errors.V_REDEMPTION_AMOUNT_MUST_NOT_BE_ZERO);
 
         _decreaseUsdpAmount(_token, usdpAmount);
         _decreasePoolAmount(_token, redemptionAmount);
@@ -783,7 +783,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
             redemptionAmount,
             feeBasisPoints
         );
-        _validate(amountOut > 0, Errors.V_WITHDRAW_AMOUNT_IS_ZERO);
+        _validate(amountOut > 0, Errors.V_WITHDRAW_AMOUNT_MUST_NOT_BE_ZERO);
 
         _transferOut(_token, amountOut, _receiver);
 
@@ -1072,7 +1072,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _updateCumulativeBorrowingRate(_tokenOut, _tokenOut);
 
         uint256 amountIn = _transferIn(_tokenIn);
-        _validate(amountIn > 0, Errors.V_DEPOSIT_AMOUNT_IS_ZERO);
+        _validate(amountIn > 0, Errors.V_DEPOSIT_AMOUNT_MUST_NOT_BE_ZERO);
 
         uint256 priceIn = getAskPrice(_tokenIn);
         uint256 priceOut = getBidPrice(_tokenOut);

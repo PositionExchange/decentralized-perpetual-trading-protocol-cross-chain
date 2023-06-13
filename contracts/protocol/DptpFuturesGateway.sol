@@ -415,7 +415,7 @@ contract DptpFuturesGateway is
         if (_withdrawETH) {
             _validate(
                 _path[_path.length - 1] == weth,
-                Errors.FGW_TOKEN_IS_NOT_ETH
+                Errors.FGW_TOKEN_MUST_BE_ETH
             );
         }
 
@@ -453,7 +453,7 @@ contract DptpFuturesGateway is
         if (_withdrawETH) {
             _validate(
                 _path[_path.length - 1] == weth,
-                Errors.FGW_TOKEN_IS_NOT_ETH
+                Errors.FGW_TOKEN_MUST_BE_ETH
             );
         }
 
@@ -1209,13 +1209,13 @@ contract DptpFuturesGateway is
         _amountOutUsd = _amountOutUsd * PRICE_DECIMALS;
 
         address indexToken = _managerToIndexToken(_manager);
-        _validate(indexToken != address(0), Errors.FGW_INDEX_TOKEN_IS_EMPTY);
+        _validate(indexToken != address(0), Errors.FGW_INDEX_TOKEN_MUST_NOT_BE_EMPTY);
 
         bytes32 key = getPositionKey(_account, indexToken, _isLong);
         address collateralToken = latestExecutedCollateral[key];
         _validate(
             collateralToken != address(0),
-            Errors.FGW_COLLATERAL_TOKEN_IS_EMPTY
+            Errors.FGW_COLLATERAL_MUST_NOT_BE_EMPTY
         );
 
         delete latestExecutedCollateral[key];

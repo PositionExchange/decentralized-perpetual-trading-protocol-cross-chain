@@ -258,12 +258,12 @@ contract GatewayUtils is
         if (voucher.voucherType == 1) {
             _validate(
                 _amountInUsd >= 10 * priceExponent,
-                Errors.FGWU_INSUFFICIENT_AMOUNT_01
+                Errors.FGWU_V1_INSUFFICIENT_AMOUNT_01
             );
             if (voucher.maxDiscountValue >= 100 * priceExponent) {
                 _validate(
                     _amountInUsd >= 20 * priceExponent,
-                    Errors.FGWU_INSUFFICIENT_AMOUNT_02
+                    Errors.FGWU_V1_INSUFFICIENT_AMOUNT_02
                 );
             }
         } else {
@@ -288,7 +288,7 @@ contract GatewayUtils is
             );
             _validate(
                 cTokenCfg.isWhitelisted,
-                Errors.FGWU_COLLATERAL_IS_NOT_WHITELISTED_01
+                Errors.FGWU_COLLATERAL_NOT_WHITELISTED_01
             );
             _validate(
                 !cTokenCfg.isStableToken,
@@ -299,7 +299,7 @@ contract GatewayUtils is
 
         _validate(
             cTokenCfg.isWhitelisted,
-            Errors.FGWU_COLLATERAL_IS_NOT_WHITELISTED_02
+            Errors.FGWU_COLLATERAL_NOT_WHITELISTED_02
         );
         _validate(
             cTokenCfg.isStableToken,
