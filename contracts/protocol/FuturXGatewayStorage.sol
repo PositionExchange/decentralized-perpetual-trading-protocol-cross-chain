@@ -4,9 +4,10 @@ pragma solidity ^0.8.8;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 //import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@positionex/position-helper/contracts/utils/Require.sol";
 import "../interfaces/IFuturXGatewayStorage.sol";
 import "../interfaces/IVault.sol";
+
+import {Errors} from "./libraries/helpers/Errors.sol";
 
 contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     using SafeMathUpgradeable for uint256;
@@ -28,9 +29,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     mapping(bytes32 => bytes32) public tpslRequests;
 
     modifier onlyFuturXGateway() {
-        Require._require(
+        _validate(
             msg.sender == futurXGateway,
-            "FuturXGatewayStorage: 403"
+            Errors.FGWS_CALLER_NOT_WHITELISTED
         );
         _;
     }
@@ -67,7 +68,10 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         // Operation = 1 means increase count
         if (param.op == 1) {
             if (data.count > 0) {
-                require(data.collateral == param.collateralToken);
+                _validate(
+                    data.collateral == param.collateralToken,
+                    Errors.FGWS_PENDING_COLLATERAL_MISMATCHED
+                );
             } else {
                 data.collateral = param.collateralToken;
             }
@@ -116,9 +120,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         returns (IncreasePositionRequest memory request)
     {
         request = increasePositionRequests[_key];
-        Require._require(
+        _validate(
             request.account != address(0),
-            "FuturXGatewayStorage: 404001"
+            Errors.FGWS_MISSING_ACCOUNT_01
         );
         _deleteIncreasePositionRequests(_key);
     }
@@ -127,48 +131,29 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bytes32 _key,
         uint256 amountInToken,
         bool isExecutedFully,
-        IVault vault
+        IVault vault,
+        uint16 leverage
     )
         public
         onlyFuturXGateway
         returns (IncreasePositionRequest memory request)
     {
         request = increasePositionRequests[_key];
-        Require._require(
+        _validate(
             request.account != address(0),
-            "FuturXGatewayStorage: 404004"
+            Errors.FGWS_MISSING_ACCOUNT_02
         );
 
         if (isExecutedFully) {
             delete increasePositionRequests[_key];
         } else {
-            uint256 amountAdjust = vault.adjustDecimalToUsd(
-                request.path[0], // Paid token
-                amountInToken
+            uint256 amountAdjust = vault.adjustDecimalToToken(
+                request.indexToken,
+                amountInToken / leverage
             );
             increasePositionRequests[_key].amountInToken =
                 request.amountInToken -
                 amountAdjust;
-            request.amountInToken = amountAdjust;
-        }
-    }
-
-    function getUpdateOrDeleteIncreasePositionRequest(bytes32 _key, uint256 amountInToken, bool isExecutedFully, IVault vault, uint16 leverage)
-        public
-        onlyFuturXGateway
-        returns (IncreasePositionRequest memory request)
-    {
-        request = increasePositionRequests[_key];
-        Require._require(
-            request.account != address(0),
-            "FuturXGatewayStorage: 404001"
-        );
-
-        if (isExecutedFully) {
-            delete increasePositionRequests[_key];
-        }else {
-            uint256 amountAdjust = vault.adjustDecimalToToken(request.indexToken,amountInToken /leverage );
-            increasePositionRequests[_key].amountInToken = request.amountInToken - amountAdjust;
             request.amountInToken = amountAdjust;
         }
     }
@@ -201,9 +186,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         returns (DecreasePositionRequest memory request)
     {
         request = decreasePositionRequests[_key];
-        Require._require(
+        _validate(
             request.account != address(0),
-            "FuturXGatewayStorage: 404002"
+            Errors.FGWS_MISSING_ACCOUNT_03
         );
         _deleteDecreasePositionRequests(_key);
     }
@@ -255,18 +240,18 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         returns (UpdateCollateralRequest memory request)
     {
         request = updateCollateralRequests[_key];
-        Require._require(
+        _validate(
             request.account != address(0),
-            "FuturXGatewayStorage: 404003"
+            Errors.FGWS_MISSING_ACCOUNT_04
         );
         _deleteUpdateCollateralRequests(_key);
     }
 
-    function getRequestKey(address _account, uint256 _index, OpCode _op)
-        external
-        view
-        returns (bytes32)
-    {
+    function getRequestKey(
+        address _account,
+        uint256 _index,
+        OpCode _op
+    ) external view returns (bytes32) {
         return _getRequestKey(_account, _index, _op);
     }
 
@@ -278,12 +263,13 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         return _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
     }
 
-    function _getRequestKey(address _account, uint256 _index, OpCode _op)
-        private
-        view
-        returns (bytes32)
-    {
-        return keccak256(abi.encodePacked(_account, _index, _op, address(this)));
+    function _getRequestKey(
+        address _account,
+        uint256 _index,
+        OpCode _op
+    ) private view returns (bytes32) {
+        return
+            keccak256(abi.encodePacked(_account, _index, _op, address(this)));
     }
 
     function _getTPSLRequestKey(
@@ -323,6 +309,10 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
      *************************/
     function setFuturXGateway(address _address) external onlyOwner {
         futurXGateway = _address;
+    }
+
+    function _validate(bool _condition, string memory _errorCode) private view {
+        require(_condition, _errorCode);
     }
 
     /**

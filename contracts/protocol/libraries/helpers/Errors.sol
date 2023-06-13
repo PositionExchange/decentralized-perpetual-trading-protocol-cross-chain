@@ -79,6 +79,13 @@ library Errors {
     string public constant FGW_COLLATERAL_TOKEN_IS_EMPTY = "FGW-05";
     string public constant FGW_INVALID_PATH_LENGTH = "FGW-06";
 
+    string public constant FGWS_CALLER_NOT_WHITELISTED = "FGWS-01";
+    string public constant FGWS_PENDING_COLLATERAL_MISMATCHED = "FGWS-02";
+    string public constant FGWS_MISSING_ACCOUNT_01 = "FGWS-03";
+    string public constant FGWS_MISSING_ACCOUNT_02 = "FGWS-04";
+    string public constant FGWS_MISSING_ACCOUNT_03 = "FGWS-05";
+    string public constant FGWS_MISSING_ACCOUNT_04 = "FGWS-06";
+
     enum CollateralManagerErrors {
         NO_ERROR
     }

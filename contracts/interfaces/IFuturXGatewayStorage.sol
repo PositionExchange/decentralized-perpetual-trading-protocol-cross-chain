@@ -72,14 +72,6 @@ interface IFuturXGatewayStorage {
         bytes32 _key,
         uint256 amountInToken,
         bool isExecutedFully,
-        IVault vault
-    )   external
-        returns (IncreasePositionRequest memory);
-
-    function getUpdateOrDeleteIncreasePositionRequest(
-        bytes32 _key,
-        uint256 amountInToken,
-        bool isExecutedFully,
         IVault vault,
         uint16 leverage
     )   external
