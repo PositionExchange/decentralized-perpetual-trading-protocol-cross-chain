@@ -207,7 +207,7 @@ contract GatewayUtils is
 
         address collateralToken = _path[0];
         validateCollateral(_account, collateralToken, _indexToken, _isLong);
-        validateSize(_indexToken, _sizeDeltaToken, false);
+        validateSize(_indexToken, _sizeDeltaToken, true);
         validateTokens(collateralToken, _indexToken, _isLong);
 
         return true;

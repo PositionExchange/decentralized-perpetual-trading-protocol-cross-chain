@@ -52,6 +52,26 @@ library Errors {
     string public constant VL_INVALID_CONDITION = "32";
     string public constant VL_MUST_BE_INTEGER = "33";
 
+    string public constant V_TOKEN_NOT_WHITELISTED = "V-01";
+    string public constant V_CALLER_NOT_WHITELISTED = "V-02";
+    string public constant V_COLLATERAL_LESS_THAN_FEE = "V-03";
+    string public constant V_MISSING_VAULT_UTILS = "V-04";
+    string public constant V_MISSING_VAULT_PRICE_FEED = "V-05";
+    string public constant V_MIN_BORROWING_RATE_NOT_REACHED = "V-06";
+    string public constant V_MAX_BORROWING_RATE_EXCEEDED = "V-06";
+    string public constant V_MAX_BORROWING_RATE_FACTOR_EXCEEDED = "V-07";
+    string public constant V_INVALID_DEPOSIT_AMOUNT  = "V-08";
+    string public constant V_INVALID_WITHDRAW_AMOUNT  = "V-09";
+    string public constant V_INVALID_USDP_AMOUNT  = "V-10";
+    string public constant V_INVALID_REDEMPTION_AMOUNT  = "V-11";
+    string public constant V_SWAP_IS_NOT_SUPPORTED  = "V-12";
+    string public constant V_DUPLICATE_TOKENS = "V-13";
+    string public constant V_INSUFFICIENT_BALANCE  = "V-14";
+    string public constant V_INSUFFICIENT_POOL_AMOUNT  = "V-15";
+    string public constant V_MAX_SHORTS_EXCEEDED  = "V-16";
+    string public constant V_ONLY_FUTURX_GATEWAY  = "V-17";
+    string public constant V_MAX_GAS_PRICE_EXCEEDED  = "V-18";
+
     enum CollateralManagerErrors {
         NO_ERROR
     }

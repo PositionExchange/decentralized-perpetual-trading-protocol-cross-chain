@@ -10,6 +10,7 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "./libraries/TokenConfiguration.sol";
 import "./libraries/VaultInfo.sol";
 import "./libraries/PositionInfo.sol";
+import {Errors} from "./libraries/helpers/Errors.sol";
 
 import "../interfaces/IVault.sol";
 import "../token/interface/IUSDP.sol";
@@ -93,25 +94,25 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // this is an estimated amount, it is possible for the actual guaranteed value to be lower
     // in the case of sudden price decreases, the guaranteed value should be corrected
     // after liquidations are carried out
-    mapping (address => uint256) private _guaranteedUsd;
+    mapping(address => uint256) private _guaranteedUsd;
 
     address public futurXGateway;
 
     uint256 public maxGasPrice;
 
     modifier onlyWhitelistToken(address token) {
-        require(
+        _validate(
             tokenConfigurations[token].isWhitelisted,
-            "Vault: token not in whitelist"
+            Errors.V_TOKEN_NOT_WHITELISTED
         );
         _;
     }
 
     modifier onlyWhitelistCaller() {
         if (inManagerMode) {
-            require(
+            _validate(
                 whitelistCaller[msg.sender],
-                "Vault: caller not in whitelist"
+                Errors.V_CALLER_NOT_WHITELISTED
             );
         }
         _;
@@ -224,7 +225,10 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _collateralToken,
             collateralDeltaToken
         );
-        _validate(collateralDeltaUsd >= _feeUsd, "29");
+        _validate(
+            collateralDeltaUsd >= _feeUsd,
+            Errors.V_COLLATERAL_LESS_THAN_FEE
+        );
 
         _increaseFeeReserves(_collateralToken, _feeUsd);
 
@@ -561,8 +565,14 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         });
         // reset total token weight
         totalTokenWeight = _totalTokenWeight.add(_tokenWeight);
-        require(address(_vaultUtils) != address(0), "Need vaultUtils");
-        require(address(_priceFeed) != address(0), "Need priceFeed");
+        _validate(
+            address(_vaultUtils) != address(0),
+            Errors.V_MISSING_VAULT_UTILS
+        );
+        _validate(
+            address(_priceFeed) != address(0),
+            Errors.V_MISSING_VAULT_PRICE_FEED
+        );
     }
 
     function setFees(
@@ -575,12 +585,12 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _minProfitTime,
         bool _hasDynamicFees
     ) external onlyOwner {
-        require(_taxBasisPoints <= MAX_FEE_BASIS_POINTS, "M1");
-        require(_stableTaxBasisPoints <= MAX_FEE_BASIS_POINTS, "M2");
-        require(_mintBurnFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M3");
-        require(_swapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M4");
-        require(_stableSwapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M5");
-        require(_marginFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M6");
+        _validate(_taxBasisPoints <= MAX_FEE_BASIS_POINTS, "M1");
+        _validate(_stableTaxBasisPoints <= MAX_FEE_BASIS_POINTS, "M2");
+        _validate(_mintBurnFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M3");
+        _validate(_swapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M4");
+        _validate(_stableSwapFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M5");
+        _validate(_marginFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M6");
         taxBasisPoints = _taxBasisPoints;
         stableTaxBasisPoints = _stableTaxBasisPoints;
         mintBurnFeeBasisPoints = _mintBurnFeeBasisPoints;
@@ -649,7 +659,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint256 amount = uint256(vaultInfo[_token].feeReserves);
-        if(amount == 0) { return 0; }
+        if (amount == 0) {
+            return 0;
+        }
         vaultInfo[_token].feeReserves = 0;
         _transferOut(_token, amount, _receiver);
         return amount;
@@ -664,11 +676,17 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _borrowingRateFactor,
         uint256 _stableBorrowingRateFactor
     ) external override onlyOwner {
-        _validate(_borrowingRateInterval >= MIN_BORROWING_RATE_INTERVAL, "10");
-        _validate(_borrowingRateFactor <= MAX_BORROWING_RATE_FACTOR, "11");
+        _validate(
+            _borrowingRateInterval >= MIN_BORROWING_RATE_INTERVAL,
+            Errors.V_MIN_BORROWING_RATE_NOT_REACHED
+        );
+        _validate(
+            _borrowingRateFactor <= MAX_BORROWING_RATE_FACTOR,
+            Errors.V_MAX_BORROWING_RATE_EXCEEDED
+        );
         _validate(
             _stableBorrowingRateFactor <= MAX_BORROWING_RATE_FACTOR,
-            "12"
+            Errors.V_MAX_BORROWING_RATE_FACTOR_EXCEEDED
         );
         borrowingRateInterval = _borrowingRateInterval;
         borrowingRateFactor = _borrowingRateFactor;
@@ -689,17 +707,14 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint256 tokenAmount = _transferIn(_token);
-        require(
-            tokenAmount > 0,
-            "Vault: transferIn token amount must be greater than 0"
-        );
+        _validate(tokenAmount > 0, Errors.V_INVALID_DEPOSIT_AMOUNT);
 
         _updateCumulativeBorrowingRate(_token, _token);
         uint256 price = getAskPrice(_token);
 
         uint256 usdpAmount = tokenAmount.mul(price).div(PRICE_PRECISION);
         usdpAmount = adjustForDecimals(usdpAmount, _token, usdp);
-        require(usdpAmount > 0, "Value: usdp amount must be greater than 0");
+        _validate(usdpAmount > 0, Errors.V_INVALID_USDP_AMOUNT);
 
         uint256 feeBasisPoints = _vaultUtils.getBuyUsdgFeeBasisPoints(
             _token,
@@ -741,12 +756,12 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         returns (uint256)
     {
         uint256 usdpAmount = _transferIn(usdp);
-        require(usdpAmount > 0, "Vault: invalid usdp amount");
+        _validate(usdpAmount > 0, Errors.V_INVALID_DEPOSIT_AMOUNT);
 
         _updateCumulativeBorrowingRate(_token, _token);
 
         uint256 redemptionAmount = getRedemptionAmount(_token, usdpAmount);
-        require(redemptionAmount > 0, "Vault: Invalid redemption amount");
+        _validate(redemptionAmount > 0, Errors.V_INVALID_REDEMPTION_AMOUNT);
 
         _decreaseUsdpAmount(_token, usdpAmount);
         _decreasePoolAmount(_token, redemptionAmount);
@@ -768,7 +783,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
             redemptionAmount,
             feeBasisPoints
         );
-        require(amountOut > 0, "Vault: Invalid amount out");
+        _validate(amountOut > 0, Errors.V_INVALID_WITHDRAW_AMOUNT);
 
         _transferOut(_token, amountOut, _receiver);
 
@@ -1050,14 +1065,14 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _receiver,
         bool _shouldCollectFee
     ) private returns (uint256) {
-        require(isSwapEnabled, "Vault: swap is not supported");
-        require(_tokenIn != _tokenOut, "Vault: invalid tokens");
+        _validate(isSwapEnabled, Errors.V_SWAP_IS_NOT_SUPPORTED);
+        _validate(_tokenIn != _tokenOut, Errors.V_DUPLICATE_TOKENS);
 
         _updateCumulativeBorrowingRate(_tokenIn, _tokenIn);
         _updateCumulativeBorrowingRate(_tokenOut, _tokenOut);
 
         uint256 amountIn = _transferIn(_tokenIn);
-        require(amountIn > 0, "Vault: invalid amountIn");
+        _validate(amountIn > 0, Errors.V_INVALID_DEPOSIT_AMOUNT);
 
         uint256 priceIn = getAskPrice(_tokenIn);
         uint256 priceOut = getBidPrice(_tokenOut);
@@ -1092,9 +1107,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _decreasePoolAmount(_tokenOut, amountOut);
 
         // validate buffer amount
-        require(
+        _validate(
             vaultInfo[_tokenOut].poolAmounts >= bufferAmounts[_tokenOut],
-            "Vault: insufficient pool amount"
+            Errors.V_INSUFFICIENT_POOL_AMOUNT
         );
 
         _transferOut(_tokenOut, amountOutAfterFees, _receiver);
@@ -1204,7 +1219,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
             return;
         }
         uint256 prevBalance = tokenBalances[_token];
-        require(prevBalance >= _amount, "Vault: insufficient amount");
+        _validate(prevBalance >= _amount, Errors.V_INSUFFICIENT_BALANCE);
         IERC20Upgradeable(_token).safeTransfer(_receiver, _amount);
         tokenBalances[_token] = IERC20Upgradeable(_token).balanceOf(
             address(this)
@@ -1267,9 +1282,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function _increasePoolAmount(address _token, uint256 _amount) private {
         vaultInfo[_token].addPoolAmount(_amount);
         uint256 balance = IERC20Upgradeable(_token).balanceOf(address(this));
-        require(
+        _validate(
             vaultInfo[_token].poolAmounts <= balance,
-            "Vault: invalid pool amount"
+            Errors.V_INSUFFICIENT_POOL_AMOUNT
         );
         emit IncreasePoolAmount(_token, _amount);
     }
@@ -1617,33 +1632,24 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
         uint256 maxSize = maxGlobalShortSizes[_token];
         if (maxSize != 0) {
-            require(
+            _validate(
                 globalShortSizes[_token] <= maxSize,
-                "Vault: max shorts exceeded"
+                Errors.V_MAX_SHORTS_EXCEEDED
             );
         }
     }
 
     // we have this validation as a function instead of a modifier to reduce contract size
     function _onlyFuturXGateway(address _account) private view {
-        require(_account == futurXGateway, "Vault: onlyFuturXGateway");
-    }
-
-    function _validatePosition(uint256 _size, uint256 _collateral)
-        private
-        view
-    {
-        if (_size == 0) {
-            _validate(_collateral == 0, "39");
-            return;
-        }
-        _validate(_size >= _collateral, "40");
+        _validate(_account == futurXGateway, Errors.V_ONLY_FUTURX_GATEWAY);
     }
 
     // we have this validation as a function instead of a modifier to reduce contract size
     function _validateGasPrice() private view {
-        if (maxGasPrice == 0) { return; }
-        _validate(tx.gasprice <= maxGasPrice, "55");
+        if (maxGasPrice == 0) {
+            return;
+        }
+        _validate(tx.gasprice <= maxGasPrice, Errors.V_MAX_GAS_PRICE_EXCEEDED);
     }
 
     function _validate(bool _condition, string memory _errorCode) private view {
