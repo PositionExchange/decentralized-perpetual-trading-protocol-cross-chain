@@ -41,28 +41,26 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         futurXGateway = _futurXGateway;
     }
 
-    function getPendingCollateral(address _account, address _indexToken)
-        public
-        view
-        returns (PendingCollateral memory)
-    {
+    function getPendingCollateral(
+        address _account,
+        address _indexToken
+    ) public view returns (PendingCollateral memory) {
         bytes32 key = _getPendingCollateralKey(_account, _indexToken);
         return pendingCollaterals[key];
     }
 
-    function clearPendingCollateral(address _account, address _indexToken)
-        public
-    {
+    function clearPendingCollateral(
+        address _account,
+        address _indexToken
+    ) public {
         bytes32 key = _getPendingCollateralKey(_account, _indexToken);
         pendingCollaterals[key].count = 0;
         pendingCollaterals[key].collateral = address(0);
     }
 
-    function updatePendingCollateral(UpPendingCollateralParam memory param)
-        public
-        onlyFuturXGateway
-        returns (bytes32)
-    {
+    function updatePendingCollateral(
+        UpPendingCollateralParam memory param
+    ) public onlyFuturXGateway returns (bytes32) {
         bytes32 key = _getPendingCollateralKey(param.account, param.indexToken);
         PendingCollateral storage data = pendingCollaterals[key];
         // Operation = 1 means increase count
@@ -106,15 +104,15 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         return (index, key);
     }
 
-    function getIncreasePositionRequest(bytes32 _key)
-        public
-        view
-        returns (IncreasePositionRequest memory request)
-    {
+    function getIncreasePositionRequest(
+        bytes32 _key
+    ) public view returns (IncreasePositionRequest memory request) {
         request = increasePositionRequests[_key];
     }
 
-    function getDeleteIncreasePositionRequest(bytes32 _key)
+    function getDeleteIncreasePositionRequest(
+        bytes32 _key
+    )
         public
         onlyFuturXGateway
         returns (IncreasePositionRequest memory request)
@@ -172,15 +170,15 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         return (index, key);
     }
 
-    function getDecreasePositionRequest(bytes32 _key)
-        public
-        view
-        returns (DecreasePositionRequest memory request)
-    {
+    function getDecreasePositionRequest(
+        bytes32 _key
+    ) public view returns (DecreasePositionRequest memory request) {
         request = decreasePositionRequests[_key];
     }
 
-    function getDeleteDecreasePositionRequest(bytes32 _key)
+    function getDeleteDecreasePositionRequest(
+        bytes32 _key
+    )
         public
         onlyFuturXGateway
         returns (DecreasePositionRequest memory request)
@@ -193,10 +191,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         _deleteDecreasePositionRequests(_key);
     }
 
-    function deleteDecreasePositionRequest(bytes32 _key)
-        public
-        onlyFuturXGateway
-    {
+    function deleteDecreasePositionRequest(
+        bytes32 _key
+    ) public onlyFuturXGateway {
         _deleteDecreasePositionRequests(_key);
     }
 
@@ -234,7 +231,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         _deleteTpslRequests(key);
     }
 
-    function getDeleteUpdateCollateralRequest(bytes32 _key)
+    function getDeleteUpdateCollateralRequest(
+        bytes32 _key
+    )
         public
         onlyFuturXGateway
         returns (UpdateCollateralRequest memory request)
@@ -280,11 +279,10 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         return keccak256(abi.encodePacked(_account, _indexToken, _isHigherPip));
     }
 
-    function _getPendingCollateralKey(address _account, address _indexToken)
-        private
-        pure
-        returns (bytes32)
-    {
+    function _getPendingCollateralKey(
+        address _account,
+        address _indexToken
+    ) private pure returns (bytes32) {
         return keccak256(abi.encodePacked(_account, _indexToken));
     }
 

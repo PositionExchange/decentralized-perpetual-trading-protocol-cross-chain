@@ -6,8 +6,8 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "./DptpFuturesGatewayStorage.sol";
 
+// Make sure to inherit the contract follow storage layout of DptpFuturesGateway
 contract DptpFuturesGatewayGovernance is
-    // Make sure to inherit the contract follow storage layout of DptpFuturesGateway
     DptpFuturesGatewayStorage,
     PausableUpgradeable,
     OwnableUpgradeable,
@@ -37,10 +37,9 @@ contract DptpFuturesGatewayGovernance is
         pcsId = _posiChainId;
     }
 
-    function setPosiChainCrosschainGatewayContract(address _address)
-        external
-        onlyOwner
-    {
+    function setPosiChainCrosschainGatewayContract(
+        address _address
+    ) external onlyOwner {
         pscCrossChainGateway = _address;
     }
 
@@ -48,25 +47,25 @@ contract DptpFuturesGatewayGovernance is
         positionKeepers[_address] = true;
     }
 
-    function setCoreManager(address _token, address _manager)
-        external
-        onlyOwner
-    {
+    function setCoreManager(
+        address _token,
+        address _manager
+    ) external onlyOwner {
         coreManagers[_token] = _manager;
         indexTokens[_manager] = _token;
     }
 
-    function setMaxGlobalShortSize(address _token, uint256 _amount)
-        external
-        onlyOwner
-    {
+    function setMaxGlobalShortSize(
+        address _token,
+        uint256 _amount
+    ) external onlyOwner {
         maxGlobalShortSizes[_token] = _amount;
     }
 
-    function setMaxGlobalLongSize(address _token, uint256 _amount)
-        external
-        onlyOwner
-    {
+    function setMaxGlobalLongSize(
+        address _token,
+        uint256 _amount
+    ) external onlyOwner {
         maxGlobalLongSizes[_token] = _amount;
     }
 
@@ -89,7 +88,4 @@ contract DptpFuturesGatewayGovernance is
     function isPaused() external view returns (bool) {
         return paused();
     }
-
-
 }
-

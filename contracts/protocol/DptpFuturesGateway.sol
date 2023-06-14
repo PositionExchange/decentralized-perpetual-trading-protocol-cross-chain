@@ -40,12 +40,13 @@ contract DptpFuturesGateway is
     using SafeCastUpgradeable for uint256;
     using AddressUpgradeable for address;
 
-    uint256 constant PRICE_DECIMALS = 10**12;
-    uint256 constant WEI_DECIMALS = 10**18;
+    uint256 constant PRICE_DECIMALS = 10 ** 12;
+    uint256 constant WEI_DECIMALS = 10 ** 18;
 
     // This is the keccak-256 hash of "dptp.governance.contract"
-    bytes32 private constant _GOVERNANCE_LOGIC_CONTRACT_SLOT_ = 0xa2a6112b8076a277b5ad9b2001650d9adc276371412790567ba5abc547001a1c;
-    
+    bytes32 private constant _GOVERNANCE_LOGIC_CONTRACT_SLOT_ =
+        0xa2a6112b8076a277b5ad9b2001650d9adc276371412790567ba5abc547001a1c;
+
     event CreateIncreasePosition(
         address indexed account,
         address[] path,
@@ -152,7 +153,6 @@ contract DptpFuturesGateway is
         uint256 voucherId;
     }
 
-    
     function initialize(
         uint256 _pcsId,
         address _pscCrossChainGateway,
@@ -230,7 +230,10 @@ contract DptpFuturesGateway is
             false
         );
 
-        uint256 amountInAfterFeeToken = _usdToTokenMin(_path[0], _amountInUsd + totalFeeUsd);
+        uint256 amountInAfterFeeToken = _usdToTokenMin(
+            _path[0],
+            _amountInUsd + totalFeeUsd
+        );
 
         _transferIn(_path[0], amountInAfterFeeToken);
         // convert ETH to WETH
@@ -316,7 +319,10 @@ contract DptpFuturesGateway is
             true
         );
 
-        uint256 amountInAfterFeeToken = _usdToTokenMin(_path[0], _amountInUsd + totalFeeUsd);
+        uint256 amountInAfterFeeToken = _usdToTokenMin(
+            _path[0],
+            _amountInUsd + totalFeeUsd
+        );
 
         _transferIn(_path[0], amountInAfterFeeToken);
         // convert ETH to WETH
@@ -1003,10 +1009,10 @@ contract DptpFuturesGateway is
         );
     }
 
-    function executeRemoveCollateral(bytes32 _key, uint256 _amountOutUsd)
-        external
-        nonReentrant
-    {
+    function executeRemoveCollateral(
+        bytes32 _key,
+        uint256 _amountOutUsd
+    ) external nonReentrant {
         _validateCaller(msg.sender);
 
         IFuturXGatewayStorage.UpdateCollateralRequest
@@ -1038,8 +1044,6 @@ contract DptpFuturesGateway is
         _transferOut(receiveToken, amountOutToken, request.account);
         //        emit CollateralRemove(request.account, receiveToken, amountOutToken);
     }
-
-    
 
     function triggerTPSL(
         address _account,
@@ -1089,7 +1093,10 @@ contract DptpFuturesGateway is
         _amountOutUsd = _amountOutUsd * PRICE_DECIMALS;
 
         address indexToken = _managerToIndexToken(_manager);
-        _validate(indexToken != address(0), Errors.FGW_INDEX_TOKEN_MUST_NOT_BE_EMPTY);
+        _validate(
+            indexToken != address(0),
+            Errors.FGW_INDEX_TOKEN_MUST_NOT_BE_EMPTY
+        );
 
         bytes32 key = getPositionKey(_account, indexToken, _isLong);
         address collateralToken = latestExecutedCollateral[key];
@@ -1110,11 +1117,10 @@ contract DptpFuturesGateway is
         _transferOut(collateralToken, amountOutToken, _account);
     }
 
-    function refund(bytes32 _key, Method _method)
-        external
-        payable
-        nonReentrant
-    {
+    function refund(
+        bytes32 _key,
+        Method _method
+    ) external payable nonReentrant {
         _validateCaller(msg.sender);
 
         if (_method == Method.OPEN_LIMIT || _method == Method.OPEN_MARKET) {
@@ -1234,10 +1240,9 @@ contract DptpFuturesGateway is
             );
     }
 
-    function _createIncreasePosition(CreateIncreasePositionParam memory param)
-        internal
-        returns (bytes32)
-    {
+    function _createIncreasePosition(
+        CreateIncreasePositionParam memory param
+    ) internal returns (bytes32) {
         (, bytes32 requestKey) = _storeIncreasePositionRequest(param);
 
         {
@@ -1417,20 +1422,18 @@ contract DptpFuturesGateway is
             );
     }
 
-    function _getIncreasePositionRequest(bytes32 _key)
-        internal
-        returns (IFuturXGatewayStorage.IncreasePositionRequest memory)
-    {
+    function _getIncreasePositionRequest(
+        bytes32 _key
+    ) internal returns (IFuturXGatewayStorage.IncreasePositionRequest memory) {
         return
             IFuturXGatewayStorage(gatewayStorage).getIncreasePositionRequest(
                 _key
             );
     }
 
-    function _getDeleteIncreasePositionRequest(bytes32 _key)
-        internal
-        returns (IFuturXGatewayStorage.IncreasePositionRequest memory)
-    {
+    function _getDeleteIncreasePositionRequest(
+        bytes32 _key
+    ) internal returns (IFuturXGatewayStorage.IncreasePositionRequest memory) {
         return
             IFuturXGatewayStorage(gatewayStorage)
                 .getDeleteIncreasePositionRequest(_key);
@@ -1453,20 +1456,18 @@ contract DptpFuturesGateway is
             );
     }
 
-    function _getDecreasePositionRequest(bytes32 _key)
-        internal
-        returns (IFuturXGatewayStorage.DecreasePositionRequest memory)
-    {
+    function _getDecreasePositionRequest(
+        bytes32 _key
+    ) internal returns (IFuturXGatewayStorage.DecreasePositionRequest memory) {
         return
             IFuturXGatewayStorage(gatewayStorage).getDecreasePositionRequest(
                 _key
             );
     }
 
-    function _getDeleteDecreasePositionRequest(bytes32 _key)
-        internal
-        returns (IFuturXGatewayStorage.DecreasePositionRequest memory)
-    {
+    function _getDeleteDecreasePositionRequest(
+        bytes32 _key
+    ) internal returns (IFuturXGatewayStorage.DecreasePositionRequest memory) {
         return
             IFuturXGatewayStorage(gatewayStorage)
                 .getDeleteDecreasePositionRequest(_key);
@@ -1498,10 +1499,9 @@ contract DptpFuturesGateway is
             );
     }
 
-    function _getDeleteUpdateCollateralRequest(bytes32 _key)
-        internal
-        returns (IFuturXGatewayStorage.UpdateCollateralRequest memory)
-    {
+    function _getDeleteUpdateCollateralRequest(
+        bytes32 _key
+    ) internal returns (IFuturXGatewayStorage.UpdateCollateralRequest memory) {
         return
             IFuturXGatewayStorage(gatewayStorage)
                 .getDeleteUpdateCollateralRequest(_key);
@@ -1543,9 +1543,10 @@ contract DptpFuturesGateway is
         IERC20Upgradeable(_token).safeTransfer(payable(_account), _tokenAmount);
     }
 
-    function _transferOutVoucher(uint256 _voucherId, address _account)
-        internal
-    {
+    function _transferOutVoucher(
+        uint256 _voucherId,
+        address _account
+    ) internal {
         IERC721Upgradeable(futurXVoucher).safeTransferFrom(
             address(this),
             _account,
@@ -1553,19 +1554,19 @@ contract DptpFuturesGateway is
         );
     }
 
-    function _transferOutETH(uint256 _amountOut, address payable _account)
-        internal
-    {
+    function _transferOutETH(
+        uint256 _amountOut,
+        address payable _account
+    ) internal {
         if (_amountOut > 0) {
             IWETH(weth).transfer(_account, _amountOut);
         }
     }
 
-    function _adjustDecimalToToken(address _token, uint256 _tokenAmount)
-        internal
-        view
-        returns (uint256)
-    {
+    function _adjustDecimalToToken(
+        address _token,
+        uint256 _tokenAmount
+    ) internal view returns (uint256) {
         return IVault(vault).adjustDecimalToToken(_token, _tokenAmount);
     }
 
@@ -1611,19 +1612,17 @@ contract DptpFuturesGateway is
         _validate(positionKeepers[_account], Errors.FGW_CALLER_NOT_WHITELISTED);
     }
 
-    function _usdToTokenMin(address _token, uint256 _usdAmount)
-        private
-        view
-        returns (uint256)
-    {
+    function _usdToTokenMin(
+        address _token,
+        uint256 _usdAmount
+    ) private view returns (uint256) {
         return IVault(vault).usdToTokenMin(_token, _usdAmount);
     }
 
-    function _tokenToUsdMin(address _token, uint256 _tokenAmount)
-        private
-        view
-        returns (uint256)
-    {
+    function _tokenToUsdMin(
+        address _token,
+        uint256 _tokenAmount
+    ) private view returns (uint256) {
         return IVault(vault).tokenToUsdMin(_token, _tokenAmount);
     }
 
@@ -1685,19 +1684,15 @@ contract DptpFuturesGateway is
         return keccak256(abi.encodePacked(_account, _indexToken, _isLong));
     }
 
-    function _indexTokenToManager(address _indexToken)
-        internal
-        view
-        returns (address)
-    {
+    function _indexTokenToManager(
+        address _indexToken
+    ) internal view returns (address) {
         return coreManagers[_indexToken];
     }
 
-    function _managerToIndexToken(address _manager)
-        internal
-        view
-        returns (address)
-    {
+    function _managerToIndexToken(
+        address _manager
+    ) internal view returns (address) {
         return indexTokens[_manager];
     }
 
@@ -1729,27 +1724,36 @@ contract DptpFuturesGateway is
     }
 
     event GovernanceLogicChanged(address _prev, address _new);
+
     /// @notice Set the governance logic contract
     /// Only owner can call this function
     /// @dev This function is used to set the governance logic contract
     /// @param _newGovernanceLogic The new governance logic contract
-    function setGovernanceLogic(address _newGovernanceLogic) external onlyOwner {
-      StorageSlotUpgradeable.getAddressSlot(_GOVERNANCE_LOGIC_CONTRACT_SLOT_).value = _newGovernanceLogic;
-      emit GovernanceLogicChanged(StorageSlotUpgradeable.getAddressSlot(_GOVERNANCE_LOGIC_CONTRACT_SLOT_).value, _newGovernanceLogic);
+    function setGovernanceLogic(
+        address _newGovernanceLogic
+    ) external onlyOwner {
+        StorageSlotUpgradeable
+            .getAddressSlot(_GOVERNANCE_LOGIC_CONTRACT_SLOT_)
+            .value = _newGovernanceLogic;
+        emit GovernanceLogicChanged(
+            StorageSlotUpgradeable
+                .getAddressSlot(_GOVERNANCE_LOGIC_CONTRACT_SLOT_)
+                .value,
+            _newGovernanceLogic
+        );
     }
 
     /// @notice Execute a governance function
     /// Only owner can call this function
     /// @dev This function is used to execute a governance function in the governance logic contract using delegatecall to save contract size
     /// @param _data The data to execute the function (you need to encode data yourself)
-    function executeGovFunction(
-        bytes memory _data
-    ) external onlyOwner {
-        address _target = StorageSlotUpgradeable.getAddressSlot(_GOVERNANCE_LOGIC_CONTRACT_SLOT_).value;
+    function executeGovFunction(bytes memory _data) external onlyOwner {
+        address _target = StorageSlotUpgradeable
+            .getAddressSlot(_GOVERNANCE_LOGIC_CONTRACT_SLOT_)
+            .value;
         (bool success, bytes memory returnData) = _target.delegatecall(_data);
         require(success, string(returnData));
     }
-
 
     //    function pause() external onlyOwner {
     //        _pause();
@@ -1762,5 +1766,4 @@ contract DptpFuturesGateway is
     function _validate(bool _condition, string memory _errorCode) private view {
         require(_condition, _errorCode);
     }
-
 }

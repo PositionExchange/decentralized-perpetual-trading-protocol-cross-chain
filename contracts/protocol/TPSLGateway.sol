@@ -7,10 +7,7 @@ import "../interfaces/CrosschainFunctionCallInterface.sol";
 
 import "./common/CrosscallMethod.sol";
 
-contract TPSLGateway is 
-    ReentrancyGuardUpgradeable,
-    CrosscallMethod
-{
+contract TPSLGateway is ReentrancyGuardUpgradeable, CrosscallMethod {
     IFuturXGateway public futurXGateway;
 
     enum SetTPSLOption {
@@ -23,7 +20,6 @@ contract TPSLGateway is
         require(!futurXGateway.isPaused(), "Gateway is paused");
         _;
     }
-
 
     function setTPSL(
         address[] memory _path,
@@ -60,11 +56,9 @@ contract TPSLGateway is
         );
     }
 
-    function unsetTPAndSL(address _indexToken)
-        external
-        nonReentrant
-        whenNotPaused
-    {
+    function unsetTPAndSL(
+        address _indexToken
+    ) external nonReentrant whenNotPaused {
         _deleteTPSLRequestMap(msg.sender, _indexToken, true);
         _deleteTPSLRequestMap(msg.sender, _indexToken, false);
 
@@ -74,45 +68,41 @@ contract TPSLGateway is
         );
     }
 
-    function unsetTPOrSL(address _indexToken, bool _isHigherPrice)
-        external
-        nonReentrant
-        whenNotPaused
-    {
-         // if (_isHigherPrice) {
-         //     _deleteDecreasePositionRequests(
-         //         TPSLRequestMap[
-         //             _getTPSLRequestKey(msg.sender, _indexToken, true)
-         //         ]
-         //     );
-         //     _deleteTPSLRequestMap(
-         //         _getTPSLRequestKey(msg.sender, _indexToken, true)
-         //     );
-         // } else {
-         //     _deleteDecreasePositionRequests(
-         //         TPSLRequestMap[
-         //             _getTPSLRequestKey(msg.sender, _indexToken, false)
-         //         ]
-         //     );
-         //     _deleteTPSLRequestMap(
-         //         _getTPSLRequestKey(msg.sender, _indexToken, false)
-         //     );
-         // }
-         // _crossBlockchainCall(
-         //     uint8(Method.UNSET_TP_OR_SL),
-         //     abi.encode(_indexTokenToManager(_indexToken), msg.sender, _isHigherPrice)
-         // );
+    function unsetTPOrSL(
+        address _indexToken,
+        bool _isHigherPrice
+    ) external nonReentrant whenNotPaused {
+        // if (_isHigherPrice) {
+        //     _deleteDecreasePositionRequests(
+        //         TPSLRequestMap[
+        //             _getTPSLRequestKey(msg.sender, _indexToken, true)
+        //         ]
+        //     );
+        //     _deleteTPSLRequestMap(
+        //         _getTPSLRequestKey(msg.sender, _indexToken, true)
+        //     );
+        // } else {
+        //     _deleteDecreasePositionRequests(
+        //         TPSLRequestMap[
+        //             _getTPSLRequestKey(msg.sender, _indexToken, false)
+        //         ]
+        //     );
+        //     _deleteTPSLRequestMap(
+        //         _getTPSLRequestKey(msg.sender, _indexToken, false)
+        //     );
+        // }
+        // _crossBlockchainCall(
+        //     uint8(Method.UNSET_TP_OR_SL),
+        //     abi.encode(_indexTokenToManager(_indexToken), msg.sender, _isHigherPrice)
+        // );
     }
+
     function _deleteTPSLRequestMap(
         address _account,
         address _indexToken,
         bool _isHigherPip
     ) private {
-        gatewayStorage().deleteTpslRequest(
-            _account,
-            _indexToken,
-            _isHigherPip
-        );
+        gatewayStorage().deleteTpslRequest(_account, _indexToken, _isHigherPip);
     }
 
     function _storeTpslRequest(
@@ -133,12 +123,13 @@ contract TPSLGateway is
         uint8 _destMethodID,
         bytes memory _functionCallData
     ) internal {
-        CrosschainFunctionCallInterface(futurXGateway.futuresAdapter()).crossBlockchainCall(
-            pscId(),
-            pscCrossChainGateway(),
-            _destMethodID,
-            _functionCallData
-        );
+        CrosschainFunctionCallInterface(futurXGateway.futuresAdapter())
+            .crossBlockchainCall(
+                pscId(),
+                pscCrossChainGateway(),
+                _destMethodID,
+                _functionCallData
+            );
     }
 
     // get gateway storage return IFuturXGatewayStorage
@@ -171,14 +162,9 @@ contract TPSLGateway is
         return futurXGateway.pscCrossChainGateway();
     }
 
-    function _indexTokenToManager(address _indexToken)
-        internal
-        view
-        returns (address)
-    {
+    function _indexTokenToManager(
+        address _indexToken
+    ) internal view returns (address) {
         return futurXGateway.coreManagers(_indexToken);
     }
-
-
-
 }
