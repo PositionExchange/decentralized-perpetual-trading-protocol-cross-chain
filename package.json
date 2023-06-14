@@ -36,7 +36,7 @@
     "@nomiclabs/hardhat-etherscan": "^3.1.5",
     "@openzeppelin/contracts": "^4.8.2",
     "@openzeppelin/contracts-ethereum-package": "^3.0.0",
-    "@openzeppelin/contracts-upgradeable": "^4.7.3",
+    "@openzeppelin/contracts-upgradeable": "4.3.2",
     "@openzeppelin/hardhat-defender": "^1.7.1",
     "@openzeppelin/hardhat-upgrades": "^1.20.0",
     "@positionex/position-helper": "^1.0.3",
