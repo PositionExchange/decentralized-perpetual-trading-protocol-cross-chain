@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StorageSlotUpgradeable.sol";
 //import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
 import "../interfaces/IVault.sol";
@@ -22,12 +23,15 @@ import {Errors} from "./libraries/helpers/Errors.sol";
 import "../interfaces/IFuturXGateway.sol";
 import "../referrals/interfaces/IReferralRewardTracker.sol";
 
+import "./modules/DptpFuturesGatewayStorage.sol";
+
 contract DptpFuturesGateway is
+    IFuturXGateway,
+    DptpFuturesGatewayStorage,
     IERC721ReceiverUpgradeable,
     PausableUpgradeable,
     OwnableUpgradeable,
-    ReentrancyGuardUpgradeable,
-    IFuturXGateway
+    ReentrancyGuardUpgradeable
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint256;
@@ -36,6 +40,9 @@ contract DptpFuturesGateway is
 
     uint256 constant PRICE_DECIMALS = 10**12;
     uint256 constant WEI_DECIMALS = 10**18;
+
+    // This is the keccak-256 hash of "dptp.governance.contract"
+    bytes32 private constant _GOVERNANCE_LOGIC_CONTRACT_SLOT_ = 0xa2a6112b8076a277b5ad9b2001650d9adc276371412790567ba5abc547001a1c;
 
     enum SetTPSLOption {
         BOTH,
@@ -166,34 +173,7 @@ contract DptpFuturesGateway is
         uint256 voucherId;
     }
 
-    uint256 public pcsId;
-    address public pscCrossChainGateway;
-
-    address public vault;
-    address public futuresAdapter;
-    address public shortsTracker;
-    address public weth;
-    address public gatewayUtils;
-    address public referralRewardTracker;
-    address public futurXVoucher;
-    address public gatewayStorage;
-
-    mapping(address => bool) public positionKeepers;
-
-    mapping(address => uint256) public override maxGlobalLongSizes;
-    mapping(address => uint256) public override maxGlobalShortSizes;
-
-    uint256 public maxTimeDelay;
-    uint256 public override executionFee;
-
-    // mapping indexToken with positionManager
-    mapping(address => address) public coreManagers;
-    // mapping positionManager with indexToken
-    mapping(address => address) public indexTokens;
-
-    mapping(bytes32 => address) public latestExecutedCollateral; // For claim fund
-    mapping(bytes32 => address) public latestIncreasePendingCollateral;
-
+    
     function initialize(
         uint256 _pcsId,
         address _pscCrossChainGateway,
@@ -267,10 +247,10 @@ contract DptpFuturesGateway is
             false
         );
 
-        _amountInUsd += totalFeeUsd;
-        uint256 amountInAfterFeeToken = _usdToTokenMin(_path[0], _amountInUsd);
+        uint256 amountInAfterFeeToken = _usdToTokenMin(_path[0], _amountInUsd + totalFeeUsd);
 
         _transferIn(_path[0], amountInAfterFeeToken);
+        // convert ETH to WETH
         _transferInETH();
 
         CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
@@ -353,10 +333,10 @@ contract DptpFuturesGateway is
             true
         );
 
-        _amountInUsd += totalFeeUsd;
-        uint256 amountInAfterFeeToken = _usdToTokenMin(_path[0], _amountInUsd);
+        uint256 amountInAfterFeeToken = _usdToTokenMin(_path[0], _amountInUsd + totalFeeUsd);
 
         _transferIn(_path[0], amountInAfterFeeToken);
+        // convert ETH to WETH
         _transferInETH();
 
         CreateIncreasePositionParam memory params;
@@ -580,7 +560,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaInToken,
         bool _isLong,
         uint256 _voucherId
-    ) internal {
+    ) private {
         if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
             revert("test");
         }
@@ -1874,78 +1854,28 @@ contract DptpFuturesGateway is
         return this.onERC721Received.selector;
     }
 
-    //******************************************************************************************************************
-    // ONLY OWNER FUNCTIONS
-    //******************************************************************************************************************
-
-    function setExecutionFee(uint256 _executionFee) external onlyOwner {
-        executionFee = _executionFee;
+    event GovernanceLogicChanged(address _prev, address _new);
+    /// @notice Set the governance logic contract
+    /// Only owner can call this function
+    /// @dev This function is used to set the governance logic contract
+    /// @param _newGovernanceLogic The new governance logic contract
+    function setGovernanceLogic(address _newGovernanceLogic) external onlyOwner {
+      StorageSlotUpgradeable.getAddressSlot(_GOVERNANCE_LOGIC_CONTRACT_SLOT_).value = _newGovernanceLogic;
+      emit GovernanceLogicChanged(StorageSlotUpgradeable.getAddressSlot(_GOVERNANCE_LOGIC_CONTRACT_SLOT_).value, _newGovernanceLogic);
     }
 
-    function setWeth(address _weth) external onlyOwner {
-        weth = _weth;
+    /// @notice Execute a governance function
+    /// Only owner can call this function
+    /// @dev This function is used to execute a governance function in the governance logic contract using delegatecall to save contract size
+    /// @param _data The data to execute the function (you need to encode data yourself)
+    function executeGovFunction(
+        bytes memory _data
+    ) external onlyOwner {
+        address _target = StorageSlotUpgradeable.getAddressSlot(_GOVERNANCE_LOGIC_CONTRACT_SLOT_).value;
+        (bool success, bytes memory returnData) = _target.delegatecall(_data);
+        require(success, string(returnData));
     }
 
-    function setVault(address _vault) external onlyOwner {
-        vault = _vault;
-    }
-
-    function setFuturesAdapter(address _futuresAdapter) external onlyOwner {
-        futuresAdapter = _futuresAdapter;
-    }
-
-    function setPosiChainId(uint256 _posiChainId) external onlyOwner {
-        pcsId = _posiChainId;
-    }
-
-    function setPosiChainCrosschainGatewayContract(address _address)
-        external
-        onlyOwner
-    {
-        pscCrossChainGateway = _address;
-    }
-
-    function setPositionKeeper(address _address) external onlyOwner {
-        positionKeepers[_address] = true;
-    }
-
-    function setCoreManager(address _token, address _manager)
-        external
-        onlyOwner
-    {
-        coreManagers[_token] = _manager;
-        indexTokens[_manager] = _token;
-    }
-
-    function setMaxGlobalShortSize(address _token, uint256 _amount)
-        external
-        onlyOwner
-    {
-        maxGlobalShortSizes[_token] = _amount;
-    }
-
-    function setMaxGlobalLongSize(address _token, uint256 _amount)
-        external
-        onlyOwner
-    {
-        maxGlobalLongSizes[_token] = _amount;
-    }
-
-    function setReferralRewardTracker(address _address) external onlyOwner {
-        referralRewardTracker = _address;
-    }
-
-    function setFuturXVoucher(address _address) external onlyOwner {
-        futurXVoucher = _address;
-    }
-
-    function setFuturXGatewayStorage(address _address) external onlyOwner {
-        gatewayStorage = _address;
-    }
-
-    function setFuturXGatewayUtils(address _address) external onlyOwner {
-        gatewayUtils = _address;
-    }
 
     //    function pause() external onlyOwner {
     //        _pause();
@@ -1959,10 +1889,4 @@ contract DptpFuturesGateway is
         require(_condition, _errorCode);
     }
 
-    /**
-     * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
-     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-     */
-    uint256[49] private __gap;
 }
