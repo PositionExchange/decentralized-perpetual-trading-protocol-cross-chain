@@ -24,6 +24,7 @@ import "../interfaces/IFuturXGateway.sol";
 import "../referrals/interfaces/IReferralRewardTracker.sol";
 
 import "./modules/DptpFuturesGatewayStorage.sol";
+import "./common/CrosscallMethod.sol";
 
 contract DptpFuturesGateway is
     IFuturXGateway,
@@ -31,7 +32,8 @@ contract DptpFuturesGateway is
     IERC721ReceiverUpgradeable,
     PausableUpgradeable,
     OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
+    ReentrancyGuardUpgradeable,
+    CrosscallMethod
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMathUpgradeable for uint256;
@@ -43,30 +45,7 @@ contract DptpFuturesGateway is
 
     // This is the keccak-256 hash of "dptp.governance.contract"
     bytes32 private constant _GOVERNANCE_LOGIC_CONTRACT_SLOT_ = 0xa2a6112b8076a277b5ad9b2001650d9adc276371412790567ba5abc547001a1c;
-
-    enum SetTPSLOption {
-        BOTH,
-        HIGHER,
-        LOWER
-    }
-
-    enum Method {
-        OPEN_MARKET,
-        OPEN_LIMIT,
-        CANCEL_LIMIT,
-        ADD_MARGIN,
-        REMOVE_MARGIN,
-        CLOSE_POSITION,
-        INSTANTLY_CLOSE_POSITION,
-        CLOSE_LIMIT_POSITION,
-        CLAIM_FUND,
-        SET_TPSL,
-        UNSET_TP_AND_SL,
-        UNSET_TP_OR_SL,
-        OPEN_MARKET_BY_QUOTE,
-        EXECUTE_STORE_POSITION
-    }
-
+    
     event CreateIncreasePosition(
         address indexed account,
         address[] path,
@@ -196,6 +175,10 @@ contract DptpFuturesGateway is
         gatewayUtils = _gatewayUtils;
         gatewayStorage = _gatewayStorage;
         executionFee = _executionFee;
+    }
+
+    function isPaused() external view override returns (bool) {
+        return paused();
     }
 
     function createIncreasePositionRequest(
@@ -1056,90 +1039,7 @@ contract DptpFuturesGateway is
         //        emit CollateralRemove(request.account, receiveToken, amountOutToken);
     }
 
-    function setTPSL(
-        address[] memory _path,
-        address _indexToken,
-        bool _withdrawETH,
-        uint128 _higherPip,
-        uint128 _lowerPip,
-        SetTPSLOption _option
-    ) external nonReentrant whenNotPaused {
-        (, bytes32 requestKey) = _storeDecreasePositionRequest(
-            msg.sender,
-            _path,
-            _indexToken,
-            _withdrawETH
-        );
-
-        if (_option == SetTPSLOption.HIGHER || _option == SetTPSLOption.BOTH) {
-            _storeTpslRequest(msg.sender, _indexToken, true, requestKey);
-        }
-
-        if (_option == SetTPSLOption.LOWER || _option == SetTPSLOption.BOTH) {
-            _storeTpslRequest(msg.sender, _indexToken, false, requestKey);
-        }
-
-        _crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.SET_TPSL),
-            abi.encode(
-                _indexTokenToManager(_indexToken),
-                msg.sender,
-                _higherPip,
-                _lowerPip,
-                uint8(_option)
-            )
-        );
-    }
-
-    function unsetTPAndSL(address _indexToken)
-        external
-        nonReentrant
-        whenNotPaused
-    {
-        _deleteTPSLRequestMap(msg.sender, _indexToken, true);
-        _deleteTPSLRequestMap(msg.sender, _indexToken, false);
-
-        _crossBlockchainCall(
-            pcsId,
-            pscCrossChainGateway,
-            uint8(Method.UNSET_TP_AND_SL),
-            abi.encode(_indexTokenToManager(_indexToken), msg.sender)
-        );
-    }
-
-    function unsetTPOrSL(address _indexToken, bool _isHigherPrice)
-        external
-        nonReentrant
-        whenNotPaused
-    {
-        //        if (_isHigherPrice) {
-        //            _deleteDecreasePositionRequests(
-        //                TPSLRequestMap[
-        //                    _getTPSLRequestKey(msg.sender, _indexToken, true)
-        //                ]
-        //            );
-        //            _deleteTPSLRequestMap(
-        //                _getTPSLRequestKey(msg.sender, _indexToken, true)
-        //            );
-        //        } else {
-        //            _deleteDecreasePositionRequests(
-        //                TPSLRequestMap[
-        //                    _getTPSLRequestKey(msg.sender, _indexToken, false)
-        //                ]
-        //            );
-        //            _deleteTPSLRequestMap(
-        //                _getTPSLRequestKey(msg.sender, _indexToken, false)
-        //            );
-        //        }
-        //        _crossBlockchainCall(
-        //            pcsId,
-        //            pscCrossChainGateway,
-        //            uint8(Method.UNSET_TP_OR_SL),
-        //            abi.encode(_indexTokenToManager(_indexToken), msg.sender, _isHigherPrice)
-        //        );
-    }
+    
 
     function triggerTPSL(
         address _account,
@@ -1774,32 +1674,6 @@ contract DptpFuturesGateway is
             _contract,
             _destMethodID,
             _functionCallData
-        );
-    }
-
-    function _storeTpslRequest(
-        address _account,
-        address _indexToken,
-        bool _isHigherPip,
-        bytes32 _decreasePositionRequestKey
-    ) private {
-        IFuturXGatewayStorage(gatewayStorage).storeTpslRequest(
-            _account,
-            _indexToken,
-            _isHigherPip,
-            _decreasePositionRequestKey
-        );
-    }
-
-    function _deleteTPSLRequestMap(
-        address _account,
-        address _indexToken,
-        bool _isHigherPip
-    ) private {
-        IFuturXGatewayStorage(gatewayStorage).deleteTpslRequest(
-            _account,
-            _indexToken,
-            _isHigherPip
         );
     }
 

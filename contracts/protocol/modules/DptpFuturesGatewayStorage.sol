@@ -3,18 +3,18 @@ pragma solidity ^0.8.8;
 
 import "../../interfaces/IFuturXGateway.sol";
 
-contract DptpFuturesGatewayStorage is IFuturXGateway {
-    uint256 public pcsId;
-    address public pscCrossChainGateway;
+abstract contract DptpFuturesGatewayStorage is IFuturXGateway {
+    uint256 public override pcsId;
+    address public override pscCrossChainGateway;
 
     address public vault;
-    address public futuresAdapter;
+    address public override futuresAdapter;
     address public shortsTracker;
     address public weth;
     address public gatewayUtils;
     address public referralRewardTracker;
     address public futurXVoucher;
-    address public gatewayStorage;
+    address public override gatewayStorage;
 
     mapping(address => bool) public positionKeepers;
 
@@ -25,7 +25,7 @@ contract DptpFuturesGatewayStorage is IFuturXGateway {
     uint256 public override executionFee;
 
     // mapping indexToken with positionManager
-    mapping(address => address) public coreManagers;
+    mapping(address => address) public override coreManagers;
     // mapping positionManager with indexToken
     mapping(address => address) public indexTokens;
 

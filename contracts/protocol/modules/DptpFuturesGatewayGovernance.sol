@@ -85,5 +85,11 @@ contract DptpFuturesGatewayGovernance is
     function setFuturXGatewayUtils(address _address) external onlyOwner {
         gatewayUtils = _address;
     }
+
+    function isPaused() external view returns (bool) {
+        return paused();
+    }
+
+
 }
 
