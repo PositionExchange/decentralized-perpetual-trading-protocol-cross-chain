@@ -31,6 +31,13 @@ const migrations: MigrationDefinition = {
         futurXGatewayStorage: futurXGatewayStorage,
         executionFee: 0,
       });
+
+      // Create governance logic
+      await ctx.factory.createFuturXGatewayGovernanceLogic()
+    },
+
+    "deploy tpsl gateway": async () => {
+      await ctx.factory.createTPSLGateway()
     },
 
     "re-config after deploy new gateway": async () => {

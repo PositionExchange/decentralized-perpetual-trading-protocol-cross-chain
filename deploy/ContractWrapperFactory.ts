@@ -457,6 +457,22 @@ export class ContractWrapperFactory {
         }
     }
 
+    async createFuturXGatewayGovernanceLogic() {
+      // Note that DptpFuturesGatewayGovernance does not have to be a proxy
+      // Because it's only contains logic, no storage
+      const contractName = 'DptpFuturesGatewayGovernance'
+      await this._deployNonUpgradeableContract(contractName, [])
+    }
+
+    async createTPSLGateway() {
+      // Note that TPSLGateway does not have to be a proxy
+      // Because it's only contains logic, no complicated storage
+      const contractName = 'DptpFuturesGatewayGovernance'
+      const futurXGateway = await this.db.findAddressByKey('DptpFuturesGateway')
+      console.log(`futurXGateway: ${futurXGateway}`)
+      await this._deployOrUpgradeContract(contractName, [futurXGateway])
+    }
+
     async createGatewayUtils(vault: string, futurXGateway: string, gatewayStorage: string, futurXVoucher: string) {
         const contractName = 'GatewayUtils';
         const factory = await this.hre.ethers.getContractFactory(contractName);
@@ -632,6 +648,42 @@ export class ContractWrapperFactory {
             const address = instance.address.toString();
             console.log(`Address ${contractName}: ${address}`);
 
+            await this.db.saveAddressByKey(contractName, address);
+            await this.verifyProxy(address);
+        }
+    }
+
+    async _deployNonUpgradeableContract(contractName: string, args: any[]) {
+      const factory = await this.hre.ethers.getContractFactory(contractName);
+      const contract = await factory.deploy(...args)
+      await contract.deployed()
+      const address = contract.address.toString()
+      console.log(`Address ${contractName}: ${address}`)
+      await this.db.saveAddressByKey(contractName, address)
+      await this.verifyProxy(address)
+    }
+
+    async _deployOrUpgradeContract(contractName: string, args: any[]) {
+      const factory = await this.hre.ethers.getContractFactory(contractName);
+        const contractAddress = await this.db.findAddressByKey(contractName);
+        if (contractAddress) {
+            console.log(`Found contract. Upgrade ${contractName}, address: ${contractAddress}`);
+            const upgraded = await this.hre.upgrades.upgradeProxy(
+                contractAddress,
+                factory
+            );
+            console.log(`Starting verify upgrade ${contractName}`);
+            await this.verifyImplContract(upgraded.deployTransaction);
+            console.log(`Upgrade ${contractName}`);
+        } else {
+            const instance = await this.hre.upgrades.deployProxy(
+                factory,
+                args
+            );
+            console.log(`wait for deploy ${contractName}`);
+            await instance.deployed();
+            const address = instance.address.toString();
+            console.log(`Address ${contractName}: ${address}`);
             await this.db.saveAddressByKey(contractName, address);
             await this.verifyProxy(address);
         }
