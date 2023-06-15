@@ -609,7 +609,8 @@ contract DptpFuturesGateway is
         uint256 _feeUsd,
         uint256 _entryPrice,
         uint256 _sizeDeltaToken,
-        bool _isLong
+        bool _isLong,
+        bool _isExecutedFully
     ) public nonReentrant {
         _validateCaller(msg.sender);
 
@@ -617,7 +618,7 @@ contract DptpFuturesGateway is
         _feeUsd = _feeUsd.mul(PRICE_DECIMALS);
 
         IFuturXGatewayStorage.DecreasePositionRequest
-            memory request = _getDeleteDecreasePositionRequest(_key);
+            memory request = IFuturXGatewayStorage(gatewayStorage).getUpdateOrDeleteDecreasePositionRequest(_key, _sizeDeltaToken, _isExecutedFully);
 
         _executeDecreasePosition(
             request.account,
@@ -1313,7 +1314,8 @@ contract DptpFuturesGateway is
             _account,
             _path,
             _indexToken,
-            _withdrawETH
+            _withdrawETH,
+            _sizeDeltaToken
         );
 
         if (_pip == 0) {
@@ -1443,7 +1445,8 @@ contract DptpFuturesGateway is
         address _account,
         address[] memory _path,
         address _indexToken,
-        bool _withdrawETH
+        bool _withdrawETH,
+        uint256 _sizeDeltaToken
     ) internal returns (uint256, bytes32) {
         return
             IFuturXGatewayStorage(gatewayStorage).storeDecreasePositionRequest(
@@ -1451,7 +1454,8 @@ contract DptpFuturesGateway is
                     _account,
                     _path,
                     _indexToken,
-                    _withdrawETH
+                    _withdrawETH,
+                    _sizeDeltaToken
                 )
             );
     }

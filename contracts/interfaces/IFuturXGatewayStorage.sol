@@ -25,6 +25,7 @@ interface IFuturXGatewayStorage {
         address[] path;
         address indexToken;
         bool withdrawETH;
+        uint256 sizeDeltaToken;
     }
 
     struct UpdateCollateralRequest {
@@ -82,6 +83,12 @@ interface IFuturXGatewayStorage {
 
     function getDeleteDecreasePositionRequest(
         bytes32 _key
+    ) external returns (DecreasePositionRequest memory);
+
+    function getUpdateOrDeleteDecreasePositionRequest(
+        bytes32 _key,
+        uint256 quantity,
+        bool isExecutedFully
     ) external returns (DecreasePositionRequest memory);
 
     function getDeleteUpdateCollateralRequest(

@@ -191,6 +191,30 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         _deleteDecreasePositionRequests(_key);
     }
 
+
+    function getUpdateOrDeleteDecreasePositionRequest(
+        bytes32 _key,
+        uint256 quantity,
+        bool isExecutedFully
+    )
+        public
+        onlyFuturXGateway
+        returns (DecreasePositionRequest memory request)
+    {
+        request = decreasePositionRequests[_key];
+        _validate(
+            request.account != address(0),
+            Errors.FGWS_MISSING_ACCOUNT_02
+        );
+
+        if (isExecutedFully) {
+            delete decreasePositionRequests[_key];
+        } else {
+            decreasePositionRequests[_key].sizeDeltaToken = request.sizeDeltaToken - quantity;
+            request.sizeDeltaToken = quantity;
+        }
+    }
+
     function deleteDecreasePositionRequest(
         bytes32 _key
     ) public onlyFuturXGateway {
