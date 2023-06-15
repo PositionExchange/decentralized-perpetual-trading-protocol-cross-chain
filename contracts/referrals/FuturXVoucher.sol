@@ -259,16 +259,15 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        uint256 batchSize
     )
         internal
         override(
-            //        uint256 batchSize
             ERC721EnumerableUpgradeable
         )
     {
-        //        super._beforeTokenTransfer(from, to, tokenId, 1);
-        super._beforeTokenTransfer(from, to, tokenId);
+        super._beforeTokenTransfer(from, to, tokenId, batchSize);
 
         if (from == address(0) || to == address(0)) {
             return;
