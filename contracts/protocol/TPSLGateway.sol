@@ -21,6 +21,11 @@ contract TPSLGateway is ReentrancyGuardUpgradeable, CrosscallMethod {
         _;
     }
 
+    function initialize(address _futurXGateway) external initializer {
+        __ReentrancyGuard_init();
+        futurXGateway = IFuturXGateway(_futurXGateway);
+    }
+
     function setTPSL(
         address[] memory _path,
         address _indexToken,
