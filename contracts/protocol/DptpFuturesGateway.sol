@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -102,8 +102,16 @@ contract DptpFuturesGateway is
         uint256 timestamp
     );
 
-    //    event CollateralAdded(address account, address token, uint256 tokenAmount);
-    //    event CollateralRemove(address account, address token, uint256 tokenAmount);
+    event CollateralAddedExecuted(
+        address account,
+        address token,
+        uint256 tokenAmount
+    );
+    event CollateralRemoveExecuted(
+        address account,
+        address token,
+        uint256 tokenAmount
+    );
 
     event CollateralAddCreated(
         bytes32 requestKey,
@@ -369,8 +377,7 @@ contract DptpFuturesGateway is
         address[] memory _path,
         address _indexToken,
         uint256 _sizeDeltaToken,
-        bool _isLong,
-        bool _withdrawETH
+        bool _isLong
     ) external payable nonReentrant whenNotPaused returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateDecreasePosition(
             msg.sender,
@@ -381,12 +388,7 @@ contract DptpFuturesGateway is
             _isLong
         );
 
-        if (_withdrawETH) {
-            _validate(
-                _path[_path.length - 1] == weth,
-                Errors.FGW_TOKEN_MUST_BE_ETH
-            );
-        }
+        bool _withdrawETH = _path[_path.length - 1] == weth;
 
         _transferInETH();
 
@@ -407,8 +409,7 @@ contract DptpFuturesGateway is
         address _indexToken,
         uint256 _pip,
         uint256 _sizeDeltaToken,
-        bool _isLong,
-        bool _withdrawETH
+        bool _isLong
     ) external payable nonReentrant whenNotPaused returns (bytes32) {
         IGatewayUtils(gatewayUtils).validateDecreasePosition(
             msg.sender,
@@ -419,12 +420,14 @@ contract DptpFuturesGateway is
             _isLong
         );
 
-        if (_withdrawETH) {
-            _validate(
-                _path[_path.length - 1] == weth,
-                Errors.FGW_TOKEN_MUST_BE_ETH
-            );
-        }
+        bool _withdrawETH = _path[_path.length - 1] == weth;
+
+        //        if (_withdrawETH) {
+        //            _validate(
+        //                _path[_path.length - 1] == weth,
+        //                Errors.FGW_TOKEN_MUST_BE_ETH
+        //            );
+        //        }
 
         _transferInETH();
 
@@ -560,8 +563,9 @@ contract DptpFuturesGateway is
             revert("test");
         }
         uint256 amountInUsd;
+        address collateralToken = _path[_path.length - 1];
+
         if (_amountInToken > 0) {
-            address collateralToken = _path[_path.length - 1];
             amountInUsd = _tokenToUsdMin(collateralToken, _amountInToken);
             if (_path.length > 1) {
                 _transferOut(_path[0], _amountInToken, vault);
@@ -573,14 +577,14 @@ contract DptpFuturesGateway is
 
         _updateLatestExecutedCollateral(
             _account,
-            _path[_path.length - 1],
+            collateralToken,
             _indexToken,
             _isLong
         );
 
         _increasePosition(
             _account,
-            _path[_path.length - 1],
+            collateralToken,
             _indexToken,
             _entryPrice,
             _sizeDeltaInToken,
@@ -618,7 +622,12 @@ contract DptpFuturesGateway is
         _feeUsd = _feeUsd.mul(PRICE_DECIMALS);
 
         IFuturXGatewayStorage.DecreasePositionRequest
-            memory request = IFuturXGatewayStorage(gatewayStorage).getUpdateOrDeleteDecreasePositionRequest(_key, _sizeDeltaToken, _isExecutedFully);
+            memory request = IFuturXGatewayStorage(gatewayStorage)
+                .getUpdateOrDeleteDecreasePositionRequest(
+                    _key,
+                    _sizeDeltaToken,
+                    _isExecutedFully
+                );
 
         _executeDecreasePosition(
             request.account,
@@ -959,7 +968,11 @@ contract DptpFuturesGateway is
             request.isLong,
             request.feeToken
         );
-        //        emit CollateralAdded(request.account, collateralToken, amountInToken);
+        emit CollateralAddedExecuted(
+            request.account,
+            collateralToken,
+            amountInToken
+        );
     }
 
     function createRemoveCollateralRequest(
@@ -1043,7 +1056,11 @@ contract DptpFuturesGateway is
         }
 
         _transferOut(receiveToken, amountOutToken, request.account);
-        //        emit CollateralRemove(request.account, receiveToken, amountOutToken);
+        emit CollateralRemoveExecuted(
+            request.account,
+            receiveToken,
+            amountOutToken
+        );
     }
 
     function triggerTPSL(

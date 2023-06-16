@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
@@ -52,7 +52,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     function clearPendingCollateral(
         address _account,
         address _indexToken
-    ) public {
+    ) public onlyFuturXGateway {
         bytes32 key = _getPendingCollateralKey(_account, _indexToken);
         pendingCollaterals[key].count = 0;
         pendingCollaterals[key].collateral = address(0);
@@ -158,7 +158,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function storeDecreasePositionRequest(
         DecreasePositionRequest memory _request
-    ) public returns (uint256, bytes32) {
+    ) public onlyFuturXGateway returns (uint256, bytes32) {
         address account = _request.account;
         uint256 index = decreasePositionsIndex[account].add(1);
         decreasePositionsIndex[account] = index;
@@ -191,7 +191,6 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         _deleteDecreasePositionRequests(_key);
     }
 
-
     function getUpdateOrDeleteDecreasePositionRequest(
         bytes32 _key,
         uint256 quantity,
@@ -210,7 +209,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         if (isExecutedFully) {
             delete decreasePositionRequests[_key];
         } else {
-            decreasePositionRequests[_key].sizeDeltaToken = request.sizeDeltaToken - quantity;
+            decreasePositionRequests[_key].sizeDeltaToken =
+                request.sizeDeltaToken -
+                quantity;
             request.sizeDeltaToken = quantity;
         }
     }

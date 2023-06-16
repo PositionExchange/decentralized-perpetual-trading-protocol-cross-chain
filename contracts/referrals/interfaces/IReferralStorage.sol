@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.9;
 
 interface IReferralStorage {
     function codes(bytes32 _code) external view returns (address);
@@ -20,8 +20,6 @@ interface IReferralStorage {
         uint256 _totalRebate,
         uint256 _discountShare
     ) external;
-
-    function setTraderStatus(address _trader, bool _isActive) external;
 
     function getReferrerInfo(
         address _trader

@@ -1,4 +1,4 @@
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -118,6 +118,11 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _;
     }
 
+    modifier onlyFuturXGateway(address _account) {
+        _validate(_account == futurXGateway, Errors.V_ONLY_FUTURX_GATEWAY);
+        _;
+    }
+
     event BuyUSDP(
         address account,
         address token,
@@ -202,8 +207,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _sizeDeltaToken,
         bool _isLong,
         uint256 _feeUsd
-    ) external override nonReentrant {
-        _onlyFuturXGateway(_account);
+    ) external override onlyFuturXGateway(msg.sender) nonReentrant {
         _validateGasPrice();
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
@@ -287,8 +291,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _receiver,
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd
-    ) external override nonReentrant returns (uint256) {
-        _onlyFuturXGateway(msg.sender);
+    )
+        external
+        override
+        onlyFuturXGateway(msg.sender)
+        nonReentrant
+        returns (uint256)
+    {
         _validateGasPrice();
 
         return
@@ -398,9 +407,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _positionSize,
         uint256 _positionMargin,
         bool _isLong
-    ) external override nonReentrant {
-        _onlyFuturXGateway(msg.sender);
-
+    ) external override onlyFuturXGateway(msg.sender) nonReentrant {
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
 
         uint256 borrowingFee = _getBorrowingFee(
@@ -444,9 +451,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _indexToken,
         bool _isLong,
         uint256 _feeToken
-    ) external override nonReentrant {
-        _onlyFuturXGateway(msg.sender);
-
+    ) external override onlyFuturXGateway(msg.sender) nonReentrant {
         address collateralToken = _path[_path.length - 1];
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
         uint256 amountInToken = _transferIn(collateralToken);
@@ -466,9 +471,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _indexToken,
         bool _isLong,
         uint256 _amountInToken
-    ) external override nonReentrant {
-        _onlyFuturXGateway(msg.sender);
-
+    ) external override onlyFuturXGateway(msg.sender) nonReentrant {
         if (_isLong) {
             _decreasePoolAmount(_collateralToken, _amountInToken);
         }
@@ -813,9 +816,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         override
         onlyWhitelistToken(_tokenIn)
         onlyWhitelistToken(_tokenOut)
+        onlyFuturXGateway(msg.sender)
         returns (uint256)
     {
-        _onlyFuturXGateway(msg.sender);
         return _swap(_tokenIn, _tokenOut, _receiver, false);
     }
 
@@ -825,8 +828,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _amountOutUsd,
         address _receiver
-    ) external override onlyWhitelistToken(_collateralToken) returns (uint256) {
-        _onlyFuturXGateway(msg.sender);
+    )
+        external
+        override
+        onlyFuturXGateway(msg.sender)
+        onlyWhitelistToken(_collateralToken)
+        returns (uint256)
+    {
         if (_amountOutUsd == 0) {
             return 0;
         }
@@ -1572,11 +1580,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
                 Errors.V_MAX_SHORTS_EXCEEDED
             );
         }
-    }
-
-    // we have this validation as a function instead of a modifier to reduce contract size
-    function _onlyFuturXGateway(address _account) private view {
-        _validate(_account == futurXGateway, Errors.V_ONLY_FUTURX_GATEWAY);
     }
 
     // we have this validation as a function instead of a modifier to reduce contract size

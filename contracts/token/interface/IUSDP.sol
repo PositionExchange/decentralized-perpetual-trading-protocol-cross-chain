@@ -1,4 +1,4 @@
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.9;
 
 interface IUSDP {
     function mint(address _account, uint256 _amount) external;

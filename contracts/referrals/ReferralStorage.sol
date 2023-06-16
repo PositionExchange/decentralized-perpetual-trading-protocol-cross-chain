@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.9;
 
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -10,11 +10,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 
 import "./interfaces/IReferralStorage.sol";
 
-contract ReferralStorage is
-    IReferralStorage,
-    OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
-{
+abstract contract ReferralStorage is IReferralStorage {
     using SafeMath for uint256;
 
     struct Tier {
@@ -26,13 +22,21 @@ contract ReferralStorage is
 
     mapping(uint256 => Tier) public tiers;
     mapping(address => bool) public isAdmin;
-    mapping(address => bool) public isCounterParty;
 
     mapping(bytes32 => address) public override codes; // map code vs trader address
     mapping(address => bytes32) public override traderCodes; // map trader address vs code
     mapping(address => bytes32) public override traderReferralCodes; // link between user <> their referrer code
     mapping(address => uint256) public override referrerTiers; // link between user <> tier
     mapping(address => bool) public override traderStatus; // true => active, false => pending
+
+    address public rewardToken;
+    uint256 public positionValidationInterval;
+    uint256 public positionValidationNotional;
+
+    mapping(address => bool) public isCounterParty;
+    mapping(address => uint256) public claimableCommission;
+    mapping(address => uint256) public claimableDiscount;
+    mapping(address => mapping(address => uint256)) public positionTimestamp;
 
     event SetAdmin(address admin, bool isActive);
     event SetCounterParty(address counterParty, bool isActive);
@@ -41,74 +45,16 @@ contract ReferralStorage is
     event SetReferrerTier(address referrer, uint256 tierId, uint256 timestamp);
     event SetTraderReferralCode(address account, bytes32 code);
     event SetTraderStatus(address trader, bool isActive, uint256 timestamp);
-
-    modifier onlyAdmin() {
-        require(isAdmin[msg.sender], "ReferralStorage: onlyAdmin");
-        _;
-    }
-
-    modifier onlyCounterParty() {
-        require(
-            isCounterParty[msg.sender],
-            "ReferralStorage: onlyCounterParty"
-        );
-        _;
-    }
-
-    function initialize() public initializer {
-        __ReentrancyGuard_init();
-        __Ownable_init();
-    }
-
-    function setAdmin(address _admin, bool _isActive) external onlyOwner {
-        isAdmin[_admin] = _isActive;
-        emit SetAdmin(_admin, _isActive);
-    }
-
-    function setCounterParty(
-        address _address,
-        bool _isActive
-    ) external onlyOwner {
-        isCounterParty[_address] = _isActive;
-        emit SetCounterParty(_address, _isActive);
-    }
-
-    function setTier(
-        uint256 _tierId,
-        uint256 _totalRebate,
-        uint256 _discountShare
-    ) external override onlyOwner {
-        require(
-            _totalRebate <= BASIS_POINTS,
-            "ReferralStorage: invalid totalRebate"
-        );
-        require(
-            _discountShare <= BASIS_POINTS,
-            "ReferralStorage: invalid discountShare"
-        );
-
-        Tier memory tier = tiers[_tierId];
-        tier.totalRebate = _totalRebate;
-        tier.discountShare = _discountShare;
-        tiers[_tierId] = tier;
-        emit SetTier(_tierId, _totalRebate, _discountShare);
-    }
-
-    function setReferrerTier(
-        address _referrer,
-        uint256 _tierId
-    ) external onlyAdmin {
-        referrerTiers[_referrer] = _tierId;
-        emit SetReferrerTier(_referrer, _tierId, block.timestamp);
-    }
-
-    function setTraderStatus(
-        address _trader,
-        bool _isActive
-    ) external onlyCounterParty {
-        traderStatus[_trader] = _isActive;
-        emit SetTraderStatus(_trader, _isActive, block.timestamp);
-    }
+    event SetRewardToken(address rewardToken, uint256 tokenDecimal);
+    event ClaimCommission(address receiver, uint256 amount);
+    event ClaimDiscount(address receiver, uint256 amount);
+    event UpdateClaimableCommissionReward(
+        address referrer,
+        address trader,
+        uint256 amount,
+        uint256 timestamp
+    );
+    event UpdateClaimableDiscountReward(address trader, uint256 amount);
 
     function registerCode(bytes32 _code) external {
         require(_code != bytes32(0), "ReferralStorage: invalid code");
@@ -136,15 +82,20 @@ contract ReferralStorage is
 
     function getReferrerInfo(
         address _trader
-    ) external view returns (address, uint256, uint256) {
+    ) public view returns (address, uint256, uint256) {
         address referrer = codes[traderReferralCodes[_trader]];
         Tier memory tier = tiers[referrerTiers[referrer]];
         return (referrer, tier.totalRebate, tier.discountShare);
     }
 
-    function isStatusUpgradeable(address _trader) external view returns (bool) {
+    function isStatusUpgradeable(address _trader) public view returns (bool) {
         if (traderReferralCodes[_trader] == bytes32(0)) return false;
         return traderStatus[_trader];
+    }
+
+    function _setTraderStatus(address _trader, bool _isActive) internal {
+        traderStatus[_trader] = _isActive;
+        emit SetTraderStatus(_trader, _isActive, block.timestamp);
     }
 
     function _validateSetReferralRequest(
