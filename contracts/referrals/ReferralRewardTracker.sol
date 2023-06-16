@@ -13,39 +13,18 @@ import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./interfaces/IReferralStorage.sol";
 import "./interfaces/IReferralRewardTracker.sol";
+import "./ReferralStorage.sol";
 
 contract ReferralRewardTracker is
     IReferralRewardTracker,
     OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
+    ReentrancyGuardUpgradeable,
+    ReferralStorage
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using Address for address payable;
 
-    uint256 public constant BASIS_POINTS = 10000;
-
-    address public rewardToken;
-    address public referralStorage;
-    uint256 public positionValidationInterval;
-    uint256 public positionValidationNotional;
-
-    mapping(address => bool) public isCounterParty;
-    mapping(address => uint256) public claimableCommission;
-    mapping(address => uint256) public claimableDiscount;
-    mapping(address => mapping(address => uint256)) public positionTimestamp;
-
-    event SetRewardToken(address rewardToken, uint256 tokenDecimal);
-    event SetCounterParty(address counterParty, bool isActive);
-    event ClaimCommission(address receiver, uint256 amount);
-    event ClaimDiscount(address receiver, uint256 amount);
-    event UpdateClaimableCommissionReward(
-        address referrer,
-        address trader,
-        uint256 amount,
-        uint256 timestamp
-    );
-    event UpdateClaimableDiscountReward(address trader, uint256 amount);
 
     modifier onlyCounterParty() {
         require(
@@ -55,16 +34,19 @@ contract ReferralRewardTracker is
         _;
     }
 
+    modifier onlyAdmin() {
+        require(isAdmin[msg.sender], "ReferralStorage: onlyAdmin");
+        _;
+    }
+
     function initialize(
         address _rewardToken,
-        uint256 _tokenDecimal,
-        address _referralStorage
+        uint256 _tokenDecimal
     ) public initializer {
         __ReentrancyGuard_init();
         __Ownable_init();
         rewardToken = _rewardToken;
         tokenDecimal = _tokenDecimal;
-        referralStorage = _referralStorage;
         positionValidationInterval = 1800;
         positionValidationNotional = 50 * WEI_DECIMALS;
     }
@@ -77,6 +59,34 @@ contract ReferralRewardTracker is
         tokenDecimal = _tokenDecimal;
         emit SetRewardToken(_address, _tokenDecimal);
     }
+
+    function setAdmin(address _admin, bool _isActive) external onlyOwner {
+        isAdmin[_admin] = _isActive;
+        emit SetAdmin(_admin, _isActive);
+    }
+
+
+    function setTier(
+        uint256 _tierId,
+        uint256 _totalRebate,
+        uint256 _discountShare
+    ) external override onlyOwner {
+        require(
+            _totalRebate <= BASIS_POINTS,
+            "ReferralStorage: invalid totalRebate"
+        );
+        require(
+            _discountShare <= BASIS_POINTS,
+            "ReferralStorage: invalid discountShare"
+        );
+
+        Tier memory tier = tiers[_tierId];
+        tier.totalRebate = _totalRebate;
+        tier.discountShare = _discountShare;
+        tiers[_tierId] = tier;
+        emit SetTier(_tierId, _totalRebate, _discountShare);
+    }
+
 
     function setCounterParty(
         address _address,
@@ -96,6 +106,14 @@ contract ReferralRewardTracker is
         uint256 _notional
     ) external onlyOwner {
         positionValidationNotional = _notional;
+    }
+
+    function setReferrerTier(
+        address _referrer,
+        uint256 _tierId
+    ) external onlyAdmin {
+        referrerTiers[_referrer] = _tierId;
+        emit SetReferrerTier(_referrer, _tierId, block.timestamp);
     }
 
     function claimCommission() external nonReentrant {
@@ -128,14 +146,12 @@ contract ReferralRewardTracker is
         address _trader,
         uint256 _fee
     ) external nonReentrant onlyCounterParty {
-        bool isActive = IReferralStorage(referralStorage).traderStatus(_trader);
+        bool isActive = traderStatus[_trader];
         if (!isActive) {
             return;
         }
 
-        (address referrer, uint256 rebate, uint256 discount) = IReferralStorage(
-            referralStorage
-        ).getReferrerInfo(_trader);
+        (address referrer, uint256 rebate, uint256 discount) = getReferrerInfo(_trader);
 
         if (referrer == address(0)) {
             return;
@@ -167,8 +183,7 @@ contract ReferralRewardTracker is
         uint256 _notional,
         bool _isIncrease
     ) external nonReentrant onlyCounterParty {
-        bool isStatusUpgradeable = IReferralStorage(referralStorage)
-            .isStatusUpgradeable(_trader);
+        bool isStatusUpgradeable = isStatusUpgradeable(_trader);
         if (isStatusUpgradeable) {
             return;
         }
@@ -188,7 +203,7 @@ contract ReferralRewardTracker is
 
         delete positionTimestamp[_trader][_indexToken];
         if (_timestamp.sub(createTimestamp) > positionValidationInterval) {
-            IReferralStorage(referralStorage).setTraderStatus(_trader, true);
+            _setTraderStatus(_trader, true);
         }
     }
 

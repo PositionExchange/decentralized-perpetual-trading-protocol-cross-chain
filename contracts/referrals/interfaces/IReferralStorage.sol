@@ -21,7 +21,6 @@ interface IReferralStorage {
         uint256 _discountShare
     ) external;
 
-    function setTraderStatus(address _trader, bool _isActive) external;
 
     function getReferrerInfo(
         address _trader
