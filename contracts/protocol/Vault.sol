@@ -203,7 +203,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _feeUsd
     ) external override nonReentrant {
-        _onlyFuturXGateway(_account);
+        _onlyFuturXGateway(msg.sender);
         _validateGasPrice();
 
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);

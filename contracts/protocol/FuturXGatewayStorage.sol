@@ -52,7 +52,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     function clearPendingCollateral(
         address _account,
         address _indexToken
-    ) public {
+    ) public onlyFuturXGateway {
         bytes32 key = _getPendingCollateralKey(_account, _indexToken);
         pendingCollaterals[key].count = 0;
         pendingCollaterals[key].collateral = address(0);
@@ -158,7 +158,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function storeDecreasePositionRequest(
         DecreasePositionRequest memory _request
-    ) public returns (uint256, bytes32) {
+    ) public onlyFuturXGateway returns (uint256, bytes32) {
         address account = _request.account;
         uint256 index = decreasePositionsIndex[account].add(1);
         decreasePositionsIndex[account] = index;
