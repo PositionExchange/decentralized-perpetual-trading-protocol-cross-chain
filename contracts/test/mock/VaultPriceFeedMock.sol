@@ -1,4 +1,4 @@
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.9;
 
 contract VaultPriceFeedMock {
     uint256 public tokenPriceMock = 1000;

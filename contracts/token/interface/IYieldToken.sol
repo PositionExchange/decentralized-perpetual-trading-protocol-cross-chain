@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.9;
 
 interface IYieldToken {
     function totalStaked() external view returns (uint256);

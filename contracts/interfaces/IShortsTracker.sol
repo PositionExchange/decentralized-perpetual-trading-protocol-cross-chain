@@ -1,4 +1,4 @@
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.9;
 
 interface IShortsTracker {
     function isGlobalShortDataReady() external view returns (bool);

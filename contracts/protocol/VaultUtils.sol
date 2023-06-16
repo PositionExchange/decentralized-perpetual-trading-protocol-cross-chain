@@ -1,4 +1,4 @@
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.9;
 
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IVault.sol";

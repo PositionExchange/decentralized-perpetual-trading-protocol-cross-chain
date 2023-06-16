@@ -1,4 +1,4 @@
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.9;
 
 import "./BaseToken.sol";
 import "./interface/IMintable.sol";
