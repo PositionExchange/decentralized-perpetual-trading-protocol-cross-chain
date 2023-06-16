@@ -102,8 +102,16 @@ contract DptpFuturesGateway is
         uint256 timestamp
     );
 
-     event CollateralAddedExecuted(address account, address token, uint256 tokenAmount);
-     event CollateralRemoveExecuted(address account, address token, uint256 tokenAmount);
+    event CollateralAddedExecuted(
+        address account,
+        address token,
+        uint256 tokenAmount
+    );
+    event CollateralRemoveExecuted(
+        address account,
+        address token,
+        uint256 tokenAmount
+    );
 
     event CollateralAddCreated(
         bytes32 requestKey,
@@ -382,7 +390,6 @@ contract DptpFuturesGateway is
 
         bool _withdrawETH = _path[_path.length - 1] == weth;
 
-
         _transferInETH();
 
         return
@@ -415,12 +422,12 @@ contract DptpFuturesGateway is
 
         bool _withdrawETH = _path[_path.length - 1] == weth;
 
-//        if (_withdrawETH) {
-//            _validate(
-//                _path[_path.length - 1] == weth,
-//                Errors.FGW_TOKEN_MUST_BE_ETH
-//            );
-//        }
+        //        if (_withdrawETH) {
+        //            _validate(
+        //                _path[_path.length - 1] == weth,
+        //                Errors.FGW_TOKEN_MUST_BE_ETH
+        //            );
+        //        }
 
         _transferInETH();
 
@@ -615,7 +622,12 @@ contract DptpFuturesGateway is
         _feeUsd = _feeUsd.mul(PRICE_DECIMALS);
 
         IFuturXGatewayStorage.DecreasePositionRequest
-            memory request = IFuturXGatewayStorage(gatewayStorage).getUpdateOrDeleteDecreasePositionRequest(_key, _sizeDeltaToken, _isExecutedFully);
+            memory request = IFuturXGatewayStorage(gatewayStorage)
+                .getUpdateOrDeleteDecreasePositionRequest(
+                    _key,
+                    _sizeDeltaToken,
+                    _isExecutedFully
+                );
 
         _executeDecreasePosition(
             request.account,
@@ -956,7 +968,11 @@ contract DptpFuturesGateway is
             request.isLong,
             request.feeToken
         );
-        emit CollateralAddedExecuted(request.account, collateralToken, amountInToken);
+        emit CollateralAddedExecuted(
+            request.account,
+            collateralToken,
+            amountInToken
+        );
     }
 
     function createRemoveCollateralRequest(
@@ -1040,7 +1056,11 @@ contract DptpFuturesGateway is
         }
 
         _transferOut(receiveToken, amountOutToken, request.account);
-        emit CollateralRemoveExecuted(request.account, receiveToken, amountOutToken);
+        emit CollateralRemoveExecuted(
+            request.account,
+            receiveToken,
+            amountOutToken
+        );
     }
 
     function triggerTPSL(

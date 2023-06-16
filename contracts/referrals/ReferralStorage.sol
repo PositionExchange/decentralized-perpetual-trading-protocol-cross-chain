@@ -10,9 +10,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 
 import "./interfaces/IReferralStorage.sol";
 
-abstract contract ReferralStorage is
-    IReferralStorage
-{
+abstract contract ReferralStorage is IReferralStorage {
     using SafeMath for uint256;
 
     struct Tier {
@@ -40,7 +38,6 @@ abstract contract ReferralStorage is
     mapping(address => uint256) public claimableDiscount;
     mapping(address => mapping(address => uint256)) public positionTimestamp;
 
-
     event SetAdmin(address admin, bool isActive);
     event SetCounterParty(address counterParty, bool isActive);
     event SetTier(uint256 tierId, uint256 totalRebate, uint256 discountShare);
@@ -58,7 +55,6 @@ abstract contract ReferralStorage is
         uint256 timestamp
     );
     event UpdateClaimableDiscountReward(address trader, uint256 amount);
-
 
     function registerCode(bytes32 _code) external {
         require(_code != bytes32(0), "ReferralStorage: invalid code");
@@ -97,15 +93,10 @@ abstract contract ReferralStorage is
         return traderStatus[_trader];
     }
 
-
-    function _setTraderStatus(
-        address _trader,
-        bool _isActive
-    ) internal {
+    function _setTraderStatus(address _trader, bool _isActive) internal {
         traderStatus[_trader] = _isActive;
         emit SetTraderStatus(_trader, _isActive, block.timestamp);
     }
-
 
     function _validateSetReferralRequest(
         address _trader,

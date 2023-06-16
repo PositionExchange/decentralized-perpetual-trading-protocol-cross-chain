@@ -21,7 +21,6 @@ interface IReferralStorage {
         uint256 _discountShare
     ) external;
 
-
     function getReferrerInfo(
         address _trader
     ) external view returns (address, uint256, uint256);

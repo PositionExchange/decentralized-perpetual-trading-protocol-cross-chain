@@ -25,7 +25,6 @@ contract ReferralRewardTracker is
     using SafeERC20 for IERC20;
     using Address for address payable;
 
-
     modifier onlyCounterParty() {
         require(
             isCounterParty[msg.sender],
@@ -65,7 +64,6 @@ contract ReferralRewardTracker is
         emit SetAdmin(_admin, _isActive);
     }
 
-
     function setTier(
         uint256 _tierId,
         uint256 _totalRebate,
@@ -86,7 +84,6 @@ contract ReferralRewardTracker is
         tiers[_tierId] = tier;
         emit SetTier(_tierId, _totalRebate, _discountShare);
     }
-
 
     function setCounterParty(
         address _address,
@@ -151,7 +148,9 @@ contract ReferralRewardTracker is
             return;
         }
 
-        (address referrer, uint256 rebate, uint256 discount) = getReferrerInfo(_trader);
+        (address referrer, uint256 rebate, uint256 discount) = getReferrerInfo(
+            _trader
+        );
 
         if (referrer == address(0)) {
             return;

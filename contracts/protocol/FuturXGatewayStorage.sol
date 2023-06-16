@@ -191,7 +191,6 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         _deleteDecreasePositionRequests(_key);
     }
 
-
     function getUpdateOrDeleteDecreasePositionRequest(
         bytes32 _key,
         uint256 quantity,
@@ -210,7 +209,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         if (isExecutedFully) {
             delete decreasePositionRequests[_key];
         } else {
-            decreasePositionRequests[_key].sizeDeltaToken = request.sizeDeltaToken - quantity;
+            decreasePositionRequests[_key].sizeDeltaToken =
+                request.sizeDeltaToken -
+                quantity;
             request.sizeDeltaToken = quantity;
         }
     }

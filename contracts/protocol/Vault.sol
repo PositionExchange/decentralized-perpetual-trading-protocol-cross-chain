@@ -118,7 +118,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         _;
     }
 
-    modifier onlyFuturXGateway(address _account)  {
+    modifier onlyFuturXGateway(address _account) {
         _validate(_account == futurXGateway, Errors.V_ONLY_FUTURX_GATEWAY);
         _;
     }
@@ -291,7 +291,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _receiver,
         uint256 _amountOutUsdAfterFees,
         uint256 _feeUsd
-    ) external override onlyFuturXGateway(msg.sender) nonReentrant returns (uint256) {
+    )
+        external
+        override
+        onlyFuturXGateway(msg.sender)
+        nonReentrant
+        returns (uint256)
+    {
         _validateGasPrice();
 
         return
@@ -402,7 +408,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _positionMargin,
         bool _isLong
     ) external override onlyFuturXGateway(msg.sender) nonReentrant {
-
         _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
 
         uint256 borrowingFee = _getBorrowingFee(
@@ -447,7 +452,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _feeToken
     ) external override onlyFuturXGateway(msg.sender) nonReentrant {
-
         address collateralToken = _path[_path.length - 1];
         bytes32 key = getPositionInfoKey(_account, _indexToken, _isLong);
         uint256 amountInToken = _transferIn(collateralToken);
@@ -468,7 +472,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _amountInToken
     ) external override onlyFuturXGateway(msg.sender) nonReentrant {
-
         if (_isLong) {
             _decreasePoolAmount(_collateralToken, _amountInToken);
         }
@@ -825,7 +828,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         bool _isLong,
         uint256 _amountOutUsd,
         address _receiver
-    ) external override onlyFuturXGateway(msg.sender) onlyWhitelistToken(_collateralToken) returns (uint256) {
+    )
+        external
+        override
+        onlyFuturXGateway(msg.sender)
+        onlyWhitelistToken(_collateralToken)
+        returns (uint256)
+    {
         if (_amountOutUsd == 0) {
             return 0;
         }
