@@ -7,9 +7,10 @@ library PositionInfo {
         address collateralToken;
     }
 
-    function setEntryBorrowingRates(Data storage _self, uint256 _rate)
-        internal
-    {
+    function setEntryBorrowingRates(
+        Data storage _self,
+        uint256 _rate
+    ) internal {
         _self.entryBorrowingRates = uint128(_rate);
     }
 
@@ -17,7 +18,10 @@ library PositionInfo {
         _self.reservedAmount = _self.reservedAmount + _amount;
     }
 
-    function subReservedAmount(Data storage _self, uint256 _amount) internal returns (uint256) {
+    function subReservedAmount(
+        Data storage _self,
+        uint256 _amount
+    ) internal returns (uint256) {
         // Position already decreased on process chain -> no point in reverting
         // require(
         //    _amount <= _self.reservedAmount,

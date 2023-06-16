@@ -39,11 +39,19 @@ contract ReferralRewardTracker is
     event SetCounterParty(address counterParty, bool isActive);
     event ClaimCommission(address receiver, uint256 amount);
     event ClaimDiscount(address receiver, uint256 amount);
-    event UpdateClaimableCommissionReward(address referrer, address trader, uint256 amount, uint256 timestamp);
+    event UpdateClaimableCommissionReward(
+        address referrer,
+        address trader,
+        uint256 amount,
+        uint256 timestamp
+    );
     event UpdateClaimableDiscountReward(address trader, uint256 amount);
 
     modifier onlyCounterParty() {
-        require(isCounterParty[msg.sender],"ReferralStorage: onlyCounterParty");
+        require(
+            isCounterParty[msg.sender],
+            "ReferralStorage: onlyCounterParty"
+        );
         _;
     }
 
@@ -58,25 +66,35 @@ contract ReferralRewardTracker is
         tokenDecimal = _tokenDecimal;
         referralStorage = _referralStorage;
         positionValidationInterval = 1800;
-        positionValidationNotional = 50*WEI_DECIMALS;
+        positionValidationNotional = 50 * WEI_DECIMALS;
     }
 
-    function setRewardToken(address _address, uint256 _tokenDecimal) external onlyOwner {
+    function setRewardToken(
+        address _address,
+        uint256 _tokenDecimal
+    ) external onlyOwner {
         rewardToken = _address;
         tokenDecimal = _tokenDecimal;
-        emit SetRewardToken(_address,_tokenDecimal);
+        emit SetRewardToken(_address, _tokenDecimal);
     }
 
-    function setCounterParty(address _address, bool _isActive) external onlyOwner {
+    function setCounterParty(
+        address _address,
+        bool _isActive
+    ) external onlyOwner {
         isCounterParty[_address] = _isActive;
         emit SetCounterParty(_address, _isActive);
     }
 
-    function setPositionValidationInterval(uint256 _interval) external onlyOwner {
+    function setPositionValidationInterval(
+        uint256 _interval
+    ) external onlyOwner {
         positionValidationInterval = _interval;
     }
 
-    function setPositionValidationNotional(uint256 _notional) external onlyOwner {
+    function setPositionValidationNotional(
+        uint256 _notional
+    ) external onlyOwner {
         positionValidationNotional = _notional;
     }
 
@@ -85,7 +103,10 @@ contract ReferralRewardTracker is
         claimableCommission[msg.sender] = 0;
 
         if (tokenAmount > 0) {
-            IERC20(rewardToken).safeTransfer(msg.sender, tokenAmount.mul(10**tokenDecimal).div(WEI_DECIMALS));
+            IERC20(rewardToken).safeTransfer(
+                msg.sender,
+                tokenAmount.mul(10 ** tokenDecimal).div(WEI_DECIMALS)
+            );
             emit ClaimCommission(msg.sender, tokenAmount);
         }
     }
@@ -95,7 +116,10 @@ contract ReferralRewardTracker is
         claimableDiscount[msg.sender] = 0;
 
         if (tokenAmount > 0) {
-            IERC20(rewardToken).safeTransfer(msg.sender, tokenAmount.mul(10**tokenDecimal).div(WEI_DECIMALS));
+            IERC20(rewardToken).safeTransfer(
+                msg.sender,
+                tokenAmount.mul(10 ** tokenDecimal).div(WEI_DECIMALS)
+            );
             emit ClaimDiscount(msg.sender, tokenAmount);
         }
     }
@@ -109,20 +133,30 @@ contract ReferralRewardTracker is
             return;
         }
 
-        (address referrer, uint256 rebate, uint256 discount) =
-            IReferralStorage(referralStorage).getReferrerInfo(_trader);
+        (address referrer, uint256 rebate, uint256 discount) = IReferralStorage(
+            referralStorage
+        ).getReferrerInfo(_trader);
 
         if (referrer == address(0)) {
             return;
         }
 
         uint256 commissionAmount = _fee.mul(rebate).div(BASIS_POINTS);
-        claimableCommission[referrer] = claimableCommission[referrer].add(commissionAmount);
+        claimableCommission[referrer] = claimableCommission[referrer].add(
+            commissionAmount
+        );
 
         uint256 discountAmount = _fee.mul(discount).div(BASIS_POINTS);
-        claimableDiscount[_trader] = claimableDiscount[_trader].add(discountAmount);
+        claimableDiscount[_trader] = claimableDiscount[_trader].add(
+            discountAmount
+        );
 
-        emit UpdateClaimableCommissionReward(referrer, _trader, commissionAmount, block.timestamp);
+        emit UpdateClaimableCommissionReward(
+            referrer,
+            _trader,
+            commissionAmount,
+            block.timestamp
+        );
         emit UpdateClaimableDiscountReward(_trader, discountAmount);
     }
 
@@ -133,7 +167,8 @@ contract ReferralRewardTracker is
         uint256 _notional,
         bool _isIncrease
     ) external nonReentrant onlyCounterParty {
-        bool isStatusUpgradeable = IReferralStorage(referralStorage).isStatusUpgradeable(_trader);
+        bool isStatusUpgradeable = IReferralStorage(referralStorage)
+            .isStatusUpgradeable(_trader);
         if (isStatusUpgradeable) {
             return;
         }
@@ -147,13 +182,13 @@ contract ReferralRewardTracker is
             return;
         }
 
-        if (_isIncrease){
+        if (_isIncrease) {
             return;
         }
 
         delete positionTimestamp[_trader][_indexToken];
-        if (_timestamp.sub(createTimestamp)  > positionValidationInterval) {
-            IReferralStorage(referralStorage).setTraderStatus(_trader,true);
+        if (_timestamp.sub(createTimestamp) > positionValidationInterval) {
+            IReferralStorage(referralStorage).setTraderStatus(_trader, true);
         }
     }
 
@@ -161,8 +196,8 @@ contract ReferralRewardTracker is
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-    */
+     */
     uint256[49] private __gap;
     uint256 public tokenDecimal;
-    uint256 public constant WEI_DECIMALS = 10**18;
+    uint256 public constant WEI_DECIMALS = 10 ** 18;
 }

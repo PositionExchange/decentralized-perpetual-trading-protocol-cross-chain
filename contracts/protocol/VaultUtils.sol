@@ -156,7 +156,7 @@ contract VaultUtils is IVaultUtils, Ownable, Initializable {
         return _size.mul(borrowingRate).div(BORROWING_RATE_PRECISION);
     }
 
-    function setVault(address _vault) onlyOwner external {
+    function setVault(address _vault) external onlyOwner {
         vault = IVault(_vault);
     }
 

@@ -48,7 +48,10 @@ contract ReferralStorage is
     }
 
     modifier onlyCounterParty() {
-        require(isCounterParty[msg.sender],"ReferralStorage: onlyCounterParty");
+        require(
+            isCounterParty[msg.sender],
+            "ReferralStorage: onlyCounterParty"
+        );
         _;
     }
 
@@ -62,7 +65,10 @@ contract ReferralStorage is
         emit SetAdmin(_admin, _isActive);
     }
 
-    function setCounterParty(address _address, bool _isActive) external onlyOwner {
+    function setCounterParty(
+        address _address,
+        bool _isActive
+    ) external onlyOwner {
         isCounterParty[_address] = _isActive;
         emit SetCounterParty(_address, _isActive);
     }
@@ -130,7 +136,7 @@ contract ReferralStorage is
 
     function getReferrerInfo(
         address _trader
-    ) external view returns (address , uint256, uint256){
+    ) external view returns (address, uint256, uint256) {
         address referrer = codes[traderReferralCodes[_trader]];
         Tier memory tier = tiers[referrerTiers[referrer]];
         return (referrer, tier.totalRebate, tier.discountShare);
@@ -156,7 +162,7 @@ contract ReferralStorage is
             referrerTiers[_trader] <= referrerTiers[referrer],
             "ReferralStorage: must less than referrer tier"
         );
-        if (traderReferralCodes[referrer] != bytes32(0)){
+        if (traderReferralCodes[referrer] != bytes32(0)) {
             require(
                 traderReferralCodes[referrer] != traderCodes[_trader],
                 "ReferralStorage: cannot refer user referrer"
@@ -164,4 +170,3 @@ contract ReferralStorage is
         }
     }
 }
-

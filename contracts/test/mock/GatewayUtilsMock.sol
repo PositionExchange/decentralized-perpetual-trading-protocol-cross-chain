@@ -13,23 +13,14 @@ contract GatewayUtilsMock is IGatewayUtils {
         uint256 _amountInUsd,
         uint256 _leverage,
         bool _isLimitOrder
-    )
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
-    {
+    ) external view returns (uint256, uint256, uint256) {
         return (0, 0, 0);
     }
 
-    function calculateDiscountValue(uint256 _voucherId, uint256 _amountInUsd)
-        external
-        view
-        returns (uint256)
-    {
+    function calculateDiscountValue(
+        uint256 _voucherId,
+        uint256 _amountInUsd
+    ) external view returns (uint256) {
         return (0);
     }
 
@@ -42,11 +33,10 @@ contract GatewayUtilsMock is IGatewayUtils {
         return (0);
     }
 
-    function getSwapFee(address[] memory _path, uint256 _amountInToken)
-        external
-        view
-        returns (uint256)
-    {
+    function getSwapFee(
+        address[] memory _path,
+        uint256 _amountInToken
+    ) external view returns (uint256) {
         return (0);
     }
 

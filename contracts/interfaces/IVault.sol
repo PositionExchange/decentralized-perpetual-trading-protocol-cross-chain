@@ -263,10 +263,9 @@ interface IVault {
         bool _increment
     ) external view returns (uint256);
 
-    function getTokenConfiguration(address _token)
-        external
-        view
-        returns (TokenConfiguration.Data memory);
+    function getTokenConfiguration(
+        address _token
+    ) external view returns (TokenConfiguration.Data memory);
 
     function getPositionInfo(
         address _account,

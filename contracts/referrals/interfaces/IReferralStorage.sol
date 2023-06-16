@@ -12,6 +12,7 @@ interface IReferralStorage {
     ) external view returns (bytes32);
 
     function referrerTiers(address _account) external view returns (uint256);
+
     function traderStatus(address _account) external view returns (bool);
 
     function setTier(
@@ -24,7 +25,7 @@ interface IReferralStorage {
 
     function getReferrerInfo(
         address _trader
-    ) external view returns (address,uint256,uint256);
+    ) external view returns (address, uint256, uint256);
 
     function isStatusUpgradeable(address _trader) external view returns (bool);
 }

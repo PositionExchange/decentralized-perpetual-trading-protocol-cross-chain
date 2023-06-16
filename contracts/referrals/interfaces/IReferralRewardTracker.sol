@@ -3,7 +3,7 @@
 pragma solidity ^0.8.2;
 
 interface IReferralRewardTracker {
-    function updateClaimableReward(address _trader, uint256 _fee) external ;
+    function updateClaimableReward(address _trader, uint256 _fee) external;
 
     function updateRefereeStatus(
         address _trader,

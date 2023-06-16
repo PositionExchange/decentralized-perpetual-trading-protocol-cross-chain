@@ -57,14 +57,14 @@ contract VaultUtilsSplit is IVaultUtils, Initializable {
         return isStableSwap;
     }
 
-    function baseBps(bool isStableSwap) public view  returns (uint256) {
+    function baseBps(bool isStableSwap) public view returns (uint256) {
         uint256 baseBps = isStableSwap
             ? vault.stableSwapFeeBasisPoints()
             : vault.swapFeeBasisPoints();
         return baseBps;
     }
 
-    function taxBps(bool isStableSwap) public view  returns (uint256) {
+    function taxBps(bool isStableSwap) public view returns (uint256) {
         uint256 taxBps = isStableSwap
             ? vault.stableTaxBasisPoints()
             : vault.taxBasisPoints();

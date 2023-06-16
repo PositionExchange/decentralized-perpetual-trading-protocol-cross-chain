@@ -10,30 +10,27 @@ contract VaultMock {
     mapping(address => uint256) public tokenConfigurations;
     mapping(address => uint256) public priceMock;
 
-    function usdToTokenMin(address _token, uint256 _usdAmount)
-        public
-        view
-        returns (uint256)
-    {
+    function usdToTokenMin(
+        address _token,
+        uint256 _usdAmount
+    ) public view returns (uint256) {
         uint256 decimals = tokenConfigurations[_token];
         uint256 price = priceMock[_token];
 
-        return _usdAmount.mul(10**decimals).div(price);
+        return _usdAmount.mul(10 ** decimals).div(price);
     }
 
-    function tokenToUsdMin(address, uint256 _tokenAmount)
-        public
-        view
-        returns (uint256)
-    {
+    function tokenToUsdMin(
+        address,
+        uint256 _tokenAmount
+    ) public view returns (uint256) {
         return _tokenAmount.mul(tokenPriceMock);
     }
 
-    function tokenToUsdMinWithAdjustment(address, uint256 _tokenAmount)
-        public
-        view
-        returns (uint256)
-    {
+    function tokenToUsdMinWithAdjustment(
+        address,
+        uint256 _tokenAmount
+    ) public view returns (uint256) {
         return _tokenAmount.mul(tokenPriceMock);
     }
 

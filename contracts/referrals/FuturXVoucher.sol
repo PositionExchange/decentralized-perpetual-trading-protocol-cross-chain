@@ -58,10 +58,10 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         _;
     }
 
-    function initialize(address _futurXGateway, address _signer)
-        public
-        initializer
-    {
+    function initialize(
+        address _futurXGateway,
+        address _signer
+    ) public initializer {
         __Ownable_init();
         __ERC721_init("FuturX Voucher", "FV");
 
@@ -145,11 +145,9 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         emit VoucherBurned(voucherInfo[voucherId].owner, voucherId);
     }
 
-    function tokenIdsByOwner(address owner)
-        external
-        view
-        returns (uint256[] memory)
-    {
+    function tokenIdsByOwner(
+        address owner
+    ) external view returns (uint256[] memory) {
         uint256 balance = balanceOf(owner);
         uint256[] memory tokens = new uint256[](balance);
 
@@ -160,11 +158,9 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         return tokens;
     }
 
-    function tokensByOwner(address owner)
-        external
-        view
-        returns (Voucher[] memory)
-    {
+    function tokensByOwner(
+        address owner
+    ) external view returns (Voucher[] memory) {
         uint256 balance = balanceOf(owner);
         Voucher[] memory vouchers = new Voucher[](balance);
 
@@ -181,11 +177,9 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         return expiredTime > 0 ? expiredTime : defaultExpireTime;
     }
 
-    function getVoucherInfo(uint256 _voucherId)
-        external
-        view
-        returns (Voucher memory)
-    {
+    function getVoucherInfo(
+        uint256 _voucherId
+    ) external view returns (Voucher memory) {
         return voucherInfo[_voucherId];
     }
 
@@ -235,10 +229,10 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         return ECDSAUpgradeable.toEthSignedMessageHash(hash);
     }
 
-    function setExpireTime(uint8 _voucherType, uint256 _expiredTimeInSecond)
-        external
-        onlyOwner
-    {
+    function setExpireTime(
+        uint8 _voucherType,
+        uint256 _expiredTimeInSecond
+    ) external onlyOwner {
         expireTimeMap[_voucherType] = _expiredTimeInSecond;
     }
 
@@ -265,11 +259,15 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 tokenId
-//        uint256 batchSize
-    ) internal override(ERC721EnumerableUpgradeable ) {
-//        super._beforeTokenTransfer(from, to, tokenId, 1);
-        super._beforeTokenTransfer(from, to, tokenId);
+        uint256 tokenId,
+        uint256 batchSize
+    )
+        internal
+        override(
+            ERC721EnumerableUpgradeable
+        )
+    {
+        super._beforeTokenTransfer(from, to, tokenId, batchSize);
 
         if (from == address(0) || to == address(0)) {
             return;
@@ -280,12 +278,10 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         );
     }
 
-    function _isApprovedOrOwner(address spender, uint256 tokenId)
-        internal
-        view
-        override
-        returns (bool)
-    {
+    function _isApprovedOrOwner(
+        address spender,
+        uint256 tokenId
+    ) internal view override returns (bool) {
         return true;
     }
 }
