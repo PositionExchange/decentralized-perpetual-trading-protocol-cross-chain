@@ -653,6 +653,48 @@ export class ContractWrapperFactory {
         }
     }
 
+    async createRewardRouter(contractArgs: any[]) {
+        console.log("createRewardRouter");
+
+        const contractName = 'RewardRouter';
+        const rewardRouter = await this.hre.ethers.getContractFactory(contractName);
+        const contractAddress = await this.db.findAddressByKey(contractName);
+        console.log("createRewardRouter :", contractAddress);
+
+        if (contractAddress) {
+            const upgraded = await this.hre.upgrades.upgradeProxy(
+                contractAddress,
+                rewardRouter
+            );
+            console.log(`Starting verify upgrade ${contractName}`);
+            await this.verifyImplContract(upgraded.deployTransaction);
+            console.log(`Upgrade ${contractName}`);
+        } else {
+            console.log("start deploy createRewardRouter")
+            const instance = await this.hre.upgrades.deployProxy(
+                rewardRouter,
+                contractArgs
+            );
+            console.log(`wait for deploy ${contractName}`);
+            await instance.deployed();
+
+            const address = instance.address.toString();
+            console.log(`Address ${contractName}: ${address}`);
+
+            await this.db.saveAddressByKey(contractName, address);
+            await this.verifyProxy(address);
+
+            const upgraded = await this.hre.upgrades.upgradeProxy(
+                address,
+                rewardRouter
+            );
+            await this.verifyImplContract(upgraded.deployTransaction);
+
+            return instance;
+        }
+
+    }
+
     async _deployNonUpgradeableContract(contractName: string, args: any[]) {
       const factory = await this.hre.ethers.getContractFactory(contractName);
       const contract = await factory.deploy(...args)

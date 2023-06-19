@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "./interfaces/IRewardTracker.sol";
 import "./interfaces/IRewardRouter.sol";
@@ -13,13 +13,12 @@ import "./interfaces/IVester.sol";
 import "../token/interface/IMintable.sol";
 import "../token/interface/IWETH.sol";
 import "../interfaces/ILpManager.sol";
-import "../access/Governable.sol";
+import "../access/GovernableUpgradeable.sol";
 
 contract RewardRouter is
     IRewardRouter,
-    ReentrancyGuard,
-    Governable,
-    Initializable
+    ReentrancyGuardUpgradeable,
+    GovernableUpgradeable
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -56,21 +55,16 @@ contract RewardRouter is
         require(msg.sender == weth, "Router: invalid sender");
     }
 
-    constructor(
-        address _weth,
-        address _posi,
-        address _esPosi,
-        address _bnPosi,
-        address _plp
-    ) {
-        weth = _weth;
-        posi = _posi;
-        esPosi = _esPosi;
-        bnPosi = _bnPosi;
-        plp = _plp;
+    struct ParamToken {
+        address weth;
+        address posi;
+        address esPosi;
+        address bnPosi;
+        address plp;
     }
 
     function initialize(
+        ParamToken memory _paramToken,
         address _stakedPosiTracker,
         address _bonusPosiTracker,
         address _feePosiTracker,
@@ -80,6 +74,15 @@ contract RewardRouter is
         address _posiVester,
         address _plpVester
     ) external initializer {
+        __ReentrancyGuard_init();
+        __Governable_init();
+
+        weth = _paramToken.weth;
+        posi = _paramToken.posi;
+        esPosi = _paramToken.esPosi;
+        bnPosi = _paramToken.bnPosi;
+        plp = _paramToken.plp;
+
         stakedPosiTracker = _stakedPosiTracker;
         bonusPosiTracker = _bonusPosiTracker;
         feePosiTracker = _feePosiTracker;
@@ -185,7 +188,62 @@ contract RewardRouter is
         return plpAmount;
     }
 
-    function mintAndStakePlpETH(
+
+    /// @notice stake _token, mint plp, then auto stake to the pool
+    /// @param plpAmount the amount of PLP to stake
+    function stakePlp(
+        uint256 plpAmount
+    ) external nonReentrant returns (uint256) {
+        require(plpAmount > 0, "RewardRouter: invalid _amount");
+        address account = msg.sender;
+
+        IRewardTracker(feePlpTracker).stakeForAccount(
+            account,
+            account,
+            plp,
+            plpAmount
+        );
+
+        IRewardTracker(stakedPlpTracker).stakeForAccount(
+            account,
+            account,
+            feePlpTracker,
+            plpAmount
+        );
+
+        emit StakePlp(account, plpAmount);
+
+        return plpAmount;
+    }
+
+    /// @notice stake _token, mint plp, then auto stake to the pool
+    /// @param _token the token to purchase plp
+    /// @param _amount the amount to purchase plp
+    /// @param _minUsdp min usdp, avoid slippage
+    /// @param _minPlp min plp, avoid slippage
+    function mintPlp(
+        address _token,
+        uint256 _amount,
+        uint256 _minUsdp,
+        uint256 _minPlp
+    ) external nonReentrant returns (uint256) {
+        require(_amount > 0, "RewardRouter: invalid _amount");
+
+        address account = msg.sender;
+        uint256 plpAmount = ILpManager(plpManager).addLiquidityForAccount(
+            account,
+            account,
+            _token,
+            _amount,
+            _minUsdp,
+            _minPlp
+        );
+        emit StakePlp(account, plpAmount);
+
+        return plpAmount;
+    }
+
+    function mintPlpETH(
         uint256 _minUsdp,
         uint256 _minPlp
     ) external payable nonReentrant returns (uint256) {
@@ -204,21 +262,7 @@ contract RewardRouter is
             _minPlp
         );
 
-        IRewardTracker(feePlpTracker).stakeForAccount(
-            account,
-            account,
-            plp,
-            plpAmount
-        );
-        IRewardTracker(stakedPlpTracker).stakeForAccount(
-            account,
-            account,
-            feePlpTracker,
-            plpAmount
-        );
-
         emit StakePlp(account, plpAmount);
-
         return plpAmount;
     }
 
@@ -261,15 +305,11 @@ contract RewardRouter is
         return amountOut;
     }
 
-    /// @notice redeem plp and unstake PLP, receive ETH
-    /// @param _plpAmount the Plp amount to redeem
-    /// @param _minOut min amount out
-    /// @param _receiver receive address
-    function unstakeAndRedeemPlpETH(
-        uint256 _plpAmount,
-        uint256 _minOut,
-        address payable _receiver
-    ) external nonReentrant returns (uint256) {
+    /// @notice unstakePlp
+    /// @param _plpAmount plp amount
+    function unstakePlp(
+        uint256 _plpAmount
+    ) external nonReentrant {
         require(_plpAmount > 0, "RewardRouter: invalid _plpAmount");
 
         address account = msg.sender;
@@ -285,6 +325,50 @@ contract RewardRouter is
             _plpAmount,
             account
         );
+        emit UnstakePlp(account, _plpAmount);
+    }
+
+    /// @notice redeem plp
+    /// @param _tokenOut receive token
+    /// @param _plpAmount plp amount
+    /// @param _minOut min amount out
+    /// @param _receiver receive address
+    function redeemPlp(
+        address _tokenOut,
+        uint256 _plpAmount,
+        uint256 _minOut,
+        address _receiver
+    ) external nonReentrant returns (uint256) {
+        require(_plpAmount > 0, "RewardRouter: invalid _plpAmount");
+
+        address account = msg.sender;
+
+        uint256 amountOut = ILpManager(plpManager).removeLiquidityForAccount(
+            account,
+            _tokenOut,
+            _plpAmount,
+            _minOut,
+            _receiver
+        );
+
+        emit UnstakePlp(account, _plpAmount);
+
+        return amountOut;
+    }
+
+    /// @notice redeem plp
+    /// @param _plpAmount the Plp amount to redeem
+    /// @param _minOut min amount out
+    /// @param _receiver receive address
+    function redeemPlpETH(
+        uint256 _plpAmount,
+        uint256 _minOut,
+        address payable _receiver
+    ) external nonReentrant returns (uint256) {
+        require(_plpAmount > 0, "RewardRouter: invalid _plpAmount");
+
+        address account = msg.sender;
+
         uint256 amountOut = ILpManager(plpManager).removeLiquidityForAccount(
             account,
             weth,
@@ -744,4 +828,12 @@ contract RewardRouter is
 
         emit UnstakePosi(_account, _token, _amount);
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[49] private __gap;
+
 }
