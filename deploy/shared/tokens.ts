@@ -25,7 +25,14 @@ const priceFeedARBTestNet = {
   'DAI_USD': '0x103b53E977DA6E4Fa92f76369c8b7e20E7fb7fe1',
   'USDC_USD': '0x1692Bdd32F31b831caAc1b0c9fAF68613682813b'
 };
-export const BNB = new MultiChainToken<IExtraTokenConfig>('BNB', 'BNB', 18, 
+const priceFeedArbOne = {
+  'BTC_USD': '0x6ce185860a4963106506c203335a2910413708e9',
+  'ETH_USD': '0x639fe6ab55c921f74e7fac1ee960c0b6293ba612',
+  'USDC_USD': '0x50834f3163758fcc1df9973b6e91f0f0f0434ad3',
+  'USDT_USD': '0x3f3f5df88dc9f13eac63df89ec16ef6e7e25dde7'
+};
+
+export const BNB = new MultiChainToken<IExtraTokenConfig>('BNB', 'BNB', 18,
 {
   56: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
   97: '0x1424Cd8e3B4c970ef52F88e8AccFbc4242BDc78b',
@@ -74,7 +81,8 @@ export const BUSD = new MultiChainToken<IExtraTokenConfig>('BUSD', 'BUSD', 18, {
 export const USDT = new MultiChainToken<IExtraTokenConfig>('USDT', 'USDT', 6, {
   56: '',
   97: '0x542E4676238562b518B968a1d03626d544a7BCA2',
-  421613: '0x38193a1c61B2B44446289265580F73746F5BB5AE'
+  421613: '0x38193a1c61B2B44446289265580F73746F5BB5AE',
+  42161: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'
 },
 {
   97: {
@@ -102,6 +110,21 @@ export const USDT = new MultiChainToken<IExtraTokenConfig>('USDT', 'USDT', 6, {
     },
     priceFeedConfig: {
       chainLinkPriceFeed: priceFeedARBTestNet['USDT_USD'],
+      priceFeedDecimals: 8,
+      spreadBasisPoints: 10,
+      isStrictStable: true
+    }
+  },
+  42161: {
+    vaultTokenConfig: {
+      mintProfitBps: 0,
+      tokenWeight: 100,
+      maxUsdpAmount: 100 * 1e6,
+      isStableToken: true,
+      isShortable: false
+    },
+    priceFeedConfig: {
+      chainLinkPriceFeed: priceFeedArbOne['USDT_USD'],
       priceFeedDecimals: 8,
       spreadBasisPoints: 10,
       isStrictStable: true
@@ -154,7 +177,8 @@ export const DAI = new MultiChainToken<IExtraTokenConfig>('DAI', 'DAI', 18, {
 export const WETH = new MultiChainToken<IExtraTokenConfig>('WETH', 'WETH', 18, {
   56: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
   97: '0x4D906559B2cEbBe063757ab76c5620C2149e4b0D',
-  421613: '0x471385598B0Bdb63C89082F4166C0577C6C0263a'
+  421613: '0x471385598B0Bdb63C89082F4166C0577C6C0263a',
+  42161: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
 },
 {
   97: {
@@ -186,6 +210,21 @@ export const WETH = new MultiChainToken<IExtraTokenConfig>('WETH', 'WETH', 18, {
       spreadBasisPoints: 10,
       isStrictStable: false
     }
+  },
+  42161: {
+    vaultTokenConfig: {
+      mintProfitBps: 0,
+      tokenWeight: 100,
+      maxUsdpAmount: 100 * 1e6,
+      isStableToken: false,
+      isShortable: true
+    },
+    priceFeedConfig: {
+      chainLinkPriceFeed: priceFeedArbOne['ETH_USD'],
+      priceFeedDecimals: 8,
+      spreadBasisPoints: 10,
+      isStrictStable: false
+    }
   }
 }
 )
@@ -193,7 +232,8 @@ export const WETH = new MultiChainToken<IExtraTokenConfig>('WETH', 'WETH', 18, {
 export const BTC = new MultiChainToken<IExtraTokenConfig>('BTC', 'BTC', 8, {
   56: '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c',
   97: '0xc4900937c3222CA28Cd4b300Eb2575ee0868540F',
-  421613: '0xA8cc0c527a271c7D196f12c23a65DbFB58C033F5'
+  421613: '0xA8cc0c527a271c7D196f12c23a65DbFB58C033F5',
+  42161: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
 },
 {
   97: {
@@ -221,6 +261,21 @@ export const BTC = new MultiChainToken<IExtraTokenConfig>('BTC', 'BTC', 8, {
     },
     priceFeedConfig: {
       chainLinkPriceFeed: priceFeedARBTestNet['BTC_USD'],
+      priceFeedDecimals: 8,
+      spreadBasisPoints: 10,
+      isStrictStable: false
+    }
+  },
+  42161: {
+    vaultTokenConfig: {
+      mintProfitBps: 0,
+      tokenWeight: 100,
+      maxUsdpAmount: 100 * 1e6,
+      isStableToken: false,
+      isShortable: true
+    },
+    priceFeedConfig: {
+      chainLinkPriceFeed: priceFeedArbOne['BTC_USD'],
       priceFeedDecimals: 8,
       spreadBasisPoints: 10,
       isStrictStable: false
@@ -275,7 +330,8 @@ export const LINK = new MultiChainToken<IExtraTokenConfig>('LINK', 'LINK', 18, {
 )
 
 export const USDC = new MultiChainToken<IExtraTokenConfig>('USDC', 'USDC', 6, {
-      421613: '0x42C2Bd247fbe4804C52999f33105Ad705Dee3bC5'
+      421613: '0x42C2Bd247fbe4804C52999f33105Ad705Dee3bC5',
+      42161: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
     },
     {
       421613: {
@@ -288,6 +344,21 @@ export const USDC = new MultiChainToken<IExtraTokenConfig>('USDC', 'USDC', 6, {
         },
         priceFeedConfig: {
           chainLinkPriceFeed: priceFeedARBTestNet['USDC_USD'],
+          priceFeedDecimals: 8,
+          spreadBasisPoints: 10,
+          isStrictStable: true
+        }
+      },
+      42161: {
+        vaultTokenConfig: {
+          mintProfitBps: 0,
+          tokenWeight: 100,
+          maxUsdpAmount: 100 * 1e6,
+          isStableToken: true,
+          isShortable: false
+        },
+        priceFeedConfig: {
+          chainLinkPriceFeed: priceFeedArbOne['USDC_USD'],
           priceFeedDecimals: 8,
           spreadBasisPoints: 10,
           isStrictStable: true

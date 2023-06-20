@@ -6,7 +6,7 @@ import {
   MockToken,
   RewardRouter,
   USDP,
-  Vault,
+  Vault, VaultPriceFeed,
   VaultUtils,
   WETH,
 } from "../../typeChain";
@@ -73,7 +73,7 @@ const migrations: MigrationDefinition = {
       // call this one to re config price feed for tokens
       "config price feeds": async () => {
         // vault price feed set price feed config
-        const { vaultPriceFeed } = await ctx.factory.createCoreVaultContracts();
+        const vaultPriceFeed = await ctx.factory.getDeployedContract<VaultPriceFeed>("VaultPriceFeed")
         const tokens = ctx.factory.getWhitelistedTokens();
         for (let i = 0; i < tokens.length; i++) {
           const token = tokens[i];

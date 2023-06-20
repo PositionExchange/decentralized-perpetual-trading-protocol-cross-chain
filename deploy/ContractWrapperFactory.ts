@@ -31,6 +31,8 @@ import {
 import {ContractConfig} from "./shared/PreDefinedContractAddress";
 import {ethers as ethersE} from "ethers";
 import {IExtraTokenConfig, Token} from "./shared/types";
+import {UpgradeProxyOptions} from "@openzeppelin/hardhat-upgrades/src/utils";
+import {ValidationError} from "@openzeppelin/upgrades-core/src/validate/run";
 
 interface ContractWrapperFactoryOptions {
     isForceDeploy?: boolean;
@@ -546,9 +548,13 @@ export class ContractWrapperFactory {
                 vaultPriceFeedAddress,
                 usdpAddress,
             ];
+            const opts: UpgradeProxyOptions = {
+                unsafeAllow: ['delegatecall']
+            }
             const instance = await this.hre.upgrades.deployProxy(
                 factory,
-                contractArgs
+                contractArgs,
+                opts
             );
             console.log(`wait for deploy ${contractName}`);
             await instance.deployed();

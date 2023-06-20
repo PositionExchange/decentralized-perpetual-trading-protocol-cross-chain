@@ -8,15 +8,11 @@ import "@openzeppelin/hardhat-defender";
 import "hardhat-docgen";
 import { task } from "hardhat/config";
 import {
-  ARB_API_KEY,
-  BSC_MAINNET_URL,
-  BSC_TESTNET_URL,
-  OKEX_CHAIN_MAINNET_URL,
-  OKEX_CHAIN_TESTNET_URL,
-  POSI_CHAIN_TESTNET_URL,
-  PRIV_MAINNET_ACCOUNT,
-  PRIV_POSI_CHAIN_TESTNET_ACCOUNT,
-  PRIV_TESTNET_ACCOUNT,
+    ARB_API_KEY,
+    ARB_MAINNET_DEPLOYER_KEY,
+    ARB_TESTNET_DEPLOYER_KEY, BSC_API_KEY,
+    BSC_MAINNET_DEPLOYER_KEY,
+    BSC_TESTNET_DEPLOYER_KEY,
 } from "./constants";
 import "./scripts/deploy";
 // TODO enable gas reporter once development done
@@ -56,39 +52,25 @@ module.exports = {
             allowUnlimitedContractSize: true,
         },
         bscTestnet: {
-            url: BSC_TESTNET_URL,
+            url: "https://data-seed-prebsc-1-s2.binance.org:8545",
             chainId: 97,
-            accounts: PRIV_TESTNET_ACCOUNT ? [PRIV_TESTNET_ACCOUNT] : [],
+            accounts: [BSC_TESTNET_DEPLOYER_KEY],
         },
         bsc: {
-            url: BSC_MAINNET_URL,
+            url: "https://bsc-dataseed.binance.org/",
             chainId: 56,
-            accounts: PRIV_MAINNET_ACCOUNT ? [PRIV_MAINNET_ACCOUNT] : [],
-        },
-        posi_testnet: {
-            url: POSI_CHAIN_TESTNET_URL,
-            chainId: 910000,
-            accounts: PRIV_POSI_CHAIN_TESTNET_ACCOUNT ? [PRIV_POSI_CHAIN_TESTNET_ACCOUNT] : [],
-        },
-        okex_testnet: {
-            url: OKEX_CHAIN_TESTNET_URL,
-            chainId: 65,
-            accounts: PRIV_POSI_CHAIN_TESTNET_ACCOUNT ? [PRIV_POSI_CHAIN_TESTNET_ACCOUNT] : [],
-        },
-        okex_mainnet: {
-            url: OKEX_CHAIN_MAINNET_URL,
-            chainId: 66,
-            accounts: PRIV_MAINNET_ACCOUNT ? [PRIV_MAINNET_ACCOUNT] : [],
+            accounts: [BSC_MAINNET_DEPLOYER_KEY],
         },
         arbitrumGoerli: {
             url: "https://snowy-dimensional-wave.arbitrum-goerli.quiknode.pro/5fb1a4cbaec64e964facf89b037dabd44bd73b27/",
             chainId: 421613,
-            accounts: PRIV_TESTNET_ACCOUNT ? [PRIV_TESTNET_ACCOUNT] : [],
+            accounts: [ARB_TESTNET_DEPLOYER_KEY],
         },
         arbitrumOne: {
             url: "https://arb-mainnet-public.unifra.io",
             chainId: 42161,
-            accounts: PRIV_TESTNET_ACCOUNT ? [PRIV_TESTNET_ACCOUNT] : [],
+            gasPrice: 100000000,
+            accounts: [ARB_MAINNET_DEPLOYER_KEY],
         },
     },
 
@@ -144,9 +126,8 @@ module.exports = {
     },
     etherscan: {
         apiKey: {
-            posi_testnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
-            bscTestnet: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
-            bsc: 'UXFZRYWHB141CX97CPECWH9V7E9QSPHUF6',
+            bscTestnet: BSC_API_KEY,
+            bsc: BSC_API_KEY,
             arbitrumGoerli: ARB_API_KEY,
             arbitrumOne: ARB_API_KEY,
         },
