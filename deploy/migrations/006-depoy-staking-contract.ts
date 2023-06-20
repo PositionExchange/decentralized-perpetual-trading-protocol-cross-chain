@@ -15,7 +15,7 @@ const migrations: MigrationDefinition = {
       const nativeToken = ctx.factory.contractConfig.getStageConfig<typeof Token>('native_token')
       return {
         'deploy reward router': async () => {
-          const vestingDuration = 365 * 24 * 60 * 60
+            const vestingDuration = 365 * 24 * 60 * 60
 
             const glpManager = await ctx.factory.getDeployedContract<LpManager>('LpManager')
             const glp = await ctx.factory.getDeployedContract<PLP>('PLP')
@@ -108,23 +108,43 @@ const migrations: MigrationDefinition = {
               contractId: 'vestedPLP'
             })
 
-            const rewardRouter = await deployContract<RewardRouter>("RewardRouter", [
-              nativeToken.address,
-              posi.address,
-              esPosi.address,
-              bnPosi.address,
-              glp.address
+            // const rewardRouter = await deployContract<RewardRouter>("RewardRouter", [
+            //   nativeToken.address,
+            //   posi.address,
+            //   esPosi.address,
+            //   bnPosi.address,
+            //   glp.address
+            // ])
+            // await sendTxn(rewardRouter.initialize(
+            //   stakedPosiTracker.address,
+            //   bonusPosiTracker.address,
+            //   feePosiTracker.address,
+            //   feePlpTracker.address,
+            //   stakedPlpTracker.address,
+            //   glpManager.address,
+            //   gmxVester.address,
+            //   glpVester.address
+            // ), "rewardRouter.initialize")
+
+            const rewardRouter = await ctx.factory.createRewardRouter([
+                   [
+                       nativeToken.address,
+                       posi.address,
+                       esPosi.address,
+                       bnPosi.address,
+                       glp.address
+                  ],
+                  stakedPosiTracker.address,
+                  bonusPosiTracker.address,
+                  feePosiTracker.address,
+                  feePlpTracker.address,
+                  stakedPlpTracker.address,
+                  glpManager.address,
+                  gmxVester.address,
+                  glpVester.address
             ])
-            await sendTxn(rewardRouter.initialize(
-              stakedPosiTracker.address,
-              bonusPosiTracker.address,
-              feePosiTracker.address,
-              feePlpTracker.address,
-              stakedPlpTracker.address,
-              glpManager.address,
-              gmxVester.address,
-              glpVester.address
-            ), "rewardRouter.initialize")
+
+            // allow rewardRouter to stake in stakedPosiTracker
 
             await sendTxn(glpManager.setHandler(rewardRouter.address, true), "glpManager.setHandler(rewardRouter)")
 

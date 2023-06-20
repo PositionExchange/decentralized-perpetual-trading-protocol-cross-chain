@@ -113,6 +113,26 @@
     {
       "address": "0x568972946733b26Ab22Caf6080E688fEAb454d84",
       "kind": "transparent"
+    },
+    {
+      "address": "0x9363766e02f8283FD49e40ab2602Cbb6E440aaa4",
+      "txHash": "0x35b37214ae4260e3af65250935a223c28a81db1f9f0e5b648ff33ac85adc9e7c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x75c25FD1aE228A0bDcd20726E5293ebd000aCb16",
+      "txHash": "0xea988fc10fe780e6fe28936d1962277483817a85beaf75380b465a6887f97cf7",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xFc119ce1B0e864beA23b2232358f295BA781bF86",
+      "txHash": "0xc166150eb4fe90d55a68f687c0d1c3af40bdea68e11c224d48e9240974f7b36d",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xcc77602f84A7273699278690A63c0728555f820f",
+      "txHash": "0xb1c13edf4c06ad978cb667bacd4ae2aaeb359d90949d5d1c22d20fd4e855ece8",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -79932,6 +79952,202 @@
           "t_uint64": {
             "label": "uint64",
             "numberOfBytes": "8"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "a4d404ef1129ceb5c6fe882aadd349fd5eebd11acd0d2a0b232e41a19d8e32ef": {
+      "address": "0xD12452d8024f7dcccaaEa2D761377aD64104B453",
+      "txHash": "0x666c8106a2c2c50f22a7b94b8be84601d9a04be4287446f9a61b944888fe4aa2",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:88"
+          },
+          {
+            "label": "gov",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "GovernableUpgradeable",
+            "src": "contracts/access/GovernableUpgradeable.sol:5"
+          },
+          {
+            "label": "weth",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:26"
+          },
+          {
+            "label": "posi",
+            "offset": 0,
+            "slot": "53",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:28"
+          },
+          {
+            "label": "esPosi",
+            "offset": 0,
+            "slot": "54",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:29"
+          },
+          {
+            "label": "bnPosi",
+            "offset": 0,
+            "slot": "55",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:30"
+          },
+          {
+            "label": "plp",
+            "offset": 0,
+            "slot": "56",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:32"
+          },
+          {
+            "label": "stakedPosiTracker",
+            "offset": 0,
+            "slot": "57",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:34"
+          },
+          {
+            "label": "bonusPosiTracker",
+            "offset": 0,
+            "slot": "58",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:35"
+          },
+          {
+            "label": "feePosiTracker",
+            "offset": 0,
+            "slot": "59",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:36"
+          },
+          {
+            "label": "stakedPlpTracker",
+            "offset": 0,
+            "slot": "60",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:38"
+          },
+          {
+            "label": "feePlpTracker",
+            "offset": 0,
+            "slot": "61",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:39"
+          },
+          {
+            "label": "plpManager",
+            "offset": 0,
+            "slot": "62",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:41"
+          },
+          {
+            "label": "posiVester",
+            "offset": 0,
+            "slot": "63",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:43"
+          },
+          {
+            "label": "plpVester",
+            "offset": 0,
+            "slot": "64",
+            "type": "t_address",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:44"
+          },
+          {
+            "label": "pendingReceivers",
+            "offset": 0,
+            "slot": "65",
+            "type": "t_mapping(t_address,t_address)",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:46"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "66",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "RewardRouter",
+            "src": "contracts/staking/RewardRouter.sol:837"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_address)": {
+            "label": "mapping(address => address)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
           },
           "t_uint8": {
             "label": "uint8",
