@@ -1,6 +1,10 @@
 {"address":"0xc33909843833427cAbe7478B4277F67997bC35e6","key":"StakedPlpTracker","_id":"0OYiqPFITWxfa2En"}
+{"address":"yes","key":"0x0c8176EeC3b0181C1Cd937515931cfaA73267892:verified","_id":"4FdZzwWZRwWRG6ct"}
+{"address":"0xDCDa60477801DDcA3232881c288026a1f5a35c67","key":"FuturXVoucher","_id":"4bXgMEu9WMsoNgUC"}
 {"address":"0x6637F3820E9Ff22Bfcaf46E08afA92B2D26bf64a","key":"Reader","_id":"5VwJGTwwTGFBiK7W"}
 {"address":"0x896566ec8edA258dfdff034FDdAF9FFf3F96c870","key":"MintableBaseToken","_id":"5jjQ44hhA471KIub"}
+{"address":"0xdA20D4EcE7017d0Bd2635963bbEe6246D31bbc4E","key":"ReferralRewardTracker","_id":"8CdEqRGYOFF6Bg8G"}
+{"address":"0xf03d7B22052AcaF78D25Fb32096AF91E1D0029A8","key":"TPSLGateway","_id":"AHPshP2wGwRImwBC"}
 {"address":"0x795f9cB5A7f6798e5F998510d2f3C5E178FFC36B","key":"FeePosiTracker","_id":"BkwC2oHRrmqYESyT"}
 {"address":"0x79061aE2B6bd18c2Eb421Da730d3ad47C303A65D","key":"Vault","_id":"C7CWi64J4lognUCD"}
 {"address":"0xd88f56DE1C624e1d44C08C9302aF287d6a6a8222","key":"LpManager","_id":"DZrVUsDguiZnbnGP"}
@@ -9,6 +13,7 @@
 {"address":"0x81CFB8f2Ddc0dED203135624b3EA35bB27670B2B","key":"POSI","_id":"HFfyqltn0cCUhMJI"}
 {"address":"0xa55a85C695D549acD5fE94b8eC4639FDcf7A2e1b","key":"vestedPLP","_id":"HWDMjFuItSbkrQ5h"}
 {"address":"0x9E08EC5429110Bd1653db5382af3A2AA224a2348","key":"VestedPOSI","_id":"KqWJ73SBa2RYRdJT"}
+{"address":"0xcC8eE31D3d62f69fE1289589E82fFb1bE35eE37D","key":"DptpFuturesGateway","_id":"L33WAbPKFjjr0LEK"}
 {"address":"0x120FB3Ec422d81c68BeCB58c139ca95A01801712","key":"FeePlpTracker","_id":"LaDYmr12pcxT5Zxx"}
 {"address":"0xF5f73EcE563F056620213572b37AE3a3e21e0f90","key":"FeePosiDistributor","_id":"LipmJaS6Iu0ya2sK"}
 {"address":"0x22931461C3F99CEbe9E25630FceD5880eD537a99","key":"FeePlpDistributor","_id":"OrcR0PiwWnCpN6Lj"}
@@ -16,11 +21,15 @@
 {"address":"0xddEC0f2f71376F1D5Bf39887cF5a13B80f96C566","key":"VaultReader","_id":"VIbzkv2JrGrRPyjy"}
 {"address":"0x02AD4d75F81E39DA10B919Ae840e0E6A14bDEb5B","key":"StakedPosiDistributor","_id":"Vf3Ofqbx81fmfJU9"}
 {"address":"0x63c6c5e67A2C92E077eAAFDF504eD7e211C3E931","key":"StakedPosiTracker","_id":"Ws9VNfKkOpKXC4ul"}
+{"address":"0x4502A1B16b2575F89e45567Aa2496aBae1f15371","key":"FuturXGatewayStorage","_id":"XLX2hS81rWmwtC15"}
 {"address":"0x4CebAc4857bd3ED527BfA30eD1b35690fe28C833","key":"VaultUtils","_id":"Z0qUMEMZZ1eHP4bC"}
-{"address":"0x5BA03fbc9EfEDA56a1cc446b8626ecE28f3658bb","key":"RewardRouter","_id":"bdpUQtu7zKJP39rk"}
+{"address":"0x498E4A48FAd4bdA098e51fA0bDD03424b5047dBb","key":"VaultUtilsSplit","_id":"d3ZQyBVAVd30VjSK"}
 {"address":"0xE6102D09eC5ed79E429f94E5b4cb482E96157290","key":"PLP","_id":"e5qZ4d4kRhf5y41T"}
 {"address":"0x36Ed30836C807675caEED34541D579877E207a26","key":"VaultPriceFeed","_id":"hkTkMCV0ioVnyzwT"}
 {"address":"0x29103d70DFf4b0EdD448d56A00818B3E8948217f","key":"StakedPlpDistributor","_id":"ic8hJHUxzHaaJ3D2"}
+{"address":"0x4a87FE9246e87CF5A558b43820Cc9b1e2edc9536","key":"RewardRouter","_id":"iwOM63QfgLzsVzPd"}
+{"address":"0xbF5c5107C2875F737E1fd89B61c6e7CB500653A8","key":"DptpFuturesGatewayGovernance","_id":"j9f3TArQRoMFW9c3"}
 {"address":"0x37709aAf09D880E9E4BD16661E896e2f3D273644","key":"BonusPosiTracker","_id":"qusnkLSOJpqQscBB"}
 {"address":"0x752FfecE72ed13b262fEdBf0F86d9A3ae79670c0","key":"USDP","_id":"tLJvaTo6uxvWoI56"}
-{"address":"0x498E4A48FAd4bdA098e51fA0bDD03424b5047dBb","key":"VaultUtilsSplit","_id":"d3ZQyBVAVd30VjSK"}
+{"address":"0x82D87AB35697B9E438CF9dEFdfF1cCE8c72690F6","key":"FuturesAdapter","_id":"u0vG2dhsjN59v5M0"}
+{"address":"0x39a6159BCF298BD078f18D648d43219E8257aE3F","key":"GatewayUtils","_id":"zluxqgot1HQeV4aL"}

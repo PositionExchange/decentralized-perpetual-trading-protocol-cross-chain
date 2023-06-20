@@ -1,16 +1,27 @@
 import { MigrationContext, MigrationDefinition } from "../types";
 import {
-  DptpFuturesGateway, FuturesAdapter, FuturXGatewayStorage, FuturXVoucher, GatewayUtils,
+  DptpFuturesGateway,
+  FuturesAdapter,
+  FuturXGatewayStorage,
+  FuturXVoucher,
+  GatewayUtils,
   ReferralRewardTracker,
   WETH,
 } from "../../typeChain";
 import { ContractTransaction } from "ethers";
+import { encodeDelegateCall } from "../shared/utils";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
     "deploy dptp futures gateway": async () => {
+      const chainId = ctx.hre.network.config.chainId || 0;
+      const pscId = chainId == 42161 ? 900000 : 910000;
+      const weth =
+        chainId == 42161
+          ? "0x82af49447d8a07e3bd95bd0d56f35241523fbab1"
+          : await ctx.factory.db.findAddressByKey("WETH");
       const vault = await ctx.factory.db.findAddressByKey("Vault");
-      const weth = await ctx.factory.db.findAddressByKey("WETH");
+
       const futuresAdapter = await ctx.factory.db.findAddressByKey(
         "FuturesAdapter"
       );
@@ -22,8 +33,9 @@ const migrations: MigrationDefinition = {
       );
 
       await ctx.factory.createDptpFuturesGateway({
-        pcsId: 910000,
-        pscCrossChainGateway: "0x3230a2d25c81264F4e1A873729B53c62551Da792",
+        pcsId: pscId,
+        // TODO: Update pscCrossChainGateway by config mapping
+        pscCrossChainGateway: "0x0000000000000000000000000000000000000000",
         futuresAdapter: futuresAdapter,
         vault: vault,
         weth: weth,
@@ -33,36 +45,32 @@ const migrations: MigrationDefinition = {
       });
 
       // Create governance logic
-      await ctx.factory.createFuturXGatewayGovernanceLogic()
+      await ctx.factory.createFuturXGatewayGovernanceLogic();
     },
 
     "deploy tpsl gateway": async () => {
-      await ctx.factory.createTPSLGateway()
+      await ctx.factory.createTPSLGateway();
     },
 
     "re-config after deploy new gateway": async () => {
-      const managerBTC = "0x846d142804AF172c9a7Da38D82f26607C3EA2347";
-      const managerETH = "0xf7A8a8971fCC59ca120Cd28F5079F09da29115cA";
-      const managerLINK = "0x19e6C8AB4b17c6e022D4c0EA8ac3f3FcBf4E91A7";
+      // const managerBTC = "0x846d142804AF172c9a7Da38D82f26607C3EA2347";
+      // const managerETH = "0xf7A8a8971fCC59ca120Cd28F5079F09da29115cA";
+      // const managerLINK = "0x19e6C8AB4b17c6e022D4c0EA8ac3f3FcBf4E91A7";
 
-      const wbtc = await ctx.factory.db.findAddressByKey("BTC");
-      const weth = await ctx.factory.db.findAddressByKey("WETH");
-      const link = await ctx.factory.db.findAddressByKey("LINK");
+      // const wbtc = await ctx.factory.db.findAddressByKey("BTC");
+      // const weth = await ctx.factory.db.findAddressByKey("WETH");
+      // const link = await ctx.factory.db.findAddressByKey("LINK");
 
-      const referralRewardTracker =
-        await ctx.factory.getDeployedContract<ReferralRewardTracker>(
-          "ReferralRewardTracker"
-        );
+      const referralRewardTracker = await ctx.db.findAddressByKey(
+        "ReferralRewardTracker"
+      );
 
       const futuresGateway =
         await ctx.factory.getDeployedContract<DptpFuturesGateway>(
           "DptpFuturesGateway"
         );
 
-      const futuresAdapter =
-        await ctx.factory.getDeployedContract<FuturesAdapter>(
-          "FuturesAdapter"
-        );
+      const futuresAdapter = await ctx.db.findAddressByKey("FuturesAdapter");
 
       const futurXGatewayStorage =
         await ctx.factory.getDeployedContract<FuturXGatewayStorage>(
@@ -70,49 +78,44 @@ const migrations: MigrationDefinition = {
         );
 
       const futurXVoucher =
-        await ctx.factory.getDeployedContract<FuturXVoucher>(
-          "FuturXVoucher"
-        );
+        await ctx.factory.getDeployedContract<FuturXVoucher>("FuturXVoucher");
 
-      const gatewayUtils =
-        await ctx.factory.getDeployedContract<GatewayUtils>(
-          "GatewayUtils"
-        );
+      const gatewayUtils = await ctx.factory.getDeployedContract<GatewayUtils>(
+        "GatewayUtils"
+      );
 
       let tx: Promise<ContractTransaction>;
 
-      tx = futuresGateway.setCoreManager(wbtc, managerBTC);
-      await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.btc");
+      // tx = futuresGateway.setCoreManager(wbtc, managerBTC);
+      // await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.btc");
 
-      tx = futuresGateway.setCoreManager(weth, managerETH);
-      await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.eth");
+      // tx = futuresGateway.setCoreManager(weth, managerETH);
+      // await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.eth");
 
-      tx = futuresGateway.setCoreManager(link, managerLINK);
-      await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.link");
+      // tx = futuresGateway.setCoreManager(link, managerLINK);
+      // await ctx.factory.waitTx(tx, "futuresGateway.setCoreManager.link");
 
-      tx = futuresGateway.setPositionKeeper(
-          futuresAdapter.address
-      );
+      const abi = [
+        "function setPositionKeeper(address _address)",
+        "function setReferralRewardTracker(address _address)",
+      ];
+      let data = encodeDelegateCall(abi, "setPositionKeeper", [futuresAdapter]);
+      tx = futuresGateway.executeGovFunction(data);
       await ctx.factory.waitTx(tx, "futuresGateway.setPositionKeeper");
 
-      tx = futuresGateway.setReferralRewardTracker(
-          referralRewardTracker.address
-      );
+      data = encodeDelegateCall(abi, "setReferralRewardTracker", [
+        referralRewardTracker,
+      ]);
+      tx = futuresGateway.executeGovFunction(data);
       await ctx.factory.waitTx(tx, "futuresGateway.setReferralRewardTracker");
 
-      tx = futurXGatewayStorage.setFuturXGateway(
-          futuresGateway.address
-      );
+      tx = futurXGatewayStorage.setFuturXGateway(futuresGateway.address);
       await ctx.factory.waitTx(tx, "futurXGatewayStorage.setFuturXGateway");
 
-      tx = futurXVoucher.setFuturXGateway(
-          futuresGateway.address
-      );
+      tx = futurXVoucher.setFuturXGateway(futuresGateway.address);
       await ctx.factory.waitTx(tx, "futurXVoucher.setFuturXGateway");
 
-      tx = gatewayUtils.setFuturXGateway(
-          futuresGateway.address
-      );
+      tx = gatewayUtils.setFuturXGateway(futuresGateway.address);
       await ctx.factory.waitTx(tx, "gatewayUtils.setFuturXGateway");
     },
   }),

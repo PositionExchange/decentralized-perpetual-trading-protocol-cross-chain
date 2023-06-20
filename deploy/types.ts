@@ -11,7 +11,7 @@ export interface MigrationDefinition {
     }
 }
 
-export type Stage = "production" | "staging" | "test" | "dev" | "okex_test" | "okex_main" | "arbitrumGoerli"
+export type Stage = "production" | "staging" | "test" | "dev" | "okex_test" | "okex_main" | "arbitrumGoerli" | "arbitrumOne"
 export type Network = "bsc_testnet" | "bsc_mainnet" | "qc"
 
 export interface MigrationContext {
@@ -64,5 +64,4 @@ export interface CreateDptpFuturesGateway {
 export interface CreateReferralRewardTracker {
     rewardToken: string,
     tokenDecimal: number,
-    referralStorage: string,
 }
