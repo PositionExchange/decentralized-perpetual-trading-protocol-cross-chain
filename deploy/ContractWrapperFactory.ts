@@ -12,21 +12,21 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 // @ts-ignore
 import { HardhatDefenderUpgrades } from "@openzeppelin/hardhat-defender";
 import {
-  DptpFuturesGateway,
-  FuturesAdapter,
-  FuturXVoucher,
-  InsuranceFund,
-  LpManager,
-  MockToken,
-  PLP,
-  PositionBUSDBonus,
-  PriceFeed,
-  ReferralRewardTracker,
-  USDP,
-  Vault,
-  VaultPriceFeed,
-  VaultUtils,
-  WETH,
+    DptpFuturesGateway,
+    FuturesAdapter, FuturXGatewayStorage,
+    FuturXVoucher, GatewayUtils,
+    InsuranceFund,
+    LpManager,
+    MockToken,
+    PLP,
+    PositionBUSDBonus,
+    PriceFeed,
+    ReferralRewardTracker,
+    USDP,
+    Vault,
+    VaultPriceFeed,
+    VaultUtils,
+    WETH,
 } from "../typeChain";
 import { ContractConfig } from "./shared/PreDefinedContractAddress";
 import { ethers as ethersE } from "ethers";
@@ -152,6 +152,22 @@ export class ContractWrapperFactory {
         // return this.hre.run('verify', {address: proxyAddress}).catch(e => {
         //     console.error(`Verify ${proxyAddress} Error`, e)
         // })
+    }
+
+    async getFuturXGateway(): Promise<DptpFuturesGateway> {
+        return this.getDeployedContract<DptpFuturesGateway>("DptpFuturesGateway");
+    }
+
+    async getFuturXGatewayStorage(): Promise<FuturXGatewayStorage> {
+        return this.getDeployedContract<FuturXGatewayStorage>("FuturXGatewayStorage");
+    }
+
+    async getFuturXVoucher(): Promise<FuturXVoucher> {
+        return this.getDeployedContract<FuturXVoucher>("FuturXVoucher");
+    }
+
+    async getFuturXGatewayUtils(): Promise<GatewayUtils> {
+        return this.getDeployedContract<GatewayUtils>("GatewayUtils");
     }
 
     async createInsuranceFund(args) {
@@ -439,38 +455,11 @@ export class ContractWrapperFactory {
     }
 
     async createVault(vaultUtilsAddress: string, vaultPriceFeedAddress: string, usdpAddress: string) {
-        const contractName = 'Vault';
-        const factory = await this.hre.ethers.getContractFactory(contractName);
-        const contractAddress = await this.db.findAddressByKey(contractName);
-        if (contractAddress) {
-            const upgraded = await this.hre.upgrades.upgradeProxy(
-                contractAddress,
-                factory
-            );
-            console.log(`Starting verify upgrade ${contractName}`);
-            await this.verifyImplContract(upgraded.deployTransaction);
-            console.log(`Upgrade ${contractName}`);
-        } else {
-            const contractArgs = [
-                vaultUtilsAddress,
-                vaultPriceFeedAddress,
-                usdpAddress,
-            ];
-            const opts: UpgradeProxyOptions = {
-                unsafeAllow: ['delegatecall']
-            }
-            const instance = await this.hre.upgrades.deployProxy(
-                factory,
-                contractArgs,
-                opts
-            );
-            console.log(`wait for deploy ${contractName}`);
-            await instance.deployed();
-            const address = instance.address.toString();
-            console.log(`Address ${contractName}: ${address}`);
-            await this.db.saveAddressByKey(contractName, address);
-            await this.verifyProxy(address);
-        }
+        await this._deployOrUpgradeContract("Vault", [
+            vaultUtilsAddress,
+            vaultPriceFeedAddress,
+            usdpAddress,
+        ]);
     }
 
     async createReferralRewardTracker(arg: CreateReferralRewardTracker) {

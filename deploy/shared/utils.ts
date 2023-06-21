@@ -22,6 +22,5 @@ export function loadDb(stage: Stage) {
 export function encodeDelegateCall(_abi: string[], _fName: string, _values: any[]): number[] {
   const iFace = new ethers.utils.Interface(_abi);
   const encodedData = iFace.encodeFunctionData(_fName, _values);
-  console.log(encodedData)
   return hexToBytes(encodedData);
 }

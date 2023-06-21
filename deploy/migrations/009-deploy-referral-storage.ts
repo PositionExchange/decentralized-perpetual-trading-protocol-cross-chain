@@ -28,34 +28,34 @@ const migrations: MigrationDefinition = {
         );
 
       // Set tiers
-      // await ctx.factory.waitTx(
-      //   referralRewardTracker.setTier(1, 500, 500),
-      //   "referralStorage.setTier"
-      // );
-      // await ctx.factory.waitTx(
-      //   referralRewardTracker.setTier(2, 1000, 1000),
-      //   "referralStorage.setTier"
-      // );
-      // await ctx.factory.waitTx(
-      //   referralRewardTracker.setTier(3, 1500, 1500),
-      //   "referralStorage.setTier"
-      // );
-      //
-      // // Set contract addresses
+      await ctx.factory.waitTx(
+        referralRewardTracker.setTier(1, 500, 500),
+        "referralStorage.setTier"
+      );
+      await ctx.factory.waitTx(
+        referralRewardTracker.setTier(2, 1000, 1000),
+        "referralStorage.setTier"
+      );
+      await ctx.factory.waitTx(
+        referralRewardTracker.setTier(3, 1500, 1500),
+        "referralStorage.setTier"
+      );
+
+      // Set contract addresses
       // await ctx.factory.waitTx(
       //   referralRewardTracker.setCounterParty(dptpFuturesGateway.address, true),
       //   "referralRewardTracker.setCounterParty"
       // );
 
-      const data = encodeDelegateCall(
-          ["function setReferralRewardTracker(address _address)"],
-          "setReferralRewardTracker",
-          [referralRewardTracker.address]
-      );
-      await ctx.factory.waitTx(
-        dptpFuturesGateway.executeGovFunction(data),
-        "dptpFuturesGateway.setReferralRewardTracker"
-      );
+      // const data = encodeDelegateCall(
+      //     ["function setReferralRewardTracker(address _address)"],
+      //     "setReferralRewardTracker",
+      //     [referralRewardTracker.address]
+      // );
+      // await ctx.factory.waitTx(
+      //   dptpFuturesGateway.executeGovFunction(data),
+      //   "dptpFuturesGateway.setReferralRewardTracker"
+      // );
     },
   }),
 };
