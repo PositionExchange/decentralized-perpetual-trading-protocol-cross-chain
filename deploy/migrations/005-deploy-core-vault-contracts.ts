@@ -48,7 +48,7 @@ const migrations: MigrationDefinition = {
           true
         );
         await ctx.factory.waitTx(
-          usdp.addVault(plpManager.address),
+          usdp.addVault(vault.address),
           "usdp.addVault"
         );
         await ctx.factory.waitTx(

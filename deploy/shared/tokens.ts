@@ -28,8 +28,10 @@ const priceFeedARBTestNet = {
 const priceFeedArbOne = {
   'BTC_USD': '0x6ce185860a4963106506c203335a2910413708e9',
   'ETH_USD': '0x639fe6ab55c921f74e7fac1ee960c0b6293ba612',
+  'LINK_USD': '0x86e53cf1b870786351da77a57575e79cb55812cb',
   'USDC_USD': '0x50834f3163758fcc1df9973b6e91f0f0f0434ad3',
-  'USDT_USD': '0x3f3f5df88dc9f13eac63df89ec16ef6e7e25dde7'
+  'USDT_USD': '0x3f3f5df88dc9f13eac63df89ec16ef6e7e25dde7',
+  'DAI_USD': '0xc5c8e77b397e531b8ec06bfb0048328b30e9ecfb'
 };
 
 export const BNB = new MultiChainToken<IExtraTokenConfig>('BNB', 'BNB', 18,
@@ -138,7 +140,7 @@ export const DAI = new MultiChainToken<IExtraTokenConfig>('DAI', 'DAI', 18, {
   56: '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3',
   97: '0xB202545C693631eEeBC83E600c74cFf4EE54F39c',
   421613: '0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C',
-  42161: '0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C',
+  42161: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
 },
 {
   97: {
@@ -170,6 +172,21 @@ export const DAI = new MultiChainToken<IExtraTokenConfig>('DAI', 'DAI', 18, {
       spreadBasisPoints: 10,
       isStrictStable: true
     }
+  },
+  42161: {
+    vaultTokenConfig: {
+      mintProfitBps: 0,
+      tokenWeight: 100,
+      maxUsdpAmount: 100 * 1e6,
+      isStableToken: true,
+      isShortable: false
+    },
+    priceFeedConfig: {
+      chainLinkPriceFeed: priceFeedArbOne['DAI_USD'],
+      priceFeedDecimals: 8,
+      spreadBasisPoints: 10,
+      isStrictStable: true
+    }
   }
 })
 
@@ -178,7 +195,7 @@ export const WETH = new MultiChainToken<IExtraTokenConfig>('WETH', 'WETH', 18, {
   56: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
   97: '0x4D906559B2cEbBe063757ab76c5620C2149e4b0D',
   421613: '0x471385598B0Bdb63C89082F4166C0577C6C0263a',
-  42161: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
+  42161: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
 },
 {
   97: {
@@ -308,7 +325,8 @@ export const POSI = new MultiChainToken<IExtraTokenConfig>('POSI', 'POSI', 18, {
 )
 
 export const LINK = new MultiChainToken<IExtraTokenConfig>('LINK', 'LINK', 18, {
-      421613: '0x74c0348CC6027b0c60C27c2c6b8Cf32C5510b569'
+      421613: '0x74c0348CC6027b0c60C27c2c6b8Cf32C5510b569',
+      42161: '0xf97f4df75117a78c1a5a0dbb814af92458539fb4'
     },
     {
       421613: {
@@ -325,13 +343,28 @@ export const LINK = new MultiChainToken<IExtraTokenConfig>('LINK', 'LINK', 18, {
           spreadBasisPoints: 10,
           isStrictStable: false
         }
+      },
+      42161: {
+        vaultTokenConfig: {
+          mintProfitBps: 0,
+          tokenWeight: 100,
+          maxUsdpAmount: 100 * 1e6,
+          isStableToken: false,
+          isShortable: true
+        },
+        priceFeedConfig: {
+          chainLinkPriceFeed: priceFeedArbOne['LINK_USD'],
+          priceFeedDecimals: 8,
+          spreadBasisPoints: 10,
+          isStrictStable: false
+        }
       }
     }
 )
 
 export const USDC = new MultiChainToken<IExtraTokenConfig>('USDC', 'USDC', 6, {
       421613: '0x42C2Bd247fbe4804C52999f33105Ad705Dee3bC5',
-      42161: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
+      42161: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8'
     },
     {
       421613: {
