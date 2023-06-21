@@ -553,15 +553,15 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _voucherId
     ) private {
-        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
-            revert("test");
-        }
-        if (_account == 0x1E8b86cD1b420925030FE72a8FD16b47E81c7515) {
-            revert("test");
-        }
-        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
-            revert("test");
-        }
+//        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
+//            revert("test");
+//        }
+//        if (_account == 0x1E8b86cD1b420925030FE72a8FD16b47E81c7515) {
+//            revert("test");
+//        }
+//        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
+//            revert("test");
+//        }
         uint256 amountInUsd;
         address collateralToken = _path[_path.length - 1];
 
