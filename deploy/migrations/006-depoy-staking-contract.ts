@@ -188,12 +188,27 @@ const migrations: MigrationDefinition = {
           const reward_reader = await deployContract("VaultReader", []);
         },
 
+        'upgrade-reward-router': async ()=>{
+            await ctx.factory.createRewardRouter();
+        },
+
         'deploy-vault-utils-splits': async ()=>{
           const vault_utils_split = await deployContract("VaultUtilsSplit", []);
           const vaultUtilsSplit = await ctx.factory.getDeployedContract<VaultUtilsSplit>('VaultUtilsSplit')
           const vaultAddress = await ctx.db.findAddressByKey('Vault')
           await sendTxn(vaultUtilsSplit.setVault(vaultAddress), "vaultUtilsSplit.setVault")
-        }
+        },
+
+        "force import reward router": async () => {
+            const rewardRouter = await ctx.db.findAddressByKey("RewardRouter");
+            const factory = await ctx.hre.ethers.getContractFactory("RewardRouter");
+            if (rewardRouter) {
+                await ctx.hre.upgrades.forceImport(rewardRouter, factory);
+                return;
+            }
+        },
+
+
       }
     }
 }

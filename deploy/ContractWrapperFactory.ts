@@ -494,7 +494,7 @@ export class ContractWrapperFactory {
         await this._deployOrUpgradeContract("FuturXGatewayStorage", [futurXGateway])
     }
 
-    async createRewardRouter(contractArgs: any[]) {
+    async createRewardRouter(contractArgs?: any[]) {
         console.log("createRewardRouter");
 
         const contractName = 'RewardRouter';
