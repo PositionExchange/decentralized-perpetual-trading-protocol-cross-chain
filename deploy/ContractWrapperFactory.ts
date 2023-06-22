@@ -170,6 +170,10 @@ export class ContractWrapperFactory {
         return this.getDeployedContract<GatewayUtils>("GatewayUtils");
     }
 
+    async getFuturesAdapter(): Promise<FuturesAdapter> {
+        return this.getDeployedContract<FuturesAdapter>("FuturesAdapter");
+    }
+
     async createInsuranceFund(args) {
         const InsuranceFund = await this.hre.ethers.getContractFactory("InsuranceFund");
         const insuranceFundContractAddress = await this.db.findAddressByKey(`InsuranceFund`);

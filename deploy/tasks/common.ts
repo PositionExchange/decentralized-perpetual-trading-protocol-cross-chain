@@ -16,4 +16,7 @@ export const TASK_NAME = {
   FGW_SetPositionKeeper: "futurXGateway.setPositionKeeper",
   FGW_SetReferralRewardTracker: "futurXGateway.setReferralRewardTracker",
   FGW_SetPscCrossChain: "futurXGateway.setPosiChainCrosschainGatewayContract",
+  FGW_SetGovernanceLogic: "futurXGateway.setGovernanceLogic",
+
+  FA_UpdateRelayerStatus: "FA_UpdateRelayerStatus",
 };

@@ -5,9 +5,10 @@ import { TASK_NAME } from "./common";
 
 const GOV_ABI = [
   "function setCoreManager(address _token, address _manager)",
-  "function setPositionKeeper(address _address)",
+  "function setPositionKeeper(address _address, bool _status)",
   "function setReferralRewardTracker(address _address)",
   "function setPosiChainCrosschainGatewayContract(address _address)",
+  "function setGovernanceLogic(address _newGovernanceLogic)",
 ];
 
 const executeGovFunc = async (
@@ -38,12 +39,13 @@ export const FGW_SetCoreManager_Action = async (args: {
 export const FGW_SetPositionKeeper_Action = async (args: {
   ctx: MigrationContext;
   positionKeeper: string;
+  status: boolean;
   logMsg?: string;
 }) => {
   await executeGovFunc(
     args.ctx,
     "setPositionKeeper",
-    [args.positionKeeper],
+    [args.positionKeeper, args.status],
     args.logMsg || TASK_NAME.FGW_SetPositionKeeper
   );
 };
@@ -71,5 +73,18 @@ export const FGW_SetPscCrossChain_Action = async (args: {
     "setPosiChainCrosschainGatewayContract",
     [args.pscCrossChain],
     args.logMsg || TASK_NAME.FGW_SetPscCrossChain
+  );
+};
+
+export const FGW_SetGovernanceLogic_Action = async (args: {
+  ctx: MigrationContext;
+  gov: string;
+  logMsg?: string;
+}) => {
+  const futurXGateway = await args.ctx.factory.getFuturXGateway();
+
+  await args.ctx.factory.waitTx(
+    futurXGateway.setGovernanceLogic(args.gov),
+    args.logMsg || TASK_NAME.FGW_SetGovernanceLogic
   );
 };

@@ -55,6 +55,40 @@ const migrations: MigrationDefinition = {
       await ctx.factory.createTPSLGateway();
     },
 
+    "PROD config relayer whitelist": async () => {
+      const relayers: string[] = [
+          "0x"
+      ];
+      for (const relayer of relayers) {
+        await run(TASK_NAME.FA_UpdateRelayerStatus, {
+          ctx: ctx,
+          relayer: relayer,
+          status: true,
+        });
+      }
+    },
+
+    "PROD config refunder whitelist": async () => {
+      const refunders: string[] = [
+          "0x"
+      ];
+      for (const refunder of refunders) {
+        await run(TASK_NAME.FGW_SetPositionKeeper, {
+          ctx: ctx,
+          positionKeeper: refunder,
+          status: false,
+        });
+      }
+    },
+
+    "re-config after deploy new gov": async () => {
+      const gov = await ctx.db.findAddressByKey("DptpFuturesGatewayGovernance");
+      await run(TASK_NAME.FGW_SetGovernanceLogic, {
+        ctx: ctx,
+        gov: gov,
+      });
+    },
+
     "re-config after deploy new gateway": async () => {
       const managerBTC = "0x846d142804AF172c9a7Da38D82f26607C3EA2347";
       const managerETH = "0xf7A8a8971fCC59ca120Cd28F5079F09da29115cA";
@@ -85,6 +119,7 @@ const migrations: MigrationDefinition = {
       await run(TASK_NAME.FGW_SetPositionKeeper, {
         ctx: ctx,
         positionKeeper: await ctx.db.findAddressByKey("FuturesAdapter"),
+        status: true,
       });
 
       await run(TASK_NAME.FGW_SetReferralRewardTracker, {

@@ -43,8 +43,8 @@ contract DptpFuturesGatewayGovernance is
         pscCrossChainGateway = _address;
     }
 
-    function setPositionKeeper(address _address) external onlyOwner {
-        positionKeepers[_address] = true;
+    function setPositionKeeper(address _address, bool _status) external onlyOwner {
+        positionKeepers[_address] = _status;
     }
 
     function setCoreManager(

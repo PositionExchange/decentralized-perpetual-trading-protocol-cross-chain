@@ -227,8 +227,8 @@ contract FuturesAdapter is
         gnosisSafe = _newAddress;
     }
 
-    function updateRelayerStatus(address _relayer) external onlyOwner {
-        whitelistRelayers[_relayer] = true;
+    function updateRelayerStatus(address _relayer, bool _status) external onlyOwner {
+        whitelistRelayers[_relayer] = _status;
     }
 
     function getRelayerStatus(address _relayer) external view returns (bool) {
