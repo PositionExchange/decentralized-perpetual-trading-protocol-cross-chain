@@ -8,7 +8,8 @@ import {
   ReferralRewardTracker,
   WETH,
 } from "../../typeChain";
-import { TASK_NAME } from "../tasks/common";
+import { SUBTASK_NAME } from "../tasks/common";
+import {ARB_REFUNDERS, ARB_RELAYERS} from "../config_production";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
@@ -56,11 +57,8 @@ const migrations: MigrationDefinition = {
     },
 
     "PROD config relayer whitelist": async () => {
-      const relayers: string[] = [
-          "0x"
-      ];
-      for (const relayer of relayers) {
-        await run(TASK_NAME.FA_UpdateRelayerStatus, {
+      for (const relayer of ARB_RELAYERS) {
+        await run(SUBTASK_NAME.FA_UpdateRelayerStatus, {
           ctx: ctx,
           relayer: relayer,
           status: true,
@@ -69,21 +67,18 @@ const migrations: MigrationDefinition = {
     },
 
     "PROD config refunder whitelist": async () => {
-      const refunders: string[] = [
-          "0x"
-      ];
-      for (const refunder of refunders) {
-        await run(TASK_NAME.FGW_SetPositionKeeper, {
+      for (const refunder of ARB_REFUNDERS) {
+        await run(SUBTASK_NAME.FGW_SetPositionKeeper, {
           ctx: ctx,
           positionKeeper: refunder,
-          status: false,
+          status: true,
         });
       }
     },
 
     "re-config after deploy new gov": async () => {
       const gov = await ctx.db.findAddressByKey("DptpFuturesGatewayGovernance");
-      await run(TASK_NAME.FGW_SetGovernanceLogic, {
+      await run(SUBTASK_NAME.FGW_SetGovernanceLogic, {
         ctx: ctx,
         gov: gov,
       });
@@ -100,46 +95,46 @@ const migrations: MigrationDefinition = {
 
       const futurXGateway = await ctx.db.findAddressByKey("DptpFuturesGateway");
 
-      await run(TASK_NAME.FGW_SetCoreManager, {
+      await run(SUBTASK_NAME.FGW_SetCoreManager, {
         ctx: ctx,
         indexToken: wbtc,
         positionManager: managerBTC,
       });
-      await run(TASK_NAME.FGW_SetCoreManager, {
+      await run(SUBTASK_NAME.FGW_SetCoreManager, {
         ctx: ctx,
         indexToken: weth,
         positionManager: managerETH,
       });
-      await run(TASK_NAME.FGW_SetCoreManager, {
+      await run(SUBTASK_NAME.FGW_SetCoreManager, {
         ctx: ctx,
         indexToken: link,
         positionManager: managerLINK,
       });
 
-      await run(TASK_NAME.FGW_SetPositionKeeper, {
+      await run(SUBTASK_NAME.FGW_SetPositionKeeper, {
         ctx: ctx,
         positionKeeper: await ctx.db.findAddressByKey("FuturesAdapter"),
         status: true,
       });
 
-      await run(TASK_NAME.FGW_SetReferralRewardTracker, {
+      await run(SUBTASK_NAME.FGW_SetReferralRewardTracker, {
         ctx,
         referralRewardTracker: await ctx.db.findAddressByKey(
           "ReferralRewardTracker"
         ),
       });
 
-      await run(TASK_NAME.FGWS_SetFuturXGateway, {
+      await run(SUBTASK_NAME.FGWS_SetFuturXGateway, {
         ctx,
         futurXGateway,
       });
 
-      await run(TASK_NAME.FV_SetFuturXGateway, {
+      await run(SUBTASK_NAME.FV_SetFuturXGateway, {
         ctx,
         futurXGateway,
       });
 
-      await run(TASK_NAME.FGWU_SetFuturXGateway, {
+      await run(SUBTASK_NAME.FGWU_SetFuturXGateway, {
         ctx,
         futurXGateway,
       });

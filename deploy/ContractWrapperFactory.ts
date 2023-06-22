@@ -154,6 +154,16 @@ export class ContractWrapperFactory {
         // })
     }
 
+    async verify2(address: string, args: any[]) {
+        // // Ref: https://docs.openzeppelin.com/upgrades-plugins/1.x/api-hardhat-upgrades#verify
+        return this.hre.run('verify', {
+            address: address,
+            constructorArguments: args,
+        }).catch(e => {
+            console.error(`Verify ${address} Error`, e)
+        })
+    }
+
     async getFuturXGateway(): Promise<DptpFuturesGateway> {
         return this.getDeployedContract<DptpFuturesGateway>("DptpFuturesGateway");
     }

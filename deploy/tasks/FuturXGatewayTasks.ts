@@ -1,7 +1,7 @@
 import "@nomiclabs/hardhat-ethers";
 import { encodeDelegateCall } from "../shared/utils";
 import { MigrationContext } from "../types";
-import { TASK_NAME } from "./common";
+import { SUBTASK_NAME } from "./common";
 
 const GOV_ABI = [
   "function setCoreManager(address _token, address _manager)",
@@ -32,7 +32,7 @@ export const FGW_SetCoreManager_Action = async (args: {
     args.ctx,
     "setCoreManager",
     [args.indexToken, args.positionManager],
-    args.logMsg || TASK_NAME.FGW_SetCoreManager
+    args.logMsg || SUBTASK_NAME.FGW_SetCoreManager
   );
 };
 
@@ -46,7 +46,7 @@ export const FGW_SetPositionKeeper_Action = async (args: {
     args.ctx,
     "setPositionKeeper",
     [args.positionKeeper, args.status],
-    args.logMsg || TASK_NAME.FGW_SetPositionKeeper
+    args.logMsg || SUBTASK_NAME.FGW_SetPositionKeeper
   );
 };
 
@@ -59,7 +59,7 @@ export const FGW_SetReferralRewardTracker_Action = async (args: {
     args.ctx,
     "setReferralRewardTracker",
     [args.referralRewardTracker],
-    args.logMsg || TASK_NAME.FGW_SetReferralRewardTracker
+    args.logMsg || SUBTASK_NAME.FGW_SetReferralRewardTracker
   );
 };
 
@@ -72,7 +72,7 @@ export const FGW_SetPscCrossChain_Action = async (args: {
     args.ctx,
     "setPosiChainCrosschainGatewayContract",
     [args.pscCrossChain],
-    args.logMsg || TASK_NAME.FGW_SetPscCrossChain
+    args.logMsg || SUBTASK_NAME.FGW_SetPscCrossChain
   );
 };
 
@@ -85,6 +85,6 @@ export const FGW_SetGovernanceLogic_Action = async (args: {
 
   await args.ctx.factory.waitTx(
     futurXGateway.setGovernanceLogic(args.gov),
-    args.logMsg || TASK_NAME.FGW_SetGovernanceLogic
+    args.logMsg || SUBTASK_NAME.FGW_SetGovernanceLogic
   );
 };

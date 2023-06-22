@@ -1,6 +1,6 @@
 import "@nomiclabs/hardhat-ethers";
 import { MigrationContext } from "../types";
-import { TASK_NAME } from "./common";
+import { SUBTASK_NAME } from "./common";
 
 export const FA_UpdateRelayerStatus_Action = async (args: {
   ctx: MigrationContext;
@@ -13,6 +13,6 @@ export const FA_UpdateRelayerStatus_Action = async (args: {
 
   await args.ctx.factory.waitTx(
     tx,
-    args.logMsg || TASK_NAME.FA_UpdateRelayerStatus
+    args.logMsg || SUBTASK_NAME.FA_UpdateRelayerStatus
   );
 };

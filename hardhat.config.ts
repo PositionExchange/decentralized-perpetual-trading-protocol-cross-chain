@@ -15,7 +15,7 @@ import {
     BSC_TESTNET_DEPLOYER_KEY,
 } from "./constants";
 import "./scripts/deploy";
-import "./deploy/tasks/index.ts";
+import "./deploy/tasks/subtasks.ts";
 // TODO enable gas reporter once development done
 // import "hardhat-gas-reporter";
 import "solidity-coverage";

@@ -1,6 +1,6 @@
 import "@nomiclabs/hardhat-ethers";
 import { MigrationContext } from "../types";
-import { TASK_NAME } from "./common";
+import { SUBTASK_NAME } from "./common";
 
 export const FGWS_SetFuturXGateway_Action = async (args: {
   ctx: MigrationContext;
@@ -10,6 +10,6 @@ export const FGWS_SetFuturXGateway_Action = async (args: {
   const contract = await args.ctx.factory.getFuturXGatewayStorage();
   await args.ctx.factory.waitTx(
     contract.setFuturXGateway(args.futurXGateway),
-    args.logMsg || TASK_NAME.FGWS_SetFuturXGateway
+    args.logMsg || SUBTASK_NAME.FGWS_SetFuturXGateway
   );
 };

@@ -181,3 +181,10 @@ export const UNIBUSD : PositionManagerConfigData = {
     stepBaseSize: 10 // = 0.1
 }
 
+export const ARB_RELAYERS = [
+    "0x"
+]
+
+export const ARB_REFUNDERS = [
+    "0x"
+]
