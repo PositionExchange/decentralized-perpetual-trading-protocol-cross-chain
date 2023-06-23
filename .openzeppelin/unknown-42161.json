@@ -3149,6 +3149,388 @@
           }
         }
       }
+    },
+    "4bad3c914c6fdcfc3705819b6d75ad21150c6b7b586e7df763af7e7551c4e39a": {
+      "address": "0x56f301491924243Cb70bA28BF292195805E4d514",
+      "txHash": "0xdfeca69542daef2451269096785b1d6cf7d04cad7a9619fc5edbf5cb959d2a9f",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "futurXGateway",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:15"
+          },
+          {
+            "label": "increasePositionsIndex",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:17"
+          },
+          {
+            "label": "increasePositionRequests",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)1009_storage)",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:18"
+          },
+          {
+            "label": "increasePositionRequestKeys",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:19"
+          },
+          {
+            "label": "decreasePositionsIndex",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:21"
+          },
+          {
+            "label": "decreasePositionRequests",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)1021_storage)",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:22"
+          },
+          {
+            "label": "decreasePositionRequestKeys",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:23"
+          },
+          {
+            "label": "updateCollateralIndex",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:25"
+          },
+          {
+            "label": "updateCollateralRequests",
+            "offset": 0,
+            "slot": "109",
+            "type": "t_mapping(t_bytes32,t_struct(UpdateCollateralRequest)1035_storage)",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:26"
+          },
+          {
+            "label": "updateCollateralRequestKeys",
+            "offset": 0,
+            "slot": "110",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:27"
+          },
+          {
+            "label": "tpslRequests",
+            "offset": 0,
+            "slot": "111",
+            "type": "t_mapping(t_bytes32,t_bytes32)",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "112",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:350"
+          },
+          {
+            "label": "pendingCollaterals",
+            "offset": 0,
+            "slot": "161",
+            "type": "t_mapping(t_bytes32,t_struct(PendingCollateral)1040_storage)",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:351"
+          },
+          {
+            "label": "isHandler",
+            "offset": 0,
+            "slot": "162",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "FuturXGatewayStorage",
+            "src": "contracts/protocol/FuturXGatewayStorage.sol:352"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_bytes32)": {
+            "label": "mapping(bytes32 => bytes32)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)1021_storage)": {
+            "label": "mapping(bytes32 => struct IFuturXGatewayStorage.DecreasePositionRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)1009_storage)": {
+            "label": "mapping(bytes32 => struct IFuturXGatewayStorage.IncreasePositionRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(PendingCollateral)1040_storage)": {
+            "label": "mapping(bytes32 => struct IFuturXGatewayStorage.PendingCollateral)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(UpdateCollateralRequest)1035_storage)": {
+            "label": "mapping(bytes32 => struct IFuturXGatewayStorage.UpdateCollateralRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(DecreasePositionRequest)1021_storage": {
+            "label": "struct IFuturXGatewayStorage.DecreasePositionRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "withdrawETH",
+                "type": "t_bool",
+                "offset": 20,
+                "slot": "2"
+              },
+              {
+                "label": "sizeDeltaToken",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(IncreasePositionRequest)1009_storage": {
+            "label": "struct IFuturXGatewayStorage.IncreasePositionRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "hasCollateralInETH",
+                "type": "t_bool",
+                "offset": 20,
+                "slot": "2"
+              },
+              {
+                "label": "amountInToken",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "feeUsd",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "positionFeeUsd",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "voucherId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_struct(PendingCollateral)1040_storage": {
+            "label": "struct IFuturXGatewayStorage.PendingCollateral",
+            "members": [
+              {
+                "label": "count",
+                "type": "t_uint16",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "collateral",
+                "type": "t_address",
+                "offset": 2,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(UpdateCollateralRequest)1035_storage": {
+            "label": "struct IFuturXGatewayStorage.UpdateCollateralRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "amountInToken",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "isLong",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "feeToken",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_uint16": {
+            "label": "uint16",
+            "numberOfBytes": "2"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
     }
   }
 }

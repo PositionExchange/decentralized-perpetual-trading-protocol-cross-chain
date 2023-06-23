@@ -28,9 +28,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     mapping(bytes32 => bytes32) public tpslRequests;
 
-    modifier onlyFuturXGateway() {
+    modifier onlyHandler() {
         _validate(
-            msg.sender == futurXGateway,
+            isHandler[msg.sender],
             Errors.FGWS_CALLER_NOT_WHITELISTED
         );
         _;
@@ -52,7 +52,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     function clearPendingCollateral(
         address _account,
         address _indexToken
-    ) public onlyFuturXGateway {
+    ) public onlyHandler {
         bytes32 key = _getPendingCollateralKey(_account, _indexToken);
         pendingCollaterals[key].count = 0;
         pendingCollaterals[key].collateral = address(0);
@@ -60,7 +60,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function updatePendingCollateral(
         UpPendingCollateralParam memory param
-    ) public onlyFuturXGateway returns (bytes32) {
+    ) public onlyHandler returns (bytes32) {
         bytes32 key = _getPendingCollateralKey(param.account, param.indexToken);
         PendingCollateral storage data = pendingCollaterals[key];
         // Operation = 1 means increase count
@@ -92,7 +92,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function storeIncreasePositionRequest(
         IncreasePositionRequest memory _request
-    ) public onlyFuturXGateway returns (uint256, bytes32) {
+    ) public onlyHandler returns (uint256, bytes32) {
         address account = _request.account;
         uint256 index = increasePositionsIndex[account].add(1);
         increasePositionsIndex[account] = index;
@@ -114,7 +114,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bytes32 _key
     )
         public
-        onlyFuturXGateway
+        onlyHandler
         returns (IncreasePositionRequest memory request)
     {
         request = increasePositionRequests[_key];
@@ -133,7 +133,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         uint16 leverage
     )
         public
-        onlyFuturXGateway
+        onlyHandler
         returns (IncreasePositionRequest memory request)
     {
         request = increasePositionRequests[_key];
@@ -158,7 +158,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function storeDecreasePositionRequest(
         DecreasePositionRequest memory _request
-    ) public onlyFuturXGateway returns (uint256, bytes32) {
+    ) public onlyHandler returns (uint256, bytes32) {
         address account = _request.account;
         uint256 index = decreasePositionsIndex[account].add(1);
         decreasePositionsIndex[account] = index;
@@ -180,7 +180,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bytes32 _key
     )
         public
-        onlyFuturXGateway
+        onlyHandler
         returns (DecreasePositionRequest memory request)
     {
         request = decreasePositionRequests[_key];
@@ -197,7 +197,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bool isExecutedFully
     )
         public
-        onlyFuturXGateway
+        onlyHandler
         returns (DecreasePositionRequest memory request)
     {
         request = decreasePositionRequests[_key];
@@ -218,13 +218,13 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function deleteDecreasePositionRequest(
         bytes32 _key
-    ) public onlyFuturXGateway {
+    ) public onlyHandler {
         _deleteDecreasePositionRequests(_key);
     }
 
     function storeUpdateCollateralRequest(
         UpdateCollateralRequest memory _request
-    ) public onlyFuturXGateway returns (uint256, bytes32) {
+    ) public onlyHandler returns (uint256, bytes32) {
         address account = _request.account;
         uint256 index = updateCollateralIndex[account].add(1);
         updateCollateralIndex[account] = index;
@@ -241,7 +241,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         address _indexToken,
         bool _isHigherPip,
         bytes32 _decreasePositionRequestKey
-    ) public onlyFuturXGateway {
+    ) public onlyHandler {
         bytes32 key = _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
         tpslRequests[key] = _decreasePositionRequestKey;
     }
@@ -250,7 +250,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         address _account,
         address _indexToken,
         bool _isHigherPip
-    ) public onlyFuturXGateway {
+    ) public onlyHandler {
         bytes32 key = _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
         _deleteDecreasePositionRequests(tpslRequests[key]);
         _deleteTpslRequests(key);
@@ -260,7 +260,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bytes32 _key
     )
         public
-        onlyFuturXGateway
+        onlyHandler
         returns (UpdateCollateralRequest memory request)
     {
         request = updateCollateralRequests[_key];
@@ -337,6 +337,10 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     function _validate(bool _condition, string memory _errorCode) private view {
         require(_condition, _errorCode);
     }
+    
+    function setHandler(address _handler, bool _isHandler) external onlyOwner {
+        isHandler[_handler] = _isHandler;
+    }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
@@ -345,4 +349,5 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
      */
     uint256[49] private __gap;
     mapping(bytes32 => PendingCollateral) pendingCollaterals;
+    mapping(address => bool) public isHandler;
 }
