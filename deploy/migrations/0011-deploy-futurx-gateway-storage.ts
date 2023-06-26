@@ -2,8 +2,10 @@ import { MigrationContext, MigrationDefinition } from "../types";
 import { DptpFuturesGateway, FuturXGatewayStorage } from "../../typeChain";
 import { ContractTransaction } from "ethers";
 import { encodeDelegateCall } from "../shared/utils";
-import {ARB_POSI_MAX_CAP, ARB_POSI_MINTER_ADDRESS} from "../../constants";
-import {Token} from "../shared/types";
+import { ARB_POSI_MAX_CAP, ARB_POSI_MINTER_ADDRESS } from "../../constants";
+import { Token } from "../shared/types";
+import { run } from "hardhat";
+import { SUBTASK_NAME } from "../tasks/common";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
@@ -32,23 +34,35 @@ const migrations: MigrationDefinition = {
       await ctx.factory.waitTx(tx, "futurXGateway.setFuturXGatewayStorage");
     },
 
-    "verifyaaaaaa": async () => {
-      const vestingDuration = 365 * 24 * 60 * 60
-      const esPosi = await ctx.db.findAddressByKey("EsPOSI")
-      const stakedPosiTracker = await ctx.db.findAddressByKey("StakedPosiTracker")
-      const feePosiTracker = await ctx.db.findAddressByKey("FeePosiTracker")
-      const posi = await ctx.db.findAddressByKey("POSI")
-      const nativeToken = ctx.factory.contractConfig.getStageConfig<typeof Token>('native_token')
+    "FuturXGatewayStorage.setHandler": async () => {
+      const futurXGateway = await ctx.db.findAddressByKey("GatewayUtils");
+      await run(SUBTASK_NAME.FGWS_SetHandler, {
+        ctx: ctx,
+        handler: "0xCE7E070dD14480487Ff9Db9027Ce81037ae29211",
+        status: true,
+      });
+    },
+
+    verifyaaaaaa: async () => {
+      const vestingDuration = 365 * 24 * 60 * 60;
+      const esPosi = await ctx.db.findAddressByKey("EsPOSI");
+      const stakedPosiTracker = await ctx.db.findAddressByKey(
+        "StakedPosiTracker"
+      );
+      const feePosiTracker = await ctx.db.findAddressByKey("FeePosiTracker");
+      const posi = await ctx.db.findAddressByKey("POSI");
+      const nativeToken =
+        ctx.factory.contractConfig.getStageConfig<typeof Token>("native_token");
 
       const contracts = {
-        "StakedPosiDistributor": [esPosi, stakedPosiTracker],
-        "StakedPosiTracker": ["Staked POSI", "sPOSI"],
-        "FeePosiTracker": ["Staked + Bonus + Fee POSI", "sbfPOSI"],
-        "BonusPosiTracker": ["Staked + Bonus POSI", "sbPOSI"],
-        "FeePosiDistributor": [nativeToken.address, feePosiTracker],
-        "BnPOSI": ["Bonus POSI", "bnPOSI", 0],
-        "FeePlpTracker": ["Fee PLP", "fPLP"],
-        "VestedPOSI": [
+        StakedPosiDistributor: [esPosi, stakedPosiTracker],
+        StakedPosiTracker: ["Staked POSI", "sPOSI"],
+        FeePosiTracker: ["Staked + Bonus + Fee POSI", "sbfPOSI"],
+        BonusPosiTracker: ["Staked + Bonus POSI", "sbPOSI"],
+        FeePosiDistributor: [nativeToken.address, feePosiTracker],
+        BnPOSI: ["Bonus POSI", "bnPOSI", 0],
+        FeePlpTracker: ["Fee PLP", "fPLP"],
+        VestedPOSI: [
           "Vested POSI", // _name
           "vPOSI", // _symbol
           vestingDuration, // _vestingDuration
@@ -57,12 +71,12 @@ const migrations: MigrationDefinition = {
           posi, // _claimableToken
           stakedPosiTracker, // _rewardTracker
         ],
-        "POSI": [ARB_POSI_MINTER_ADDRESS, ARB_POSI_MAX_CAP],
-      }
+        POSI: [ARB_POSI_MINTER_ADDRESS, ARB_POSI_MAX_CAP],
+      };
 
       for (const [name, args] of Object.entries(contracts)) {
-        const address = await ctx.db.findAddressByKey(name)
-        await ctx.factory.verify2(address, args)
+        const address = await ctx.db.findAddressByKey(name);
+        await ctx.factory.verify2(address, args);
       }
     },
   }),

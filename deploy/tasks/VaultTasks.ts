@@ -10,7 +10,7 @@ export const VAULT_SetFuturXGateway_Action = async (args: {
   const contract = await args.ctx.factory.getVault();
   await args.ctx.factory.waitTx(
     contract.setFuturXGateway(args.futurXGateway),
-    args.logMsg || SUBTASK_NAME.FV_SetFuturXGateway
+    args.logMsg || SUBTASK_NAME.VAULT_SetFuturXGateway
   );
 };
 

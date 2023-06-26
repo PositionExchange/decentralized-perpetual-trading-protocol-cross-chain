@@ -1,7 +1,7 @@
 import { subtask } from "hardhat/config";
 import { any, SUBTASK_NAME } from "./common";
 import { MigrationContext } from "../types";
-import { FGWS_SetFuturXGateway_Action } from "./FuturXGatewayStorageTasks";
+import {FGWS_SetFuturXGateway_Action, FGWS_SetHandler_Action} from "./FuturXGatewayStorageTasks";
 import { FV_SetFuturXGateway_Action } from "./FuturXVoucherTasks";
 import { FGWU_SetFuturXGateway_Action } from "./FuturXGatewayUtilsTasks";
 import {
@@ -12,6 +12,7 @@ import {
 } from "./FuturXGatewayTasks";
 import { FA_UpdateRelayerStatus_Action } from "./FuturXAdapterTasks";
 import {VAULT_SetFuturXGateway_Action} from "./VaultTasks";
+import {RRT_SetCounterParty_Action} from "./ReferralRewardTrackerTasks";
 
 subtask(SUBTASK_NAME.FGW_SetCoreManager)
   .setAction(FGW_SetCoreManager_Action)
@@ -57,6 +58,13 @@ subtask(SUBTASK_NAME.FGWS_SetFuturXGateway)
   .addParam("futurXGateway")
   .addOptionalParam("logMsg");
 
+subtask(SUBTASK_NAME.FGWS_SetHandler)
+  .setAction(FGWS_SetHandler_Action)
+  .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
+  .addParam("handler")
+  .addParam<boolean>("status", "", false, any)
+  .addOptionalParam("logMsg");
+
 subtask(SUBTASK_NAME.FV_SetFuturXGateway)
   .setAction(FV_SetFuturXGateway_Action)
   .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
@@ -70,9 +78,15 @@ subtask(SUBTASK_NAME.FA_UpdateRelayerStatus)
   .addParam<boolean>("status", "", false, any)
   .addOptionalParam("logMsg");
 
-
 subtask(SUBTASK_NAME.VAULT_SetFuturXGateway)
   .setAction(VAULT_SetFuturXGateway_Action)
   .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
   .addParam("futurXGateway")
+  .addOptionalParam("logMsg");
+
+subtask(SUBTASK_NAME.RRT_SetCounterParty)
+  .setAction(RRT_SetCounterParty_Action)
+  .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
+  .addParam("counterParty")
+  .addParam<boolean>("status", "", false, any)
   .addOptionalParam("logMsg");

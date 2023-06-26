@@ -9,7 +9,7 @@ import {
   WETH,
 } from "../../typeChain";
 import { SUBTASK_NAME } from "../tasks/common";
-import {ARB_REFUNDERS, ARB_RELAYERS} from "../config_production";
+import { ARB_REFUNDERS, ARB_RELAYERS } from "../config_production";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
@@ -85,58 +85,69 @@ const migrations: MigrationDefinition = {
     },
 
     "re-config after deploy new gateway": async () => {
-      const managerBTC = "0x846d142804AF172c9a7Da38D82f26607C3EA2347";
-      const managerETH = "0xf7A8a8971fCC59ca120Cd28F5079F09da29115cA";
-      const managerLINK = "0x19e6C8AB4b17c6e022D4c0EA8ac3f3FcBf4E91A7";
-
-      const wbtc = await ctx.factory.db.findAddressByKey("BTC");
-      const weth = await ctx.factory.db.findAddressByKey("WETH");
-      const link = await ctx.factory.db.findAddressByKey("LINK");
+      // const managerBTC = "0x846d142804AF172c9a7Da38D82f26607C3EA2347";
+      // const managerETH = "0xf7a8a8971fcc59ca120cd28f5079f09da29115ca";
+      // const managerLINK = "0x19e6c8ab4b17c6e022d4c0ea8ac3f3fcbf4e91a7";
+      //
+      // const wbtc = await ctx.factory.db.findAddressByKey("BTC");
+      // const weth = await ctx.factory.db.findAddressByKey("WETH");
+      // const link = await ctx.factory.db.findAddressByKey("LINK");
 
       const futurXGateway = await ctx.db.findAddressByKey("DptpFuturesGateway");
 
-      await run(SUBTASK_NAME.FGW_SetCoreManager, {
-        ctx: ctx,
-        indexToken: wbtc,
-        positionManager: managerBTC,
-      });
-      await run(SUBTASK_NAME.FGW_SetCoreManager, {
-        ctx: ctx,
-        indexToken: weth,
-        positionManager: managerETH,
-      });
-      await run(SUBTASK_NAME.FGW_SetCoreManager, {
-        ctx: ctx,
-        indexToken: link,
-        positionManager: managerLINK,
-      });
+      // await run(SUBTASK_NAME.FGW_SetCoreManager, {
+      //   ctx: ctx,
+      //   indexToken: wbtc,
+      //   positionManager: managerBTC,
+      // });
+      // await run(SUBTASK_NAME.FGW_SetCoreManager, {
+      //   ctx: ctx,
+      //   indexToken: weth,
+      //   positionManager: managerETH,
+      // });
+      // await run(SUBTASK_NAME.FGW_SetCoreManager, {
+      //   ctx: ctx,
+      //   indexToken: link,
+      //   positionManager: managerLINK,
+      // });
 
-      await run(SUBTASK_NAME.FGW_SetPositionKeeper, {
+      // await run(SUBTASK_NAME.FGW_SetPositionKeeper, {
+      //   ctx: ctx,
+      //   positionKeeper: "0xf5c8edab6cb777a259637c99fbf3eb970bab8157",
+      //   status: true,
+      // });
+
+      // await run(SUBTASK_NAME.FGW_SetReferralRewardTracker, {
+      //   ctx,
+      //   referralRewardTracker: await ctx.db.findAddressByKey(
+      //     "ReferralRewardTracker"
+      //   ),
+      // });
+      //
+      // await run(SUBTASK_NAME.FGWS_SetFuturXGateway, {
+      //   ctx,
+      //   futurXGateway,
+      // });
+      //
+      // await run(SUBTASK_NAME.FV_SetFuturXGateway, {
+      //   ctx,
+      //   futurXGateway,
+      // });
+      //
+      // await run(SUBTASK_NAME.FGWU_SetFuturXGateway, {
+      //   ctx,
+      //   futurXGateway,
+      // });
+      //
+      // await run(SUBTASK_NAME.VAULT_SetFuturXGateway, {
+      //   ctx: ctx,
+      //   futurXGateway,
+      // });
+
+      await run(SUBTASK_NAME.RRT_SetCounterParty, {
         ctx: ctx,
-        positionKeeper: await ctx.db.findAddressByKey("FuturesAdapter"),
+        counterParty: futurXGateway,
         status: true,
-      });
-
-      await run(SUBTASK_NAME.FGW_SetReferralRewardTracker, {
-        ctx,
-        referralRewardTracker: await ctx.db.findAddressByKey(
-          "ReferralRewardTracker"
-        ),
-      });
-
-      await run(SUBTASK_NAME.FGWS_SetFuturXGateway, {
-        ctx,
-        futurXGateway,
-      });
-
-      await run(SUBTASK_NAME.FV_SetFuturXGateway, {
-        ctx,
-        futurXGateway,
-      });
-
-      await run(SUBTASK_NAME.FGWU_SetFuturXGateway, {
-        ctx,
-        futurXGateway,
       });
     },
   }),

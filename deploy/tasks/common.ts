@@ -8,6 +8,7 @@ export const any: ArgumentType<any> = {
 export const SUBTASK_NAME = {
   // FuturX Gateway Storage
   FGWS_SetFuturXGateway: "futurXGatewayStorage.setFuturXGateway",
+  FGWS_SetHandler: "futurXGatewayStorage.setHandler",
 
   // FuturX Gateway Utils
   FGWU_SetFuturXGateway: "futurXGatewayUtils.setFuturXGateway",
@@ -27,4 +28,7 @@ export const SUBTASK_NAME = {
 
   // Vault
   VAULT_SetFuturXGateway: "VAULT_SetFuturXGateway",
+
+  // ReferralRewardTracker
+  RRT_SetCounterParty: "RRT_SetCounterParty",
 };

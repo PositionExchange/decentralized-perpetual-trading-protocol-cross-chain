@@ -188,6 +188,10 @@ export class ContractWrapperFactory {
         return this.getDeployedContract<Vault>("Vault");
     }
 
+    async getReferralRewardTracker(): Promise<ReferralRewardTracker> {
+        return this.getDeployedContract<ReferralRewardTracker>("ReferralRewardTracker");
+    }
+
     async createInsuranceFund(args) {
         const InsuranceFund = await this.hre.ethers.getContractFactory("InsuranceFund");
         const insuranceFundContractAddress = await this.db.findAddressByKey(`InsuranceFund`);
