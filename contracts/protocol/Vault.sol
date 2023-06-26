@@ -1592,4 +1592,8 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function _validate(bool _condition, string memory _errorCode) private view {
         require(_condition, _errorCode);
     }
+
+    function setFuturXGateway(address _address) external onlyOwner {
+        futurXGateway = _address;
+    }
 }

@@ -19,7 +19,7 @@
 {"address":"0x5b60f8F49Fb949bb123ec4F2a33f939bCCa03020","key":"vestedPLP","_id":"OwV6E3pZzEQn7eYW"}
 {"address":"0x97fdA4b9Fbe0efe839EfD2B104E494e3C95CCc44","key":"POSI","_id":"RA10Fn9BlU7hXfB0"}
 {"address":"0xD3D11916F91D0B46D5f9fC4Aacc06598cd7fba38","key":"BonusPosiDistributor","_id":"RJKoD77i4IJF51Jj"}
-{"address":"0x82aF49447D8a07e3bd95BD0d56f35241523fBab1","key":"WETH","_id":"UeL3ptJVXKCWnoMU"}
+{"address":"yes","key":"0xa5C9c857115668342Ceb1c74d9f57029544c9304:verified","_id":"VDaNPOPVyBmPwqS7"}
 {"address":"0x4502A1B16b2575F89e45567Aa2496aBae1f15371","key":"FuturXGatewayStorage","_id":"XLX2hS81rWmwtC15"}
 {"address":"0x4CebAc4857bd3ED527BfA30eD1b35690fe28C833","key":"VaultUtils","_id":"Z0qUMEMZZ1eHP4bC"}
 {"address":"0x8C4759b1C422209566Ce785d510fE3C9185f6C6b","key":"VaultUtilsSplit","_id":"aAMqEQ3PV2CYCara"}
@@ -36,4 +36,6 @@
 {"address":"0x1Dd4b6005DA6F3Aa453AA4a001800F5AF6B3e4b6","key":"VaultReader","_id":"xg21sPKIkwLoi8XP"}
 {"address":"0x5203e019b96A556A8b7eECBBd00964Cf4Bdef87f","key":"StakedPlpTracker","_id":"zGtY3PwgSTLgzZem"}
 {"address":"0x39a6159BCF298BD078f18D648d43219E8257aE3F","key":"GatewayUtils","_id":"zluxqgot1HQeV4aL"}
+{"address":"yes","key":"0x2c6d6DeD71f1Fa74bA59d50E1CACb4c0905Ea901:verified","_id":"kYP1twI4Id65s6M8"}
 {"address":"yes","key":"0x56f301491924243Cb70bA28BF292195805E4d514:verified","_id":"6vEjANFgYAVz46G1"}
+{"address":"0x82aF49447D8a07e3bd95BD0d56f35241523fBab1","key":"WETH","_id":"UeL3ptJVXKCWnoMU"}

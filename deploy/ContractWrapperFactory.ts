@@ -184,6 +184,10 @@ export class ContractWrapperFactory {
         return this.getDeployedContract<FuturesAdapter>("FuturesAdapter");
     }
 
+    async getVault(): Promise<Vault> {
+        return this.getDeployedContract<Vault>("Vault");
+    }
+
     async createInsuranceFund(args) {
         const InsuranceFund = await this.hre.ethers.getContractFactory("InsuranceFund");
         const insuranceFundContractAddress = await this.db.findAddressByKey(`InsuranceFund`);

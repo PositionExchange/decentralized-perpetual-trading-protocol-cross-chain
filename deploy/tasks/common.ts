@@ -24,4 +24,7 @@ export const SUBTASK_NAME = {
 
   // FuturX Adapter
   FA_UpdateRelayerStatus: "FA_UpdateRelayerStatus",
+
+  // Vault
+  VAULT_SetFuturXGateway: "VAULT_SetFuturXGateway",
 };

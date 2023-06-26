@@ -11,6 +11,7 @@ import {
   FGW_SetReferralRewardTracker_Action,
 } from "./FuturXGatewayTasks";
 import { FA_UpdateRelayerStatus_Action } from "./FuturXAdapterTasks";
+import {VAULT_SetFuturXGateway_Action} from "./VaultTasks";
 
 subtask(SUBTASK_NAME.FGW_SetCoreManager)
   .setAction(FGW_SetCoreManager_Action)
@@ -67,4 +68,11 @@ subtask(SUBTASK_NAME.FA_UpdateRelayerStatus)
   .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
   .addParam("relayer")
   .addParam<boolean>("status", "", false, any)
+  .addOptionalParam("logMsg");
+
+
+subtask(SUBTASK_NAME.VAULT_SetFuturXGateway)
+  .setAction(VAULT_SetFuturXGateway_Action)
+  .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
+  .addParam("futurXGateway")
   .addOptionalParam("logMsg");
