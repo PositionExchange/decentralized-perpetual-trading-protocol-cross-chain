@@ -236,6 +236,15 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         return (index, key);
     }
 
+    function getTPSLRequest(
+        address _account,
+        address _indexToken,
+        bool _isHigherPip
+    ) external view returns (bytes32) {
+        bytes32 key = _getTPSLRequestKey(_account, _indexToken, _isHigherPip);
+        return tpslRequests[key];
+    }
+
     function storeTpslRequest(
         address _account,
         address _indexToken,

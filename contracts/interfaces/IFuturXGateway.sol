@@ -18,4 +18,18 @@ interface IFuturXGateway {
     function pscCrossChainGateway() external view returns (address);
 
     function futuresAdapter() external view returns (address);
+
+    function positionKeepers(address caller) external view returns (bool);
+
+    function indexTokens(address token) external view returns (address);
+
+    function executeDecreasePosition(
+        bytes32 _key,
+        uint256 _amountOutAfterFeesUsd,
+        uint256 _feeUsd,
+        uint256 _entryPrice,
+        uint256 _sizeDeltaToken,
+        bool _isLong,
+        bool _isExecutedFully
+    ) external;
 }

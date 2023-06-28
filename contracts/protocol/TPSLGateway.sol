@@ -4,7 +4,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "../interfaces/IFuturXGateway.sol";
 import "../interfaces/IFuturXGatewayStorage.sol";
 import "../interfaces/CrosschainFunctionCallInterface.sol";
-
+import {Errors} from "./libraries/helpers/Errors.sol";
 import "./common/CrosscallMethod.sol";
 
 contract TPSLGateway is ReentrancyGuardUpgradeable, CrosscallMethod {
@@ -102,6 +102,36 @@ contract TPSLGateway is ReentrancyGuardUpgradeable, CrosscallMethod {
         // );
     }
 
+    function triggerTPSL(
+        address _account,
+        address _positionManager,
+        uint256 _amountOutUsdAfterFees,
+        uint256 _feeUsd,
+        uint256 _sizeDeltaInToken,
+        bool _isHigherPrice,
+        bool _isLong
+    ) external {
+        _validateCaller(msg.sender);
+
+        address indexToken = futurXGateway.indexTokens(_positionManager);
+        bytes32 key = gatewayStorage().getTPSLRequest(
+            _account,
+            indexToken,
+            _isHigherPrice
+        );
+        futurXGateway.executeDecreasePosition(
+            key,
+            _amountOutUsdAfterFees,
+            _feeUsd,
+            0, // TODO: Add _entryPip
+            _sizeDeltaInToken,
+            _isLong,
+            true
+        );
+        _deleteTPSLRequestMap(_account, indexToken, !_isHigherPrice);
+        _deleteTPSLRequestMap(_account, indexToken, _isHigherPrice);
+    }
+
     function _deleteTPSLRequestMap(
         address _account,
         address _indexToken,
@@ -172,5 +202,9 @@ contract TPSLGateway is ReentrancyGuardUpgradeable, CrosscallMethod {
         address _indexToken
     ) internal view returns (address) {
         return futurXGateway.coreManagers(_indexToken);
+    }
+
+    function _validateCaller(address _account) private {
+        require(futurXGateway.positionKeepers(_account), Errors.FGW_CALLER_NOT_WHITELISTED);
     }
 }

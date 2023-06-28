@@ -88,4 +88,14 @@ contract DptpFuturesGatewayGovernance is
     function isPaused() external view returns (bool) {
         return paused();
     }
+
+    function executeDecreasePosition(
+        bytes32 _key,
+        uint256 _amountOutAfterFeesUsd,
+        uint256 _feeUsd,
+        uint256 _entryPrice,
+        uint256 _sizeDeltaToken,
+        bool _isLong,
+        bool _isExecutedFully
+    ) external {}
 }
