@@ -16,7 +16,7 @@ abstract contract DptpFuturesGatewayStorage is IFuturXGateway {
     address public futurXVoucher;
     address public override gatewayStorage;
 
-    mapping(address => bool) public positionKeepers;
+    mapping(address => bool) public override positionKeepers;
 
     mapping(address => uint256) public override maxGlobalLongSizes;
     mapping(address => uint256) public override maxGlobalShortSizes;
@@ -27,7 +27,7 @@ abstract contract DptpFuturesGatewayStorage is IFuturXGateway {
     // mapping indexToken with positionManager
     mapping(address => address) public override coreManagers;
     // mapping positionManager with indexToken
-    mapping(address => address) public indexTokens;
+    mapping(address => address) public override indexTokens;
 
     mapping(bytes32 => address) public latestExecutedCollateral; // For claim fund
     mapping(bytes32 => address) public latestIncreasePendingCollateral;

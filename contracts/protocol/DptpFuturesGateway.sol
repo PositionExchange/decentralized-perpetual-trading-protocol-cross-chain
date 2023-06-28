@@ -617,7 +617,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         bool _isLong,
         bool _isExecutedFully
-    ) public nonReentrant {
+    ) external nonReentrant {
         _validateCaller(msg.sender);
 
         _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.mul(PRICE_DECIMALS);
@@ -1063,43 +1063,6 @@ contract DptpFuturesGateway is
             receiveToken,
             amountOutToken
         );
-    }
-
-    function triggerTPSL(
-        address _account,
-        address _positionManager,
-        uint256 _amountOutUsdAfterFees,
-        uint256 _feeUsd,
-        uint256 _sizeDeltaInToken,
-        bool _isHigherPrice,
-        bool _isLong
-    ) external {
-        //        _validateCaller(msg.sender);
-        //
-        //        address indexToken = indexTokens[_positionManager];
-        //        bytes32 triggeredTPSLKey = _getTPSLRequestKey(
-        //            _account,
-        //            indexToken,
-        //            _isHigherPrice
-        //        );
-        //        executeDecreasePosition(
-        //            TPSLRequestMap[triggeredTPSLKey],
-        //            _amountOutUsdAfterFees,
-        //            _feeUsd,
-        //            0, // TODO: Add _entryPip
-        //            _sizeDeltaInToken,
-        //            _isLong
-        //        );
-        //        _deleteDecreasePositionRequests(
-        //            TPSLRequestMap[
-        //                _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
-        //            ]
-        //        );
-        //        _deleteTPSLRequestMap(
-        //            _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
-        //        );
-        //        _deleteDecreasePositionRequests(TPSLRequestMap[triggeredTPSLKey]);
-        //        _deleteTPSLRequestMap(triggeredTPSLKey);
     }
 
     function executeClaimFund(
