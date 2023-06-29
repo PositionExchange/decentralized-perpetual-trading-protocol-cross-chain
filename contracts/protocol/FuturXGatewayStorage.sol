@@ -29,10 +29,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     mapping(bytes32 => bytes32) public tpslRequests;
 
     modifier onlyHandler() {
-        _validate(
-            isHandler[msg.sender],
-            Errors.FGWS_CALLER_NOT_WHITELISTED
-        );
+        _validate(isHandler[msg.sender], Errors.FGWS_CALLER_NOT_WHITELISTED);
         _;
     }
 
@@ -112,11 +109,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function getDeleteIncreasePositionRequest(
         bytes32 _key
-    )
-        public
-        onlyHandler
-        returns (IncreasePositionRequest memory request)
-    {
+    ) public onlyHandler returns (IncreasePositionRequest memory request) {
         request = increasePositionRequests[_key];
         _validate(
             request.account != address(0),
@@ -131,11 +124,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bool isExecutedFully,
         IVault vault,
         uint16 leverage
-    )
-        public
-        onlyHandler
-        returns (IncreasePositionRequest memory request)
-    {
+    ) public onlyHandler returns (IncreasePositionRequest memory request) {
         request = increasePositionRequests[_key];
         _validate(
             request.account != address(0),
@@ -145,13 +134,19 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         if (isExecutedFully) {
             delete increasePositionRequests[_key];
         } else {
+            // TODO: Hoi TrungA sau
             uint256 amountAdjust = vault.adjustDecimalToToken(
                 request.indexToken,
                 amountInToken / leverage
             );
-            increasePositionRequests[_key].amountInToken =
-                request.amountInToken -
-                amountAdjust;
+            amountAdjust = vault.convert(
+                request.indexToken,
+                request.path[0],
+                amountAdjust
+            );
+            increasePositionRequests[_key].amountInToken = request
+                .amountInToken
+                .sub(amountAdjust);
             request.amountInToken = amountAdjust;
         }
     }
@@ -178,11 +173,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function getDeleteDecreasePositionRequest(
         bytes32 _key
-    )
-        public
-        onlyHandler
-        returns (DecreasePositionRequest memory request)
-    {
+    ) public onlyHandler returns (DecreasePositionRequest memory request) {
         request = decreasePositionRequests[_key];
         _validate(
             request.account != address(0),
@@ -195,11 +186,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bytes32 _key,
         uint256 quantity,
         bool isExecutedFully
-    )
-        public
-        onlyHandler
-        returns (DecreasePositionRequest memory request)
-    {
+    ) public onlyHandler returns (DecreasePositionRequest memory request) {
         request = decreasePositionRequests[_key];
         _validate(
             request.account != address(0),
@@ -216,9 +203,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         }
     }
 
-    function deleteDecreasePositionRequest(
-        bytes32 _key
-    ) public onlyHandler {
+    function deleteDecreasePositionRequest(bytes32 _key) public onlyHandler {
         _deleteDecreasePositionRequests(_key);
     }
 
@@ -267,11 +252,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function getDeleteUpdateCollateralRequest(
         bytes32 _key
-    )
-        public
-        onlyHandler
-        returns (UpdateCollateralRequest memory request)
-    {
+    ) public onlyHandler returns (UpdateCollateralRequest memory request) {
         request = updateCollateralRequests[_key];
         _validate(
             request.account != address(0),
@@ -346,7 +327,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     function _validate(bool _condition, string memory _errorCode) private view {
         require(_condition, _errorCode);
     }
-    
+
     function setHandler(address _handler, bool _isHandler) external onlyOwner {
         isHandler[_handler] = _isHandler;
     }

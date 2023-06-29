@@ -9,6 +9,7 @@ const GOV_ABI = [
   "function setReferralRewardTracker(address _address)",
   "function setPosiChainCrosschainGatewayContract(address _address)",
   "function setGovernanceLogic(address _newGovernanceLogic)",
+  "function setVault(address _vault)",
 ];
 
 const executeGovFunc = async (
@@ -78,13 +79,26 @@ export const FGW_SetPscCrossChain_Action = async (args: {
 
 export const FGW_SetGovernanceLogic_Action = async (args: {
   ctx: MigrationContext;
-  gov: string;
   logMsg?: string;
 }) => {
   const futurXGateway = await args.ctx.factory.getFuturXGateway();
+  const gov = await args.ctx.db.findAddressByKey("DptpFuturesGatewayGovernance");
 
   await args.ctx.factory.waitTx(
-    futurXGateway.setGovernanceLogic(args.gov),
+    futurXGateway.setGovernanceLogic(gov),
     args.logMsg || SUBTASK_NAME.FGW_SetGovernanceLogic
+  );
+};
+
+export const FGW_SetVault_Action = async (args: {
+  ctx: MigrationContext;
+  logMsg?: string;
+}) => {
+  const vault = await args.ctx.factory.getVault();
+  await executeGovFunc(
+      args.ctx,
+      "setVault",
+      [vault.address],
+      args.logMsg || SUBTASK_NAME.FGW_SetVault
   );
 };

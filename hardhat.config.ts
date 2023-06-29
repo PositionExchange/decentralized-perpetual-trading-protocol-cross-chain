@@ -63,12 +63,12 @@ module.exports = {
             accounts: [BSC_MAINNET_DEPLOYER_KEY],
         },
         arbitrumGoerli: {
-            url: "https://snowy-dimensional-wave.arbitrum-goerli.quiknode.pro/5fb1a4cbaec64e964facf89b037dabd44bd73b27/",
+            url: "https://arbitrum-goerli.blockpi.network/v1/rpc/public",
             chainId: 421613,
             accounts: [ARB_TESTNET_DEPLOYER_KEY],
         },
         arbitrumOne: {
-            url: "https://arb-mainnet-public.unifra.io",
+            url: "https://arbitrum-one.publicnode.com",
             chainId: 42161,
             gasPrice: 100000000,
             accounts: [ARB_MAINNET_DEPLOYER_KEY],

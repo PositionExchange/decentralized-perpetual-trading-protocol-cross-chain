@@ -5,11 +5,10 @@ import {
   FuturesAdapter,
   FuturXGatewayStorage,
   GatewayUtils,
-  ReferralRewardTracker,
   WETH,
 } from "../../typeChain";
 import { SUBTASK_NAME } from "../tasks/common";
-import { ARB_REFUNDERS, ARB_RELAYERS } from "../config_production";
+import { ARB_RELAYERS } from "../config_production";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
@@ -67,20 +66,18 @@ const migrations: MigrationDefinition = {
     },
 
     "PROD config refunder whitelist": async () => {
-      for (const refunder of ARB_REFUNDERS) {
-        await run(SUBTASK_NAME.FGW_SetPositionKeeper, {
-          ctx: ctx,
-          positionKeeper: refunder,
-          status: true,
-        });
-      }
+      // for (const refunder of ARB_REFUNDERS) {
+      await run(SUBTASK_NAME.FGW_SetPositionKeeper, {
+        ctx: ctx,
+        positionKeeper: "0x925C11Ac24154A6D26F602b8ed24638EAE6fE013",
+        status: true,
+      });
+      // }
     },
 
     "re-config after deploy new gov": async () => {
-      const gov = await ctx.db.findAddressByKey("DptpFuturesGatewayGovernance");
       await run(SUBTASK_NAME.FGW_SetGovernanceLogic, {
         ctx: ctx,
-        gov: gov,
       });
     },
 
@@ -142,6 +139,12 @@ const migrations: MigrationDefinition = {
       // await run(SUBTASK_NAME.VAULT_SetFuturXGateway, {
       //   ctx: ctx,
       //   futurXGateway,
+      // });
+
+      // await run(SUBTASK_NAME.RRT_SetCounterParty, {
+      //   ctx: ctx,
+      //   counterParty: futurXGateway,
+      //   status: true,
       // });
 
       await run(SUBTASK_NAME.RRT_SetCounterParty, {

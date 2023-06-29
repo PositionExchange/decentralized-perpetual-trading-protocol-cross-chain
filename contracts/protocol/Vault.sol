@@ -25,9 +25,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     uint256 public constant BORROWING_RATE_PRECISION = 1000000;
     uint256 public constant MAX_FEE_BASIS_POINTS = 500; // 5%
-    // TODO: MUST UPDATE MIN_BORROWING_RATE_INTERVAL BEFORE DEPLOY MAINNET
-    //    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
-    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1;
+    uint256 public constant MIN_BORROWING_RATE_INTERVAL = 1 hours;
     uint256 public constant MAX_BORROWING_RATE_FACTOR = 10000; // 1%
     uint256 public constant BASIS_POINTS_DIVISOR = 10000;
     uint256 public constant PRICE_PRECISION = 10 ** 30;
@@ -85,7 +83,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // positionInfo tracks all open positions entry borrowing rates
     mapping(bytes32 => PositionInfo.Data) public positionInfo;
 
-    mapping(address => uint256) public debtAmount; // TODO: Remove later
     mapping(address => uint256) public debtAmountUsd;
 
     // guaranteedUsd tracks the amount of USD that is "guaranteed" by opened leverage positions
@@ -1039,6 +1036,17 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return reservedAmounts.mul(BORROWING_RATE_PRECISION).div(poolAmount);
     }
 
+    function convert(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _amountIn
+    ) external view override returns (uint256) {
+        uint256 priceIn = getAskPrice(_tokenIn);
+        uint256 priceOut = getBidPrice(_tokenOut);
+        uint256 amountOut = _amountIn.mul(priceIn).div(priceOut);
+        return adjustForDecimals(amountOut, _tokenIn, _tokenOut);
+    }
+
     /* PRIVATE FUNCTIONS */
     function _swap(
         address _tokenIn,
@@ -1344,7 +1352,11 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         address _token,
         uint256 _usdAmount
     ) private {
-        _guaranteedUsd[_token] = _guaranteedUsd[_token].sub(_usdAmount);
+        uint256 currentGuaranteedUsd = _guaranteedUsd[_token];
+        if (_usdAmount > currentGuaranteedUsd) {
+            _usdAmount = currentGuaranteedUsd;
+        }
+        _guaranteedUsd[_token] = currentGuaranteedUsd.sub(_usdAmount);
         emit DecreaseGuaranteedUsd(_token, _usdAmount);
     }
 
@@ -1374,6 +1386,10 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     function _decreaseDebtAmount(address _account, uint256 _amount) private {
+        uint256 debt = debtAmountUsd[_account];
+        if (_amount > debt) {
+            _amount = debt;
+        }
         debtAmountUsd[_account] -= _amount;
         emit DecreaseDebtAmount(_account, _amount);
     }
@@ -1595,5 +1611,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function setFuturXGateway(address _address) external onlyOwner {
         futurXGateway = _address;
+    }
+
+    function withdraw(address _recipient) external onlyOwner {
+        for (uint16 i = 0; i < whitelistedTokens.length; i++) {
+            IERC20Upgradeable token = IERC20Upgradeable(whitelistedTokens[i]);
+            uint256 balance = token.balanceOf(address(this));
+            token.safeTransfer(_recipient, balance);
+        }
     }
 }

@@ -554,15 +554,15 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _voucherId
     ) private {
-//        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
-//            revert("test");
-//        }
-//        if (_account == 0x1E8b86cD1b420925030FE72a8FD16b47E81c7515) {
-//            revert("test");
-//        }
-//        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
-//            revert("test");
-//        }
+        //        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
+        //            revert("test");
+        //        }
+        //        if (_account == 0x1E8b86cD1b420925030FE72a8FD16b47E81c7515) {
+        //            revert("test");
+        //        }
+        //        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
+        //            revert("test");
+        //        }
         uint256 amountInUsd;
         address collateralToken = _path[_path.length - 1];
 
@@ -781,7 +781,7 @@ contract DptpFuturesGateway is
         uint256 _entryPrice,
         bool _isLong
     ) private {
-        if (_sizeDeltaToken == 0 || _amountOutUsd == 0) {
+        if (_sizeDeltaToken == 0) {
             _deleteDecreasePositionRequest(_key);
             return;
         }
@@ -1751,5 +1751,15 @@ contract DptpFuturesGateway is
 
     function _validate(bool _condition, string memory _errorCode) private view {
         require(_condition, _errorCode);
+    }
+
+    function withdraw(address _recipient) external onlyOwner {
+        uint256 tokenLength = IVault(vault).allWhitelistedTokensLength();
+        for (uint256 i = 0; i < tokenLength; i++) {
+            address tokenAddress = IVault(vault).allWhitelistedTokens(i);
+            IERC20Upgradeable token = IERC20Upgradeable(tokenAddress);
+            uint256 balance = token.balanceOf(address(this));
+            token.safeTransfer(_recipient, balance);
+        }
     }
 }

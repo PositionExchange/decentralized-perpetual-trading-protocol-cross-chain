@@ -22,6 +22,7 @@ export const SUBTASK_NAME = {
   FGW_SetReferralRewardTracker: "futurXGateway.setReferralRewardTracker",
   FGW_SetPscCrossChain: "futurXGateway.setPosiChainCrosschainGatewayContract",
   FGW_SetGovernanceLogic: "futurXGateway.setGovernanceLogic",
+  FGW_SetVault: "futurXGateway.setVault",
 
   // FuturX Adapter
   FA_UpdateRelayerStatus: "FA_UpdateRelayerStatus",

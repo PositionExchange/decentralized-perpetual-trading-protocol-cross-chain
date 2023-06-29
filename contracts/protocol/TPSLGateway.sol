@@ -77,29 +77,19 @@ contract TPSLGateway is ReentrancyGuardUpgradeable, CrosscallMethod {
         address _indexToken,
         bool _isHigherPrice
     ) external nonReentrant whenNotPaused {
-        // if (_isHigherPrice) {
-        //     _deleteDecreasePositionRequests(
-        //         TPSLRequestMap[
-        //             _getTPSLRequestKey(msg.sender, _indexToken, true)
-        //         ]
-        //     );
-        //     _deleteTPSLRequestMap(
-        //         _getTPSLRequestKey(msg.sender, _indexToken, true)
-        //     );
-        // } else {
-        //     _deleteDecreasePositionRequests(
-        //         TPSLRequestMap[
-        //             _getTPSLRequestKey(msg.sender, _indexToken, false)
-        //         ]
-        //     );
-        //     _deleteTPSLRequestMap(
-        //         _getTPSLRequestKey(msg.sender, _indexToken, false)
-        //     );
-        // }
-        // _crossBlockchainCall(
-        //     uint8(Method.UNSET_TP_OR_SL),
-        //     abi.encode(_indexTokenToManager(_indexToken), msg.sender, _isHigherPrice)
-        // );
+        if (_isHigherPrice) {
+            _deleteTPSLRequestMap(msg.sender, _indexToken, true);
+        } else {
+            _deleteTPSLRequestMap(msg.sender, _indexToken, false);
+        }
+        _crossBlockchainCall(
+            uint8(Method.UNSET_TP_OR_SL),
+            abi.encode(
+                _indexTokenToManager(_indexToken),
+                msg.sender,
+                _isHigherPrice
+            )
+        );
     }
 
     function triggerTPSL(

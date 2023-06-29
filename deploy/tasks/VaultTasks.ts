@@ -4,12 +4,13 @@ import { SUBTASK_NAME } from "./common";
 
 export const VAULT_SetFuturXGateway_Action = async (args: {
   ctx: MigrationContext;
-  futurXGateway: string;
   logMsg?: string;
 }) => {
-  const contract = await args.ctx.factory.getVault();
+  const vault = await args.ctx.factory.getVault();
+  const futurXGateway = await args.ctx.factory.getFuturXGateway();
+
   await args.ctx.factory.waitTx(
-    contract.setFuturXGateway(args.futurXGateway),
+    vault.setFuturXGateway(futurXGateway.address),
     args.logMsg || SUBTASK_NAME.VAULT_SetFuturXGateway
   );
 };

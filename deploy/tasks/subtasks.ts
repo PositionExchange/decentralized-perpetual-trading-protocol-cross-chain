@@ -8,7 +8,7 @@ import {
   FGW_SetCoreManager_Action, FGW_SetGovernanceLogic_Action,
   FGW_SetPositionKeeper_Action,
   FGW_SetPscCrossChain_Action,
-  FGW_SetReferralRewardTracker_Action,
+  FGW_SetReferralRewardTracker_Action, FGW_SetVault_Action,
 } from "./FuturXGatewayTasks";
 import { FA_UpdateRelayerStatus_Action } from "./FuturXAdapterTasks";
 import {VAULT_SetFuturXGateway_Action} from "./VaultTasks";
@@ -43,7 +43,11 @@ subtask(SUBTASK_NAME.FGW_SetPscCrossChain)
 subtask(SUBTASK_NAME.FGW_SetGovernanceLogic)
   .setAction(FGW_SetGovernanceLogic_Action)
   .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
-  .addParam("gov")
+  .addOptionalParam("logMsg");
+
+subtask(SUBTASK_NAME.FGW_SetVault)
+  .setAction(FGW_SetVault_Action)
+  .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
   .addOptionalParam("logMsg");
 
 subtask(SUBTASK_NAME.FGWU_SetFuturXGateway)
@@ -81,7 +85,6 @@ subtask(SUBTASK_NAME.FA_UpdateRelayerStatus)
 subtask(SUBTASK_NAME.VAULT_SetFuturXGateway)
   .setAction(VAULT_SetFuturXGateway_Action)
   .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
-  .addParam("futurXGateway")
   .addOptionalParam("logMsg");
 
 subtask(SUBTASK_NAME.RRT_SetCounterParty)
