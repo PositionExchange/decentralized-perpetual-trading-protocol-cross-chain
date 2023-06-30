@@ -107,6 +107,8 @@ library Errors {
     string public constant FGWU_INVALID_STEP_BASE_SIZE = "FGWU-40019";
     string public constant FGWU_INSUFFICIENT_RESERVED_AMOUNT = "FGWU-50001";
 
+    string public constant TPSL_CALLER_NOT_WHITELISTED = "TPSL-40101";
+
     enum CollateralManagerErrors {
         NO_ERROR
     }

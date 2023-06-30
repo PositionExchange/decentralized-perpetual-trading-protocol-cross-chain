@@ -856,7 +856,7 @@ contract DptpFuturesGateway is
             request.path,
             request.indexToken,
             remainingAmountToken,
-            0,
+            request.feeUsd,
             _entryPrice,
             _sizeDeltaToken,
             _isLong,

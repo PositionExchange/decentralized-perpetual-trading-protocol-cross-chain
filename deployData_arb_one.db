@@ -43,6 +43,8 @@
 {"address":"0x85518B34e34b98EccA902de98E7Ae0d66E712aAE","key":"FeePlpDistributor","_id":"tMZq6u70DCk8IHaZ"}
 {"address":"0x82D87AB35697B9E438CF9dEFdfF1cCE8c72690F6","key":"FuturesAdapter","_id":"u0vG2dhsjN59v5M0"}
 {"address":"0x1Dd4b6005DA6F3Aa453AA4a001800F5AF6B3e4b6","key":"VaultReader","_id":"xg21sPKIkwLoi8XP"}
+{"address":"yes","key":"0xb703D013192454d875DcEA7e9E832a7369d2a8ED:verified","_id":"yydBabJaC42z7lAm"}
 {"address":"0x5203e019b96A556A8b7eECBBd00964Cf4Bdef87f","key":"StakedPlpTracker","_id":"zGtY3PwgSTLgzZem"}
 {"address":"0x39a6159BCF298BD078f18D648d43219E8257aE3F","key":"GatewayUtils","_id":"zluxqgot1HQeV4aL"}
-{"address":"yes","key":"0xb703D013192454d875DcEA7e9E832a7369d2a8ED:verified","_id":"yydBabJaC42z7lAm"}
+{"address":"yes","key":"0x7708c9deea430cE0f462507546fE70A3f1C86ED5:verified","_id":"yjI9uKgF81HKZIF8"}
+{"address":"0x61182e33df6A7815613A3Ad14d20904dF9c3a563","key":"DptpFuturesGatewayGovernance","_id":"9gfxJzz2yVLtTVpq"}

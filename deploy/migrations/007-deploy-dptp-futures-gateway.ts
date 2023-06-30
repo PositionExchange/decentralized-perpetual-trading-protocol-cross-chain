@@ -4,7 +4,7 @@ import {
   DptpFuturesGateway,
   FuturesAdapter,
   FuturXGatewayStorage,
-  GatewayUtils,
+  GatewayUtils, TPSLGateway, TPSLGateway__factory,
   WETH,
 } from "../../typeChain";
 import { SUBTASK_NAME } from "../tasks/common";
@@ -53,6 +53,17 @@ const migrations: MigrationDefinition = {
 
     "deploy tpsl gateway": async () => {
       await ctx.factory.createTPSLGateway();
+    },
+
+    "re-config tpsl gateway": async () => {
+      const tpslGateway = await ctx.factory.db.findAddressByKey(
+          "TPSLGateway"
+      );
+      await run(SUBTASK_NAME.FGW_SetPositionKeeper, {
+        ctx: ctx,
+        positionKeeper: "0x1A85FF339e798b743AE7439e4A23e2C8f486cBb8",
+        status: true,
+      });
     },
 
     "PROD config relayer whitelist": async () => {

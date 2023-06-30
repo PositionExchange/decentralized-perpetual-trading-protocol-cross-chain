@@ -100,7 +100,7 @@ contract TPSLGateway is ReentrancyGuardUpgradeable, CrosscallMethod {
         uint256 _sizeDeltaInToken,
         bool _isHigherPrice,
         bool _isLong
-    ) external {
+    ) external whenNotPaused {
         _validateCaller(msg.sender);
 
         address indexToken = futurXGateway.indexTokens(_positionManager);
@@ -195,6 +195,6 @@ contract TPSLGateway is ReentrancyGuardUpgradeable, CrosscallMethod {
     }
 
     function _validateCaller(address _account) private {
-        require(futurXGateway.positionKeepers(_account), Errors.FGW_CALLER_NOT_WHITELISTED);
+        require(futurXGateway.positionKeepers(_account), Errors.TPSL_CALLER_NOT_WHITELISTED);
     }
 }
