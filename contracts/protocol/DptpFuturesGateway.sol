@@ -244,10 +244,6 @@ contract DptpFuturesGateway is
             _amountInUsd + totalFeeUsd
         );
 
-        _transferIn(_path[0], amountInAfterFeeToken);
-        // convert ETH to WETH
-        _transferInETH();
-
         CreateIncreasePositionParam memory params = CreateIncreasePositionParam(
             msg.sender,
             _path,
@@ -259,23 +255,11 @@ contract DptpFuturesGateway is
             0,
             _leverage,
             _isLong,
-            false,
+            false, //TODO: Deprecated
             positionFeeUsd,
             _voucherId
         );
         return _createIncreasePosition(params);
-    }
-
-    function createIncreasePositionETH(
-        address[] memory _path,
-        address _indexToken,
-        uint256 _amountInUsd,
-        uint256 _sizeDeltaToken,
-        uint16 _leverage,
-        bool _isLong,
-        uint256 _voucherId
-    ) external payable nonReentrant whenNotPaused returns (bytes32) {
-        return 0;
     }
 
     function createIncreaseOrderRequest(
@@ -313,12 +297,12 @@ contract DptpFuturesGateway is
             uint256 discountAmount = IGatewayUtils(gatewayUtils)
                 .calculateDiscountValue(_voucherId, _amountInUsd);
             _amountInUsd -= discountAmount;
-            emit VoucherApplied(msg.sender, _voucherId, discountAmount);
+            emit VoucherApplied(_msgSender(), _voucherId, discountAmount);
         }
         uint256 amountInToken = _usdToTokenMin(_path[0], _amountInUsd);
 
         (uint256 positionFeeUsd, uint256 totalFeeUsd) = _collectFees(
-            msg.sender,
+            _msgSender(),
             _path,
             _indexToken,
             amountInToken,
@@ -332,10 +316,6 @@ contract DptpFuturesGateway is
             _path[0],
             _amountInUsd + totalFeeUsd
         );
-
-        _transferIn(_path[0], amountInAfterFeeToken);
-        // convert ETH to WETH
-        _transferInETH();
 
         CreateIncreasePositionParam memory params;
         {
@@ -359,19 +339,6 @@ contract DptpFuturesGateway is
         }
 
         return _createIncreasePosition(params);
-    }
-
-    function createIncreaseOrderRequestETH(
-        address[] memory _path,
-        address _indexToken,
-        uint256 _amountInUsd,
-        uint256 _pip,
-        uint256 _sizeDeltaToken,
-        uint16 _leverage,
-        bool _isLong,
-        uint256 _voucherId
-    ) external payable nonReentrant whenNotPaused returns (bytes32) {
-        return 0;
     }
 
     function createDecreasePositionRequest(
@@ -423,13 +390,6 @@ contract DptpFuturesGateway is
 
         bool _withdrawETH = _path[_path.length - 1] == weth;
 
-        //        if (_withdrawETH) {
-        //            _validate(
-        //                _path[_path.length - 1] == weth,
-        //                Errors.FGW_TOKEN_MUST_BE_ETH
-        //            );
-        //        }
-
         _transferInETH();
 
         return
@@ -463,51 +423,6 @@ contract DptpFuturesGateway is
                     IVault(vault),
                     _leverage
                 );
-
-        _updatePendingCollateral(
-            request.account,
-            request.indexToken,
-            request.path[request.path.length - 1],
-            2
-        );
-
-        _executeIncreasePosition(
-            request.account,
-            request.path,
-            request.indexToken,
-            request.amountInToken,
-            request.feeUsd,
-            _entryPrice,
-            _sizeDeltaInToken,
-            _isLong,
-            request.voucherId
-        );
-
-        IReferralRewardTracker(referralRewardTracker).updateRefereeStatus(
-            request.account,
-            request.indexToken,
-            block.timestamp,
-            _entryPrice.mul(_sizeDeltaInToken).div(WEI_DECIMALS),
-            true
-        );
-        IReferralRewardTracker(referralRewardTracker).updateClaimableReward(
-            request.account,
-            request.positionFeeUsd.div(PRICE_DECIMALS)
-        );
-
-        _executeExecuteUpdatePositionData(_key);
-    }
-
-    function executeIncreaseLimitOrder(
-        bytes32 _key,
-        uint256 _entryPrice,
-        uint256 _sizeDeltaInToken,
-        bool _isLong
-    ) public nonReentrant {
-        _validateCaller(msg.sender);
-
-        IFuturXGatewayStorage.IncreasePositionRequest
-            memory request = _getDeleteIncreasePositionRequest(_key);
 
         _updatePendingCollateral(
             request.account,
@@ -640,7 +555,8 @@ contract DptpFuturesGateway is
             _feeUsd,
             _entryPrice,
             _sizeDeltaToken,
-            _isLong
+            _isLong,
+            request.withdrawETH
         );
     }
 
@@ -652,7 +568,8 @@ contract DptpFuturesGateway is
         uint256 _feeUsd,
         uint256 _entryPrice,
         uint256 _sizeDeltaToken,
-        bool _isLong
+        bool _isLong,
+        bool _withdrawETH
     ) private {
         uint256 amountOutTokenAfterFees = _decreasePosition(
             _account,
@@ -696,10 +613,10 @@ contract DptpFuturesGateway is
             amountOutTokenAfterFees = _swap(_path, address(this), true);
         }
 
-        //        if (request.withdrawETH) {
-        //            _transferOutETH(amountOutTokenAfterFees, payable(_account));
-        //            return;
-        //        }
+        if (_withdrawETH) {
+            _transferOutETH(amountOutTokenAfterFees, payable(_account));
+            return;
+        }
 
         _transferOut(
             _path[_path.length - 1],
@@ -798,7 +715,8 @@ contract DptpFuturesGateway is
             0,
             _entryPrice,
             _sizeDeltaToken,
-            _isLong
+            _isLong,
+            request.withdrawETH
         );
     }
 
@@ -847,7 +765,11 @@ contract DptpFuturesGateway is
             return;
         }
 
-        _transferOut(request.path[0], amountOutToken, request.account);
+        if (request.hasCollateralInETH) {
+            _transferOutETH(amountOutToken, payable(request.account));
+        } else {
+            _transferOut(request.path[0], amountOutToken, request.account);
+        }
 
         uint256 remainingAmountToken = request.amountInToken.sub(
             amountOutToken
@@ -889,7 +811,7 @@ contract DptpFuturesGateway is
         address _indexToken,
         uint256 _amountInToken,
         bool _isLong
-    ) external nonReentrant whenNotPaused {
+    ) external payable nonReentrant whenNotPaused {
         address paidToken = _path[0];
         address collateralToken = _path[_path.length - 1];
 
@@ -901,7 +823,18 @@ contract DptpFuturesGateway is
         );
 
         _amountInToken = _adjustDecimalToToken(paidToken, _amountInToken);
-        _transferIn(paidToken, _amountInToken);
+
+        bool hasCollateralInETH = _path[0] == weth;
+        if (hasCollateralInETH) {
+            _validate(
+                _amountInToken + executionFee <= msg.value,
+                "Invalid msg.value"
+            );
+        } else {
+            _transferIn(paidToken, _amountInToken);
+        }
+        // convert ETH to WETH
+        _transferInETH();
 
         uint256 swapFeeToken = paidToken == collateralToken
             ? 0
@@ -1058,7 +991,13 @@ contract DptpFuturesGateway is
             amountOutToken = _swap(request.path, address(this), true);
         }
 
-        _transferOut(receiveToken, amountOutToken, request.account);
+        bool hasCollateralInETH = receiveToken == weth;
+        if (hasCollateralInETH) {
+            _transferOutETH(amountOutToken, payable(request.account));
+        } else {
+            _transferOut(receiveToken, amountOutToken, request.account);
+        }
+
         emit CollateralRemoveExecuted(
             request.account,
             receiveToken,
@@ -1098,7 +1037,13 @@ contract DptpFuturesGateway is
             _amountOutUsd,
             address(this)
         );
-        _transferOut(collateralToken, amountOutToken, _account);
+
+        bool hasCollateralInETH = collateralToken == weth;
+        if (hasCollateralInETH) {
+            _transferOutETH(amountOutToken, payable(_account));
+        } else {
+            _transferOut(collateralToken, amountOutToken, _account);
+        }
     }
 
     function refund(
@@ -1132,11 +1077,17 @@ contract DptpFuturesGateway is
                 2
             );
 
-            _transferOut(
-                request.path[0],
-                request.amountInToken,
-                request.account
-            );
+            bool hasCollateralInETH = request.path[0] == weth;
+            if (hasCollateralInETH) {
+                _transferOutETH(request.amountInToken, payable(request.account));
+            } else {
+                _transferOut(
+                    request.path[0],
+                    request.amountInToken,
+                    request.account
+                );
+            }
+
             if (request.voucherId > 0) {
                 _refundVoucher(request.voucherId, request.account);
             }
@@ -1144,11 +1095,17 @@ contract DptpFuturesGateway is
         if (_method == Method.ADD_MARGIN) {
             IFuturXGatewayStorage.UpdateCollateralRequest
                 memory request = _getDeleteUpdateCollateralRequest(_key);
-            _transferOut(
-                request.path[0],
-                request.amountInToken,
-                request.account
-            );
+
+            bool hasCollateralInETH = request.path[0] == weth;
+            if (hasCollateralInETH) {
+                _transferOutETH(request.amountInToken, payable(request.account));
+            } else {
+                _transferOut(
+                    request.path[0],
+                    request.amountInToken,
+                    request.account
+                );
+            }
         }
     }
 
@@ -1227,6 +1184,23 @@ contract DptpFuturesGateway is
     function _createIncreasePosition(
         CreateIncreasePositionParam memory param
     ) internal returns (bytes32) {
+
+        bool hasCollateralInETH;
+        {
+            hasCollateralInETH = param.path[0] == weth;
+            if (hasCollateralInETH) {
+                _validate(
+                    param.amountInAfterFeeToken + executionFee <= msg.value,
+                    "Invalid msg.value"
+                );
+            } else {
+                _transferIn(param.path[0], param.amountInAfterFeeToken);
+            }
+            // convert ETH to WETH
+            _transferInETH();
+        }
+
+        param.hasCollateralInETH = hasCollateralInETH;
         (, bytes32 requestKey) = _storeIncreasePositionRequest(param);
 
         {
