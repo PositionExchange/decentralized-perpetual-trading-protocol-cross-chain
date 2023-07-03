@@ -61,6 +61,12 @@ interface IFuturXGatewayStorage {
         bool _isHigherPip
     ) external pure returns (bytes32);
 
+    function getTPSLRequest(
+        address _account,
+        address _indexToken,
+        bool _isHigherPip
+    ) external view returns (bytes32);
+
     function getIncreasePositionRequest(
         bytes32 _key
     ) external view returns (IncreasePositionRequest memory);
@@ -98,7 +104,7 @@ interface IFuturXGatewayStorage {
     function getPendingCollateral(
         address _account,
         address _indexToken
-    ) external returns (PendingCollateral memory);
+    ) external view returns (PendingCollateral memory);
 
     function storeIncreasePositionRequest(
         IncreasePositionRequest memory _request

@@ -2,6 +2,7 @@ import {MigrationContext, MigrationDefinition} from "../types";
 import {LpManager, PLP, RewardRouter, VaultUtilsSplit} from "../../typeChain";
 import {Token} from "../shared/types";
 import {ethers} from "ethers";
+import {ARB_POSI_MAX_CAP, ARB_POSI_MINTER_ADDRESS} from "../../constants";
 
 //verify contracts/token/posi/POSI.sol:POSI
 //
@@ -20,9 +21,11 @@ const migrations: MigrationDefinition = {
             const glpManager = await ctx.factory.getDeployedContract<LpManager>('LpManager')
             const glp = await ctx.factory.getDeployedContract<PLP>('PLP')
 
-            const posi = await deployContract("POSI", []);
+            const posi = await deployContract("POSI", [ARB_POSI_MINTER_ADDRESS, ARB_POSI_MAX_CAP]);
             const esPosi = await deployContract("EsPOSI",[]);
-            const bnPosi = await deployContract("MintableBaseToken", ["Bonus POSI", "bnPOSI", 0]);
+            const bnPosi = await deployContract("MintableBaseToken", ["Bonus POSI", "bnPOSI", 0], {
+                contractId: 'BnPOSI'
+            });
 
             await sendTxn(esPosi.setInPrivateTransferMode(true), "esPosi.setInPrivateTransferMode")
             await sendTxn(glp.setInPrivateTransferMode(true), "glp.setInPrivateTransferMode")
@@ -108,24 +111,6 @@ const migrations: MigrationDefinition = {
               contractId: 'vestedPLP'
             })
 
-            // const rewardRouter = await deployContract<RewardRouter>("RewardRouter", [
-            //   nativeToken.address,
-            //   posi.address,
-            //   esPosi.address,
-            //   bnPosi.address,
-            //   glp.address
-            // ])
-            // await sendTxn(rewardRouter.initialize(
-            //   stakedPosiTracker.address,
-            //   bonusPosiTracker.address,
-            //   feePosiTracker.address,
-            //   feePlpTracker.address,
-            //   stakedPlpTracker.address,
-            //   glpManager.address,
-            //   gmxVester.address,
-            //   glpVester.address
-            // ), "rewardRouter.initialize")
-
             const rewardRouter = await ctx.factory.createRewardRouter([
                    [
                        nativeToken.address,
@@ -203,12 +188,27 @@ const migrations: MigrationDefinition = {
           const reward_reader = await deployContract("VaultReader", []);
         },
 
+        'upgrade-reward-router': async ()=>{
+            await ctx.factory.createRewardRouter();
+        },
+
         'deploy-vault-utils-splits': async ()=>{
           const vault_utils_split = await deployContract("VaultUtilsSplit", []);
           const vaultUtilsSplit = await ctx.factory.getDeployedContract<VaultUtilsSplit>('VaultUtilsSplit')
           const vaultAddress = await ctx.db.findAddressByKey('Vault')
           await sendTxn(vaultUtilsSplit.setVault(vaultAddress), "vaultUtilsSplit.setVault")
-        }
+        },
+
+        "force import reward router": async () => {
+            const rewardRouter = await ctx.db.findAddressByKey("RewardRouter");
+            const factory = await ctx.hre.ethers.getContractFactory("RewardRouter");
+            if (rewardRouter) {
+                await ctx.hre.upgrades.forceImport(rewardRouter, factory);
+                return;
+            }
+        },
+
+
       }
     }
 }

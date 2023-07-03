@@ -1,10 +1,10 @@
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "./interfaces/IRewardTracker.sol";
@@ -21,8 +21,8 @@ contract RewardRouter is
     GovernableUpgradeable
 {
     using SafeMath for uint256;
-    using SafeERC20 for IERC20;
-    using Address for address payable;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using AddressUpgradeable for address payable;
     address public weth;
 
     address public posi;
@@ -100,7 +100,7 @@ contract RewardRouter is
         address _account,
         uint256 _amount
     ) external onlyGov {
-        IERC20(_token).safeTransfer(_account, _amount);
+        IERC20Upgradeable(_token).safeTransfer(_account, _amount);
     }
 
     function batchStakePosiForAccount(
@@ -250,7 +250,7 @@ contract RewardRouter is
         require(msg.value > 0, "RewardRouter: invalid msg.value");
 
         IWETH(weth).deposit{value: msg.value}();
-        IERC20(weth).approve(plpManager, msg.value);
+        IERC20Upgradeable(weth).approve(plpManager, msg.value);
 
         address account = msg.sender;
         uint256 plpAmount = ILpManager(plpManager).addLiquidityForAccount(
@@ -514,11 +514,11 @@ contract RewardRouter is
 
     function signalTransfer(address _receiver) external nonReentrant {
         require(
-            IERC20(posiVester).balanceOf(msg.sender) == 0,
+            IERC20Upgradeable(posiVester).balanceOf(msg.sender) == 0,
             "RewardRouter: sender has vested tokens"
         );
         require(
-            IERC20(plpVester).balanceOf(msg.sender) == 0,
+            IERC20Upgradeable(plpVester).balanceOf(msg.sender) == 0,
             "RewardRouter: sender has vested tokens"
         );
 
@@ -528,11 +528,11 @@ contract RewardRouter is
 
     function acceptTransfer(address _sender) external nonReentrant {
         require(
-            IERC20(posiVester).balanceOf(_sender) == 0,
+            IERC20Upgradeable(posiVester).balanceOf(_sender) == 0,
             "RewardRouter: sender has vested tokens"
         );
         require(
-            IERC20(plpVester).balanceOf(_sender) == 0,
+            IERC20Upgradeable(plpVester).balanceOf(_sender) == 0,
             "RewardRouter: sender has vested tokens"
         );
 
@@ -581,9 +581,9 @@ contract RewardRouter is
             );
         }
 
-        uint256 esPosiBalance = IERC20(esPosi).balanceOf(_sender);
+        uint256 esPosiBalance = IERC20Upgradeable(esPosi).balanceOf(_sender);
         if (esPosiBalance > 0) {
-            IERC20(esPosi).transferFrom(_sender, receiver, esPosiBalance);
+            IERC20Upgradeable(esPosi).transferFrom(_sender, receiver, esPosiBalance);
         }
 
         uint256 plpAmount = IRewardTracker(feePlpTracker).depositBalances(
@@ -692,11 +692,11 @@ contract RewardRouter is
         );
 
         require(
-            IERC20(posiVester).balanceOf(_receiver) == 0,
+            IERC20Upgradeable(posiVester).balanceOf(_receiver) == 0,
             "RewardRouter: posiVester.balance > 0"
         );
         require(
-            IERC20(plpVester).balanceOf(_receiver) == 0,
+            IERC20Upgradeable(plpVester).balanceOf(_receiver) == 0,
             "RewardRouter: plpVester.balance > 0"
         );
     }

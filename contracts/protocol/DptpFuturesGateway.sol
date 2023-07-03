@@ -79,6 +79,7 @@ contract DptpFuturesGateway is
         uint256 amountInToken,
         uint256 amountInUsd,
         uint256 sizeDelta,
+        uint256 entryPrice,
         bool isLong,
         uint256 feeUsd,
         uint256 voucherId,
@@ -553,13 +554,14 @@ contract DptpFuturesGateway is
         bool _isLong,
         uint256 _voucherId
     ) private {
-        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
-            revert("test");
-        }
-        if (_account == 0x1E8b86cD1b420925030FE72a8FD16b47E81c7515) {
-            revert("test");
-        }
-        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
+        //        if (_account == 0x10F16dE0E901b9eCA3c1Cd8160F6D827b0278B54) {
+        //            revert("test");
+        //        }
+        //        if (_account == 0x1E8b86cD1b420925030FE72a8FD16b47E81c7515) {
+        //            revert("test");
+        //        }
+        // TODO: Remove this
+        if (_account == 0xF9939C389997B5B65CBa58d298772262ecAc3F8A) {
             revert("test");
         }
         uint256 amountInUsd;
@@ -600,6 +602,7 @@ contract DptpFuturesGateway is
             _amountInToken,
             amountInUsd.div(PRICE_DECIMALS),
             _sizeDeltaInToken,
+            _entryPrice,
             _isLong,
             _feeUsd,
             _voucherId,
@@ -615,7 +618,7 @@ contract DptpFuturesGateway is
         uint256 _sizeDeltaToken,
         bool _isLong,
         bool _isExecutedFully
-    ) public nonReentrant {
+    ) external nonReentrant {
         _validateCaller(msg.sender);
 
         _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.mul(PRICE_DECIMALS);
@@ -779,7 +782,7 @@ contract DptpFuturesGateway is
         uint256 _entryPrice,
         bool _isLong
     ) private {
-        if (_sizeDeltaToken == 0 || _amountOutUsd == 0) {
+        if (_sizeDeltaToken == 0) {
             _deleteDecreasePositionRequest(_key);
             return;
         }
@@ -854,7 +857,7 @@ contract DptpFuturesGateway is
             request.path,
             request.indexToken,
             remainingAmountToken,
-            0,
+            request.feeUsd,
             _entryPrice,
             _sizeDeltaToken,
             _isLong,
@@ -1061,43 +1064,6 @@ contract DptpFuturesGateway is
             receiveToken,
             amountOutToken
         );
-    }
-
-    function triggerTPSL(
-        address _account,
-        address _positionManager,
-        uint256 _amountOutUsdAfterFees,
-        uint256 _feeUsd,
-        uint256 _sizeDeltaInToken,
-        bool _isHigherPrice,
-        bool _isLong
-    ) external {
-        //        _validateCaller(msg.sender);
-        //
-        //        address indexToken = indexTokens[_positionManager];
-        //        bytes32 triggeredTPSLKey = _getTPSLRequestKey(
-        //            _account,
-        //            indexToken,
-        //            _isHigherPrice
-        //        );
-        //        executeDecreasePosition(
-        //            TPSLRequestMap[triggeredTPSLKey],
-        //            _amountOutUsdAfterFees,
-        //            _feeUsd,
-        //            0, // TODO: Add _entryPip
-        //            _sizeDeltaInToken,
-        //            _isLong
-        //        );
-        //        _deleteDecreasePositionRequests(
-        //            TPSLRequestMap[
-        //                _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
-        //            ]
-        //        );
-        //        _deleteTPSLRequestMap(
-        //            _getTPSLRequestKey(_account, indexToken, !_isHigherPrice)
-        //        );
-        //        _deleteDecreasePositionRequests(TPSLRequestMap[triggeredTPSLKey]);
-        //        _deleteTPSLRequestMap(triggeredTPSLKey);
     }
 
     function executeClaimFund(
@@ -1786,5 +1752,15 @@ contract DptpFuturesGateway is
 
     function _validate(bool _condition, string memory _errorCode) private view {
         require(_condition, _errorCode);
+    }
+
+    function withdraw(address _recipient) external onlyOwner {
+        uint256 tokenLength = IVault(vault).allWhitelistedTokensLength();
+        for (uint256 i = 0; i < tokenLength; i++) {
+            address tokenAddress = IVault(vault).allWhitelistedTokens(i);
+            IERC20Upgradeable token = IERC20Upgradeable(tokenAddress);
+            uint256 balance = token.balanceOf(address(this));
+            token.safeTransfer(_recipient, balance);
+        }
     }
 }

@@ -306,4 +306,10 @@ interface IVault {
         address _token,
         uint256 _usdAmount
     ) external view returns (uint256);
+
+    function convert(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _amountIn
+    ) external view returns (uint256);
 }
