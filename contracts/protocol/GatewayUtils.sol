@@ -164,7 +164,7 @@ contract GatewayUtils is
         uint16 _leverage,
         bool _isLong,
         uint256 _voucherId
-    ) public override returns (bool) {
+    ) public override view returns (bool) {
         if (_voucherId > 0) {
             validateVoucher(_account, _voucherId, _amountInUsd);
         }
@@ -237,7 +237,7 @@ contract GatewayUtils is
         address _account,
         uint256 _voucherId,
         uint256 _amountInUsd
-    ) public returns (bool) {
+    ) public view returns (bool) {
         FuturXVoucher.Voucher memory voucher = IFuturXVoucher(futurXVoucher)
             .getVoucherInfo(_voucherId);
         _validate(voucher.isActive, Errors.FGWU_VOUCHER_IS_INACTIVE);
@@ -323,7 +323,7 @@ contract GatewayUtils is
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) public returns (bool) {
+    ) public view returns (bool) {
         PositionInfo.Data memory position = IVault(vault).getPositionInfo(
             _account,
             _indexToken,
@@ -547,7 +547,7 @@ contract GatewayUtils is
         return fee;
     }
 
-    function _getExecutionFee() internal returns (uint256) {
+    function _getExecutionFee() internal view returns (uint256) {
         //        return IFuturXGateway(futurXGateway).executionFee();
         return 0;
     }
@@ -567,7 +567,7 @@ contract GatewayUtils is
         gatewayStorage = _address;
     }
 
-    function _validate(bool _condition, string memory _errorCode) private view {
+    function _validate(bool _condition, string memory _errorCode) internal view {
         require(_condition, _errorCode);
     }
 
