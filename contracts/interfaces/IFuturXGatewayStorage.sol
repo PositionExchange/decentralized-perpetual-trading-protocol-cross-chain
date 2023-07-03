@@ -104,7 +104,7 @@ interface IFuturXGatewayStorage {
     function getPendingCollateral(
         address _account,
         address _indexToken
-    ) external returns (PendingCollateral memory);
+    ) external view returns (PendingCollateral memory);
 
     function storeIncreasePositionRequest(
         IncreasePositionRequest memory _request
