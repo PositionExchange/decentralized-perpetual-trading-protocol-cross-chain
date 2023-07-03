@@ -567,7 +567,7 @@ contract GatewayUtils is
         gatewayStorage = _address;
     }
 
-    function _validate(bool _condition, string memory _errorCode) internal view {
+    function _validate(bool _condition, string memory _errorCode) private view {
         require(_condition, _errorCode);
     }
 
