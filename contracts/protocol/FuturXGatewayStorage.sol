@@ -144,6 +144,9 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
                 request.path[0],
                 amountAdjust
             );
+            uint256 feeExecute = request.feeUsd.mul(amountAdjust).div(request.amountInToken);
+            increasePositionRequests[_key].feeUsd = request.feeUsd.sub(feeExecute);
+            request.feeUsd = feeExecute;
             increasePositionRequests[_key].amountInToken = request
                 .amountInToken
                 .sub(amountAdjust);
