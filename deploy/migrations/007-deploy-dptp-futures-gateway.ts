@@ -80,7 +80,7 @@ const migrations: MigrationDefinition = {
       // for (const refunder of ARB_REFUNDERS) {
       await run(SUBTASK_NAME.FGW_SetPositionKeeper, {
         ctx: ctx,
-        positionKeeper: "0x925C11Ac24154A6D26F602b8ed24638EAE6fE013",
+        positionKeeper: "0xA0e782e89209A4e982Ef987dF881C7774D228769",
         status: true,
       });
       // }

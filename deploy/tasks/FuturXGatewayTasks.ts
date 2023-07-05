@@ -10,6 +10,7 @@ const GOV_ABI = [
   "function setPosiChainCrosschainGatewayContract(address _address)",
   "function setGovernanceLogic(address _newGovernanceLogic)",
   "function setVault(address _vault)",
+  "function setFuturXVoucher(address _address)",
 ];
 
 const executeGovFunc = async (
@@ -82,7 +83,9 @@ export const FGW_SetGovernanceLogic_Action = async (args: {
   logMsg?: string;
 }) => {
   const futurXGateway = await args.ctx.factory.getFuturXGateway();
-  const gov = await args.ctx.db.findAddressByKey("DptpFuturesGatewayGovernance");
+  const gov = await args.ctx.db.findAddressByKey(
+    "DptpFuturesGatewayGovernance"
+  );
 
   await args.ctx.factory.waitTx(
     futurXGateway.setGovernanceLogic(gov),
@@ -96,9 +99,22 @@ export const FGW_SetVault_Action = async (args: {
 }) => {
   const vault = await args.ctx.factory.getVault();
   await executeGovFunc(
-      args.ctx,
-      "setVault",
-      [vault.address],
-      args.logMsg || SUBTASK_NAME.FGW_SetVault
+    args.ctx,
+    "setVault",
+    [vault.address],
+    args.logMsg || SUBTASK_NAME.FGW_SetVault
+  );
+};
+
+export const FGW_SetFuturXVoucher_Action = async (args: {
+  ctx: MigrationContext;
+  logMsg?: string;
+}) => {
+  const voucher = await args.ctx.factory.getFuturXVoucher();
+  await executeGovFunc(
+    args.ctx,
+    "setFuturXVoucher",
+    [voucher.address],
+    args.logMsg || SUBTASK_NAME.FGW_SetFuturXVoucher
   );
 };

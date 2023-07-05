@@ -2730,7 +2730,7 @@
             "label": "futurXGateway",
             "offset": 0,
             "slot": "51",
-            "type": "t_contract(IFuturXGateway)10598",
+            "type": "t_contract(IFuturXGateway)652",
             "contract": "TPSLGateway",
             "src": "contracts/protocol/TPSLGateway.sol:11"
           }
@@ -2744,7 +2744,7 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IFuturXGateway)10598": {
+          "t_contract(IFuturXGateway)652": {
             "label": "contract IFuturXGateway",
             "numberOfBytes": "20"
           },
@@ -8398,6 +8398,77 @@
           "t_uint16": {
             "label": "uint16",
             "numberOfBytes": "2"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "f918042f5027d95ec7c62eac7faca886fc7083daa1410a7f45396d37e752c7dd": {
+      "address": "0x1bd83Ce2FB20Fe89eD7194Be20C4E284F3220F32",
+      "txHash": "0x4fb986296c6907f8d5319f7a004646f0a29c8e9e1df87f21a440e5a3367b1a07",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:88"
+          },
+          {
+            "label": "futurXGateway",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_contract(IFuturXGateway)6690",
+            "contract": "TPSLGateway",
+            "src": "contracts/protocol/TPSLGateway.sol:11"
+          }
+        ],
+        "types": {
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IFuturXGateway)6690": {
+            "label": "contract IFuturXGateway",
+            "numberOfBytes": "20"
           },
           "t_uint256": {
             "label": "uint256",

@@ -6,6 +6,8 @@ import {
 } from "../../typeChain";
 import { ContractTransaction } from "ethers";
 import { encodeDelegateCall } from "../shared/utils";
+import { run } from "hardhat";
+import { SUBTASK_NAME } from "../tasks/common";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
@@ -26,18 +28,14 @@ const migrations: MigrationDefinition = {
         "GatewayUtils"
       );
 
+      await run(SUBTASK_NAME.FGW_SetFuturXVoucher, {
+        ctx: ctx,
+      });
+
       let tx: Promise<ContractTransaction>;
 
-      const data = encodeDelegateCall(
-        ["function setFuturXVoucher(address _address)"],
-        "setFuturXVoucher",
-        [futurXVoucher.address]
-      );
-      tx = futurXGateway.executeGovFunction(data);
-      await ctx.factory.waitTx(tx, "futurXGateway.setFuturXVoucher");
-
-      tx = gatewayUtils.setFuturXVoucher(futurXVoucher.address);
-      await ctx.factory.waitTx(tx, "gatewayUtils.setFuturXVoucher");
+      // tx = gatewayUtils.setFuturXVoucher(futurXVoucher.address);
+      // await ctx.factory.waitTx(tx, "gatewayUtils.setFuturXVoucher");
     },
   }),
 };
