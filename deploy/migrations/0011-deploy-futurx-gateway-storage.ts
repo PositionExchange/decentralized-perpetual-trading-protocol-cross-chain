@@ -9,6 +9,15 @@ import { SUBTASK_NAME } from "../tasks/common";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
+
+    "force import gateway storage": async () => {
+      const futurXGatewayStorage = await ctx.db.findAddressByKey("FuturXGatewayStorage");
+      const factory = await ctx.hre.ethers.getContractFactory("FuturXGatewayStorage");
+      if (futurXGatewayStorage) {
+        await ctx.hre.upgrades.forceImport(futurXGatewayStorage, factory);
+        return;
+      }
+    },
     "deploy futurx gateway storage": async () => {
       const futurXGateway = await ctx.db.findAddressByKey("DptpFuturesGateway");
       await ctx.factory.createFuturXGatewayStorage(futurXGateway);
