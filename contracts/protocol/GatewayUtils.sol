@@ -169,7 +169,7 @@ contract GatewayUtils is
             validateVoucher(_account, _voucherId, _amountInUsd);
         }
         _validate(
-            _msgValue == _getExecutionFee(),
+            _msgValue >= _getExecutionFee(),
             Errors.FGWU_EXECUTION_FEE_MISMATCHED
         );
         _validate(

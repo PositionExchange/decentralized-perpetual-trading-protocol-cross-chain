@@ -5,7 +5,7 @@ import {FGWS_SetFuturXGateway_Action, FGWS_SetHandler_Action} from "./FuturXGate
 import { FV_SetFuturXGateway_Action } from "./FuturXVoucherTasks";
 import { FGWU_SetFuturXGateway_Action } from "./FuturXGatewayUtilsTasks";
 import {
-  FGW_SetCoreManager_Action, FGW_SetGovernanceLogic_Action,
+  FGW_SetCoreManager_Action, FGW_SetFuturXVoucher_Action, FGW_SetGovernanceLogic_Action,
   FGW_SetPositionKeeper_Action,
   FGW_SetPscCrossChain_Action,
   FGW_SetReferralRewardTracker_Action, FGW_SetVault_Action,
@@ -47,6 +47,11 @@ subtask(SUBTASK_NAME.FGW_SetGovernanceLogic)
 
 subtask(SUBTASK_NAME.FGW_SetVault)
   .setAction(FGW_SetVault_Action)
+  .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
+  .addOptionalParam("logMsg");
+
+subtask(SUBTASK_NAME.FGW_SetFuturXVoucher)
+  .setAction(FGW_SetFuturXVoucher_Action)
   .addParam<MigrationContext>("ctx", "MigrationContext", null, any)
   .addOptionalParam("logMsg");
 
