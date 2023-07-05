@@ -31,6 +31,7 @@
 {"address":"yes","key":"0x3AB499C1A8ae8E17D0F5A22365Ca0580D256eF84:verified","_id":"a13rJErB1e9GMxCd"}
 {"address":"0x8C4759b1C422209566Ce785d510fE3C9185f6C6b","key":"VaultUtilsSplit","_id":"aAMqEQ3PV2CYCara"}
 {"address":"0x374A9b2895283d0185E01C0F19F6Bf954BeB26D4","key":"Vault","_id":"dBnaCPJtJSCvYUQE"}
+{"address":"yes","key":"0xAa9F43f407fB63CF9dE0Ef0F5921Dc22CF068B28:verified","_id":"dnWykZ3pGJV5otSj"}
 {"address":"0x45f2FD915f916f07176F4908E40DEdA7d9E62A13","key":"FeePlpTracker","_id":"e2Xndlsodj41HvbC"}
 {"address":"0xE6102D09eC5ed79E429f94E5b4cb482E96157290","key":"PLP","_id":"e5qZ4d4kRhf5y41T"}
 {"address":"0x36Ed30836C807675caEED34541D579877E207a26","key":"VaultPriceFeed","_id":"hkTkMCV0ioVnyzwT"}
@@ -47,4 +48,4 @@
 {"address":"yes","key":"0xb703D013192454d875DcEA7e9E832a7369d2a8ED:verified","_id":"yydBabJaC42z7lAm"}
 {"address":"0x5203e019b96A556A8b7eECBBd00964Cf4Bdef87f","key":"StakedPlpTracker","_id":"zGtY3PwgSTLgzZem"}
 {"address":"0x39a6159BCF298BD078f18D648d43219E8257aE3F","key":"GatewayUtils","_id":"zluxqgot1HQeV4aL"}
-{"address":"yes","key":"0xAa9F43f407fB63CF9dE0Ef0F5921Dc22CF068B28:verified","_id":"dnWykZ3pGJV5otSj"}
+{"address":"yes","key":"0x1bd83Ce2FB20Fe89eD7194Be20C4E284F3220F32:verified","_id":"GlGz5ofeQdOdCwFG"}
