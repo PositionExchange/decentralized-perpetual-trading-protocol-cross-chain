@@ -102,7 +102,29 @@ contract DptpFuturesGateway is
         uint256 swapFee,
         uint256 timestamp
     );
+    function initialize(
+        uint256 _pcsId,
+        address _pscCrossChainGateway,
+        address _futuresAdapter,
+        address _vault,
+        address _weth,
+        address _gatewayUtils,
+        address _gatewayStorage,
+        uint256 _executionFee
+    ) public initializer {
+        __ReentrancyGuard_init();
+        __Ownable_init();
+        __Pausable_init();
 
+        pcsId = _pcsId;
+        pscCrossChainGateway = _pscCrossChainGateway;
+        futuresAdapter = _futuresAdapter;
+        vault = _vault;
+        weth = _weth;
+        gatewayUtils = _gatewayUtils;
+        gatewayStorage = _gatewayStorage;
+        executionFee = _executionFee;
+    }
     event CollateralAddedExecuted(
         address account,
         address token,
@@ -162,29 +184,7 @@ contract DptpFuturesGateway is
         uint256 voucherId;
     }
 
-    function initialize(
-        uint256 _pcsId,
-        address _pscCrossChainGateway,
-        address _futuresAdapter,
-        address _vault,
-        address _weth,
-        address _gatewayUtils,
-        address _gatewayStorage,
-        uint256 _executionFee
-    ) public initializer {
-        __ReentrancyGuard_init();
-        __Ownable_init();
-        __Pausable_init();
 
-        pcsId = _pcsId;
-        pscCrossChainGateway = _pscCrossChainGateway;
-        futuresAdapter = _futuresAdapter;
-        vault = _vault;
-        weth = _weth;
-        gatewayUtils = _gatewayUtils;
-        gatewayStorage = _gatewayStorage;
-        executionFee = _executionFee;
-    }
 
     function isPaused() external view override returns (bool) {
         return paused();
