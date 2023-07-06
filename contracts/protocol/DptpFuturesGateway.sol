@@ -1520,7 +1520,9 @@ contract DptpFuturesGateway is
         address payable _account
     ) internal {
         if (_amountOut > 0) {
-            IWETH(weth).transfer(_account, _amountOut);
+            IWETH(weth).withdraw(_amountOut);
+            (bool sent,) = _account.call{value: _amountOut}("");
+            require(sent, Errors.FGW_SEND_ETH_FAILED);
         }
     }
 
