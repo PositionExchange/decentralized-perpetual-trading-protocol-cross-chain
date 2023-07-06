@@ -78,6 +78,8 @@ library Errors {
     string public constant FGW_INDEX_TOKEN_MUST_NOT_BE_EMPTY = "FGW-40002";
     string public constant FGW_COLLATERAL_MUST_NOT_BE_EMPTY = "FGW-40003";
     string public constant FGW_INVALID_PATH_LENGTH = "FGW-40004";
+    string public constant FGW_INVALID_MSG_VALUE_01 = "FGW-40005";
+    string public constant FGW_INVALID_MSG_VALUE_02 = "FGW-40006";
 
     string public constant FGWS_CALLER_NOT_WHITELISTED = "FGWS-40101";
     string public constant FGWS_PENDING_COLLATERAL_MISMATCHED = "FGWS-40001";

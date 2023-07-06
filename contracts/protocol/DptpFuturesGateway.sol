@@ -827,8 +827,8 @@ contract DptpFuturesGateway is
         bool hasCollateralInETH = _path[0] == weth;
         if (hasCollateralInETH) {
             _validate(
-                _amountInToken + executionFee <= msg.value,
-                "Invalid msg.value"
+                msg.value >= _amountInToken + executionFee,
+                Errors.FGW_INVALID_MSG_VALUE_02
             );
         } else {
             _transferIn(paidToken, _amountInToken);
@@ -1190,8 +1190,8 @@ contract DptpFuturesGateway is
             hasCollateralInETH = param.path[0] == weth;
             if (hasCollateralInETH) {
                 _validate(
-                    param.amountInAfterFeeToken + executionFee <= msg.value,
-                    "Invalid msg.value"
+                    msg.value >= param.amountInAfterFeeToken + executionFee,
+                    Errors.FGW_INVALID_MSG_VALUE_01
                 );
             } else {
                 _transferIn(param.path[0], param.amountInAfterFeeToken);
