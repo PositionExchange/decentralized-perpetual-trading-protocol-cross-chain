@@ -85,6 +85,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // positionInfo tracks all open positions entry borrowing rates
     mapping(bytes32 => PositionInfo.Data) public positionInfo;
 
+//    mapping(address => uint256) public debtAmount;
     mapping(address => uint256) public debtAmountUsd;
 
     // guaranteedUsd tracks the amount of USD that is "guaranteed" by opened leverage positions
