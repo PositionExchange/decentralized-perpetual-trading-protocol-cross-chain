@@ -738,11 +738,11 @@ contract DptpFuturesGateway is
         );
 
         if (_sizeDeltaToken == 0) {
-            _transferOut(
-                request.path[0],
-                request.amountInToken,
-                request.account
-            );
+            if (request.hasCollateralInETH) {
+                _transferOutETH(request.amountInToken, payable(request.account));
+            } else {
+                _transferOut(request.path[0], request.amountInToken, request.account);
+            }
             if (request.voucherId > 0) {
                 _refundVoucher(request.voucherId, request.account);
             }
@@ -1739,4 +1739,10 @@ contract DptpFuturesGateway is
             token.safeTransfer(_recipient, balance);
         }
     }
+
+    // Function to receive Ether. msg.data must be empty
+    receive() external payable {}
+
+    // Fallback function is called when msg.data is not empty
+    fallback() external payable {}
 }
