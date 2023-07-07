@@ -19,8 +19,10 @@ import "../staking/interfaces/IRewardRouter.sol";
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Timelock is ITimelock {
+
+contract Timelock is OwnableUpgradeable, ITimelock {
     using SafeMath for uint256;
 
     uint256 public constant PRICE_PRECISION = 10 ** 30;
@@ -115,7 +117,7 @@ contract Timelock is ITimelock {
         _;
     }
 
-    constructor(
+    function initialize(
         address _admin,
         uint256 _buffer,
         address _tokenManager,
@@ -125,11 +127,12 @@ contract Timelock is ITimelock {
         uint256 _maxTokenSupply,
         uint256 _marginFeeBasisPoints,
         uint256 _maxMarginFeeBasisPoints
-    ) public {
+    ) public initializer {
+        __Ownable_init();
         require(_buffer <= MAX_BUFFER, "Timelock: invalid _buffer");
         admin = _admin;
         buffer = _buffer;
-        tokenManager = _tokenManager;
+        tokenManager = msg.sender;
         mintReceiver = _mintReceiver;
         glpManager = _glpManager;
         rewardRouter = _rewardRouter;
