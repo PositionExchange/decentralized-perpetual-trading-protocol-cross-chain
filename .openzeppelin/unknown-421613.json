@@ -146,6 +146,11 @@
     {
       "address": "0x1A85FF339e798b743AE7439e4A23e2C8f486cBb8",
       "kind": "transparent"
+    },
+    {
+      "address": "0x316259027137c388B1c42EfCC9551fa6687d9212",
+      "txHash": "0x9db1e02146f4f32e63131c181595f3d2bbd41bac3e9061821af77f93474ef6d5",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -89833,6 +89838,198 @@
           },
           "t_mapping(t_bytes32,t_address)": {
             "label": "mapping(bytes32 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "96a8f67267db67c718869ae14a40d72e6e939090f56a471dde429546a2fae596": {
+      "address": "0x6C4978593eABB531cC6A4C3c2d35c982EAef143B",
+      "txHash": "0x6188e4dc74ba79d24ceefdbed68cd1175bfc39020944bad75e8fc0d7bdf5f1a2",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "buffer",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:33"
+          },
+          {
+            "label": "admin",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_address",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:34"
+          },
+          {
+            "label": "tokenManager",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:36"
+          },
+          {
+            "label": "mintReceiver",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:37"
+          },
+          {
+            "label": "glpManager",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_address",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:38"
+          },
+          {
+            "label": "rewardRouter",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_address",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:39"
+          },
+          {
+            "label": "maxTokenSupply",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_uint256",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:40"
+          },
+          {
+            "label": "marginFeeBasisPoints",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_uint256",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:42"
+          },
+          {
+            "label": "maxMarginFeeBasisPoints",
+            "offset": 0,
+            "slot": "109",
+            "type": "t_uint256",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:43"
+          },
+          {
+            "label": "shouldToggleIsLeverageEnabled",
+            "offset": 0,
+            "slot": "110",
+            "type": "t_bool",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:44"
+          },
+          {
+            "label": "pendingActions",
+            "offset": 0,
+            "slot": "111",
+            "type": "t_mapping(t_bytes32,t_uint256)",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:46"
+          },
+          {
+            "label": "isHandler",
+            "offset": 0,
+            "slot": "112",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:48"
+          },
+          {
+            "label": "isKeeper",
+            "offset": 0,
+            "slot": "113",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "Timelock",
+            "src": "contracts/peripherals/Timelock.sol:49"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_uint256)": {
+            "label": "mapping(bytes32 => uint256)",
             "numberOfBytes": "32"
           },
           "t_uint256": {

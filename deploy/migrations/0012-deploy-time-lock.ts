@@ -26,7 +26,7 @@ const migrations: MigrationDefinition = {
         40
       ]
       const futurXGateway = await ctx.db.findAddressByKey("DptpFuturesGateway");
-      await ctx.factory.createTimeLock([futurXGateway]);
+      await ctx.factory.createTimeLock(args);
     },
 
     "deploy time mainnet": async () => {

@@ -24,8 +24,14 @@ contract BBB is OwnableUpgradeable
     uint256 public amountETHPerBlock;
     address public weth;
     uint256 public totalPosiBurned;
+    address public operator;
 
     event PosiBurned(uint256 amount);
+
+    modifier onlyOperator() {
+        require(msg.sender == operator, "only operator");
+        _;
+    }
 
 
     function initialize(
@@ -40,8 +46,7 @@ contract BBB is OwnableUpgradeable
 
 
 
-    function deposit() external payable onlyOwner{
-
+    function deposit() external payable onlyOperator {
         _bbb(amountEthRemaining);
         amountETH = msg.value;
         amountEthRemaining = msg.value;
@@ -98,6 +103,11 @@ contract BBB is OwnableUpgradeable
 
     function setSwapRouter(IUniswapV2Router02 _swapRouter) external onlyOwner{
         swapRouter = _swapRouter;
+    }
+
+    // write function set operator
+    function setOperator(address _operator) external onlyOwner{
+        operator = _operator;
     }
 
 

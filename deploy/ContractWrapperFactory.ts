@@ -502,7 +502,7 @@ export class ContractWrapperFactory {
         await this._deployOrUpgradeContract("FuturXGatewayStorage", [futurXGateway])
     }
     async createTimeLock(ags :any[]){
-        await this._deployOrUpgradeContract("TimeLock", ags)
+        await this._deployOrUpgradeContract("Timelock", ags)
     }
 
     async createRewardRouter(contractArgs?: any[]) {
