@@ -29,7 +29,7 @@ const migrations: MigrationDefinition = {
       await ctx.factory.createTimeLock(args);
     },
 
-    "deploy time mainnet": async () => {
+    "deploy timelock mainnet": async () => {
 
       const lpManager = await ctx.db.findAddressByKey("LpManager");
       const rewardRouter = await ctx.db.findAddressByKey("RewardRouter");

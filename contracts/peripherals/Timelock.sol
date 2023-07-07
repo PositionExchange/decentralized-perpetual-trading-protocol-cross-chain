@@ -142,7 +142,7 @@ contract Timelock is OwnableUpgradeable, ITimelock {
         maxMarginFeeBasisPoints = _maxMarginFeeBasisPoints;
     }
 
-    function setAdmin(address _admin) external override onlyTokenManager {
+    function setAdmin(address _admin) external override onlyOwner {
         admin = _admin;
     }
 
