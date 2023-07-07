@@ -112,6 +112,36 @@ contract GatewayUtils is
         totalFeeUsd = positionFeeUsd.add(swapFeeUsd);
     }
 
+    function calculateMarginFeesETH(
+        address _trader,
+        address[] memory _path,
+        address _indexToken,
+        bool _isLong,
+        uint256 _amountInUsd,
+        uint256 _leverage,
+        bool _isLimitOrder
+    ) external view returns(uint256 feeETH) {
+
+        uint256 amountInToken = IVault(vault).usdToTokenMin(_path[0], _amountInUsd);
+
+        // Fee for opening and closing position
+        uint256 positionFeeUsd = _getPositionFee(
+            _indexToken,
+            _amountInUsd,
+            _leverage,
+            _isLimitOrder
+        );
+
+        uint256 swapFeeToken = _getSwapFee(_path, amountInToken);
+        uint256 swapFeeUsd = _tokenToUsdMin(_path[_path.length - 1], swapFeeToken);
+
+        uint256 totalFeeUsd = positionFeeUsd.add(swapFeeUsd);
+
+
+        feeETH = IVault(vault).usdToTokenMin(_path[0], _amountInUsd + totalFeeUsd);
+
+    }
+
     function calculateDiscountValue(
         uint256 _voucherId,
         uint256 _amountInUsd
