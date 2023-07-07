@@ -5,6 +5,8 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts/utils/StorageSlot.sol";
+
 
 import "./libraries/TokenConfiguration.sol";
 import "./libraries/VaultInfo.sol";
@@ -111,6 +113,11 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
                 Errors.V_CALLER_NOT_WHITELISTED
             );
         }
+        _;
+    }
+
+    modifier onlyGovOrOwner() {
+        _validate(msg.sender == getGov() || msg.sender == owner(), "V: not gov");
         _;
     }
 
@@ -538,7 +545,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint128 _maxUsdgAmount,
         bool _isStable,
         bool _isShortable
-    ) public onlyOwner {
+    ) public onlyGovOrOwner {
         if (!tokenConfigurations[_token].isWhitelisted) {
             whitelistedTokens.push(_token);
         }
@@ -578,7 +585,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _marginFeeBasisPoints,
         uint256 _minProfitTime,
         bool _hasDynamicFees
-    ) external onlyOwner {
+    ) external onlyGovOrOwner {
         _validate(_taxBasisPoints <= MAX_FEE_BASIS_POINTS, "M1");
         _validate(_stableTaxBasisPoints <= MAX_FEE_BASIS_POINTS, "M2");
         _validate(_mintBurnFeeBasisPoints <= MAX_FEE_BASIS_POINTS, "M3");
@@ -600,18 +607,18 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         whitelistCaller[caller] = val;
     }
 
-    function setIsSwapEnabled(bool _isSwapEnabled) external override onlyOwner {
+    function setIsSwapEnabled(bool _isSwapEnabled) external override onlyGovOrOwner {
         isSwapEnabled = _isSwapEnabled;
     }
 
-    function setMaxGasPrice(uint256 _maxGasPrice) external override onlyOwner {
+    function setMaxGasPrice(uint256 _maxGasPrice) external override onlyGovOrOwner {
         maxGasPrice = _maxGasPrice;
     }
 
     function setUsdgAmount(
         address _token,
         uint256 _amount
-    ) external override onlyOwner {
+    ) external override onlyGovOrOwner {
         uint256 usdgAmount = usdgAmounts(_token);
         if (_amount > usdgAmount) {
             _increaseUsdpAmount(_token, _amount.sub(usdgAmount));
@@ -624,14 +631,14 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function setBufferAmount(
         address _token,
         uint256 _amount
-    ) external override onlyOwner {
+    ) external override onlyGovOrOwner {
         bufferAmounts[_token] = _amount;
     }
 
     function setMaxGlobalShortSize(
         address _token,
         uint256 _amount
-    ) external override onlyOwner {
+    ) external override onlyGovOrOwner {
         maxGlobalShortSizes[_token] = _amount;
     }
 
@@ -646,7 +653,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     function withdrawFees(
         address _token,
         address _receiver
-    ) external override onlyOwner returns (uint256) {
+    ) external override onlyGovOrOwner returns (uint256) {
         uint256 amount = uint256(vaultInfo[_token].feeReserves);
         if (amount == 0) {
             return 0;
@@ -656,7 +663,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return amount;
     }
 
-    function setInManagerMode(bool _inManagerMode) external override onlyOwner {
+    function setInManagerMode(bool _inManagerMode) external override onlyGovOrOwner {
         inManagerMode = _inManagerMode;
     }
 
@@ -664,7 +671,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         uint256 _borrowingRateInterval,
         uint256 _borrowingRateFactor,
         uint256 _stableBorrowingRateFactor
-    ) external override onlyOwner {
+    ) external override onlyGovOrOwner {
         _validate(
             _borrowingRateInterval >= MIN_BORROWING_RATE_INTERVAL,
             Errors.V_MIN_BORROWING_RATE_NOT_REACHED
@@ -681,6 +688,25 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         borrowingRateFactor = _borrowingRateFactor;
         stableBorrowingRateFactor = _stableBorrowingRateFactor;
     }
+
+
+    function setFuturXGateway(address _address) external onlyOwner {
+        futurXGateway = _address;
+    }
+
+    function withdraw(address _recipient) external onlyGovOrOwner {
+        for (uint16 i = 0; i < whitelistedTokens.length; i++) {
+            IERC20Upgradeable token = IERC20Upgradeable(whitelistedTokens[i]);
+            uint256 balance = token.balanceOf(address(this));
+            token.safeTransfer(_recipient, balance);
+        }
+    }
+
+
+    function setGov(address gov) external onlyOwner {
+        StorageSlot.getAddressSlot(bytes32("gov.futurX")).value = gov;
+    }
+
 
     /** END OWNER FUNCTIONS **/
 
@@ -1609,15 +1635,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         require(_condition, _errorCode);
     }
 
-    function setFuturXGateway(address _address) external onlyOwner {
-        futurXGateway = _address;
-    }
-
-    function withdraw(address _recipient) external onlyOwner {
-        for (uint16 i = 0; i < whitelistedTokens.length; i++) {
-            IERC20Upgradeable token = IERC20Upgradeable(whitelistedTokens[i]);
-            uint256 balance = token.balanceOf(address(this));
-            token.safeTransfer(_recipient, balance);
-        }
+    function getGov() public view returns (address) {
+        return StorageSlot.getAddressSlot(bytes32("gov.futurX")).value;
     }
 }
