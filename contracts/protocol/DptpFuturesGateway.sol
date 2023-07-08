@@ -1383,7 +1383,7 @@ contract DptpFuturesGateway is
 
     function _getIncreasePositionRequest(
         bytes32 _key
-    ) internal returns (IFuturXGatewayStorage.IncreasePositionRequest memory) {
+    ) internal view returns (IFuturXGatewayStorage.IncreasePositionRequest memory) {
         return
             IFuturXGatewayStorage(gatewayStorage).getIncreasePositionRequest(
                 _key
@@ -1419,7 +1419,7 @@ contract DptpFuturesGateway is
 
     function _getDecreasePositionRequest(
         bytes32 _key
-    ) internal returns (IFuturXGatewayStorage.DecreasePositionRequest memory) {
+    ) internal view returns (IFuturXGatewayStorage.DecreasePositionRequest memory) {
         return
             IFuturXGatewayStorage(gatewayStorage).getDecreasePositionRequest(
                 _key
@@ -1571,7 +1571,7 @@ contract DptpFuturesGateway is
         );
     }
 
-    function _validateCaller(address _account) private {
+    function _validateCaller(address _account) private view {
         _validate(positionKeepers[_account], Errors.FGW_CALLER_NOT_WHITELISTED);
     }
 
@@ -1726,7 +1726,7 @@ contract DptpFuturesGateway is
     //        _unpause();
     //    }
 
-    function _validate(bool _condition, string memory _errorCode) private view {
+    function _validate(bool _condition, string memory _errorCode) private pure {
         require(_condition, _errorCode);
     }
 
