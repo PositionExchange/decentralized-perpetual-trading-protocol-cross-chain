@@ -505,6 +505,10 @@ export class ContractWrapperFactory {
         await this._deployOrUpgradeContract("Timelock", ags)
     }
 
+    async createGatewayPreData(ags :any[]){
+        await this._deployOrUpgradeContract("FuturXGatewayPreData", ags)
+    }
+
     async createRewardRouter(contractArgs?: any[]) {
         console.log("createRewardRouter");
 
