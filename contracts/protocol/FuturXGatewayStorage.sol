@@ -134,7 +134,6 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         if (isExecutedFully) {
             delete increasePositionRequests[_key];
         } else {
-            // TODO: Hoi TrungA sau
             uint256 amountAdjust = vault.adjustDecimalToToken(
                 request.indexToken,
                 amountInToken / leverage

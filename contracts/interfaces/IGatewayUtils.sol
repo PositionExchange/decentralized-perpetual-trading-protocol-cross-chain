@@ -68,11 +68,21 @@ interface IGatewayUtils {
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) external returns (bool);
+    ) external view returns (bool);
 
     function validateTokens(
         address _collateralToken,
         address _indexToken,
         bool _isLong
+    ) external view returns (bool);
+
+    function validateTokenWithdrawal(
+        address[] memory _path,
+        uint256 _amountOutToken
+    ) external view returns (bool);
+
+    function validateUsdWithdrawal(
+        address[] memory _path,
+        uint256 _amountOutUsd
     ) external view returns (bool);
 }

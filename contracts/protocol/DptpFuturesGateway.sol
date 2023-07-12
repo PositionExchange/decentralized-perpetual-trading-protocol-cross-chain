@@ -931,6 +931,8 @@ contract DptpFuturesGateway is
             collateralToken,
             amountOutUsdFormatted
         );
+        _validateTokenWithdrawal(_path, amountOutToken);
+
         (, bytes32 requestKey) = _storeUpdateCollateralRequest(
             _path,
             _indexToken,
@@ -1569,6 +1571,17 @@ contract DptpFuturesGateway is
             _indexToken,
             _isLong
         );
+    }
+
+    function _validateTokenWithdrawal(
+        address[] memory _path,
+        uint256 _amountOutToken
+    ) private {
+        bool valid = IGatewayUtils(gatewayUtils).validateTokenWithdrawal(
+            _path,
+            _amountOutToken
+        );
+        require(valid, Errors.FGW_INSUFFICIENT_POOL_AMOUNT);
     }
 
     function _validateCaller(address _account) private view {
