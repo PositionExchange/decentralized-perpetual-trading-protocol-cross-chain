@@ -17,6 +17,7 @@
 {"address":"yes","key":"0xf471c08FE580De4c0b4FeFb802c8aF1529e08d9c:verified","_id":"3jmozrPaWxx5OFYx"}
 {"address":"yes","key":"0x39f66CB2Ec8e191E0B7880BdFCb32e98efa9874F:verified","_id":"3y1ZCdJpY0VVqQv1"}
 {"address":"0xFb1058C618f3829B71b53485561508c5Ce53bD62","key":"POSI","_id":"43aXvU0JiodXDtjl"}
+{"address":"yes","key":"0x53eFA9D6f401E47fAC223435BfdD84d75b4A11e7:verified","_id":"480OETMt8PyTY5Q2"}
 {"address":"yes","key":"0xe50cB53e5e031458430bdC52374D65A6F743206A:verified","_id":"4Ai8T5UMtMQtzfoF"}
 {"address":"yes","key":"0x4726aEbE93290f1fEf0d31a1D8C79DD20D245c0E:verified","_id":"4Q0VingkXVQ25Hh2"}
 {"address":"yes","key":"0x598AEdA864c9B0c483a56c88cF09Bb43ACfa7c14:verified","_id":"5EfnuJSIxpZMAvew"}
@@ -145,6 +146,7 @@
 {"address":"yes","key":"0x46506A3f81c1Fb2180D05b15d3B4aA26288B01Bc:verified","_id":"VlHXzxNlWfowfOHR"}
 {"address":"0x42C2Bd247fbe4804C52999f33105Ad705Dee3bC5","key":"USDC","_id":"VrnvxhOYZQNUHms2"}
 {"address":"yes","key":"0x7677E129289Be58E97D1ef5b0dC7DBC743E34145:verified","_id":"W1cgnOQFQoOObNwh"}
+{"address":"yes","key":"0x2D1e8CB7C1FFF5dd4344690c8BD0E446B12fc8a7:verified","_id":"W8PtyRdZxA00AVbm"}
 {"address":"yes","key":"0x791DD250746099126c3A65eBf9aff6d789D7940D:verified","_id":"WFNdj2tziNeceCKJ"}
 {"address":"yes","key":"0xC3725b572D9a7d9D6B162315EaC8d0e648C175B5:verified","_id":"WY72nDYKLiOvbGQ5"}
 {"address":"yes","key":"0x2d03ba86B16Cad8CFc65aF6bFf69Cd3547359b23:verified","_id":"Wc6hb7ER0CDZrTik"}
@@ -286,4 +288,5 @@
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
 {"address":"yes","key":"0x9ECCfa925822705AD78F70399476f396e282B37b:verified","_id":"zoNXF9UaVZHi8eIG"}
-{"address":"yes","key":"0x53eFA9D6f401E47fAC223435BfdD84d75b4A11e7:verified","_id":"480OETMt8PyTY5Q2"}
+{"address":"yes","key":"0x9442fbdd4C00d4fF199428123AD578f9b435abc0:verified","_id":"7SEDHvsTTAxDzm9H"}
+{"address":"0x4E3C025DdB9F527e7519B6aC36E9f3a4d894d750","key":"DptpFuturesGatewayGovernance","_id":"2EAqtZN4g6dz5Zx9"}

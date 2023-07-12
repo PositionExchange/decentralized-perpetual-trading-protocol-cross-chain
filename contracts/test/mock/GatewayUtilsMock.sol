@@ -98,4 +98,18 @@ contract GatewayUtilsMock is IGatewayUtils {
     ) external view returns (bool) {
         return true;
     }
+
+    function validateTokenWithdrawal(
+        address[] memory _path,
+        uint256 _amountOutToken
+    ) external view override returns (bool) {
+        return true;
+    }
+
+    function validateUsdWithdrawal(
+        address[] memory _path,
+        uint256 _amountOutToken
+    ) external view override returns (bool) {
+        return true;
+    }
 }

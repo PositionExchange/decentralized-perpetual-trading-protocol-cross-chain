@@ -81,6 +81,7 @@ library Errors {
     string public constant FGW_INVALID_MSG_VALUE_01 = "FGW-40005";
     string public constant FGW_INVALID_MSG_VALUE_02 = "FGW-40006";
     string public constant FGW_SEND_ETH_FAILED = "FGW-50001";
+    string public constant FGW_INSUFFICIENT_POOL_AMOUNT = "FGW-50002";
 
     string public constant FGWS_CALLER_NOT_WHITELISTED = "FGWS-40101";
     string public constant FGWS_PENDING_COLLATERAL_MISMATCHED = "FGWS-40001";

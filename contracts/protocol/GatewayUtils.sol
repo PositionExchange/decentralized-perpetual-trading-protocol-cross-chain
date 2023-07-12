@@ -120,9 +120,11 @@ contract GatewayUtils is
         uint256 _amountInUsd,
         uint256 _leverage,
         bool _isLimitOrder
-    ) external view returns(uint256 feeETH) {
-
-        uint256 amountInToken = IVault(vault).usdToTokenMin(_path[0], _amountInUsd);
+    ) external view returns (uint256 feeETH) {
+        uint256 amountInToken = IVault(vault).usdToTokenMin(
+            _path[0],
+            _amountInUsd
+        );
 
         // Fee for opening and closing position
         uint256 positionFeeUsd = _getPositionFee(
@@ -133,13 +135,17 @@ contract GatewayUtils is
         );
 
         uint256 swapFeeToken = _getSwapFee(_path, amountInToken);
-        uint256 swapFeeUsd = _tokenToUsdMin(_path[_path.length - 1], swapFeeToken);
+        uint256 swapFeeUsd = _tokenToUsdMin(
+            _path[_path.length - 1],
+            swapFeeToken
+        );
 
         uint256 totalFeeUsd = positionFeeUsd.add(swapFeeUsd);
 
-
-        feeETH = IVault(vault).usdToTokenMin(_path[0], _amountInUsd + totalFeeUsd);
-
+        feeETH = IVault(vault).usdToTokenMin(
+            _path[0],
+            _amountInUsd + totalFeeUsd
+        );
     }
 
     function calculateDiscountValue(
@@ -194,7 +200,7 @@ contract GatewayUtils is
         uint16 _leverage,
         bool _isLong,
         uint256 _voucherId
-    ) public override view returns (bool) {
+    ) public view override returns (bool) {
         if (_voucherId > 0) {
             validateVoucher(_account, _voucherId, _amountInUsd);
         }
@@ -252,12 +258,47 @@ contract GatewayUtils is
         return true;
     }
 
+    function validateUsdWithdrawal(
+        address[] memory _path,
+        uint256 _amountOutUsd
+    ) external view override returns (bool) {
+        uint256 amountOutToken = IVault(vault).usdToTokenMin(
+            _path[0],
+            _amountOutUsd
+        );
+        return _validateWithdrawal(_path, amountOutToken);
+    }
+
+    function validateTokenWithdrawal(
+        address[] memory _path,
+        uint256 _amountOutToken
+    ) external view override returns (bool) {
+        return _validateWithdrawal(_path, _amountOutToken);
+    }
+
+    function _validateWithdrawal(
+        address[] memory _path,
+        uint256 _amountOutToken
+    ) internal view returns (bool) {
+        if (_path.length > 1) {
+            _amountOutToken = IVault(vault).convert(
+                _path[0],
+                _path[1],
+                _amountOutToken
+            );
+        }
+        uint256 availableAmount = IVault(vault).poolAmounts(
+            _path[_path.length - 1]
+        );
+        return availableAmount >= _amountOutToken;
+    }
+
     function validateUpdateCollateral(
         address _account,
         address _collateralToken,
         address _indexToken,
         bool _isLong
-    ) external override returns (bool) {
+    ) external view override returns (bool) {
         validateTokens(_collateralToken, _indexToken, _isLong);
         validateCollateral(_account, _collateralToken, _indexToken, _isLong);
         return true;
