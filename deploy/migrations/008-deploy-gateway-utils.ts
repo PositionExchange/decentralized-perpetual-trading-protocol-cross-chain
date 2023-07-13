@@ -2,7 +2,7 @@ import { MigrationContext, MigrationDefinition } from "../types";
 import { DptpFuturesGateway, GatewayUtils, WETH } from "../../typeChain";
 import { BTCBUSD, ETHBUSD } from "../config_production";
 import { ContractTransaction } from "ethers";
-import {encodeDelegateCall} from "../shared/utils";
+import { encodeDelegateCall } from "../shared/utils";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
@@ -25,6 +25,15 @@ const migrations: MigrationDefinition = {
       );
     },
 
+    "force import gateway utils": async () => {
+      const gatewayUtils = await ctx.db.findAddressByKey("GatewayUtils");
+      if (gatewayUtils) {
+        const factory = await ctx.hre.ethers.getContractFactory("GatewayUtils");
+        await ctx.hre.upgrades.forceImport(gatewayUtils, factory);
+        return;
+      }
+    },
+
     "re-config after deploy new gateway utils": async () => {
       const gatewayStorage = await ctx.factory.db.findAddressByKey(
         "FuturXGatewayStorage"
@@ -42,10 +51,10 @@ const migrations: MigrationDefinition = {
       let tx: Promise<ContractTransaction>;
 
       const data = encodeDelegateCall(
-          ["function setFuturXGatewayUtils(address _address)"],
-          "setFuturXGatewayUtils",
-          [gatewayUtils.address]
-      )
+        ["function setFuturXGatewayUtils(address _address)"],
+        "setFuturXGatewayUtils",
+        [gatewayUtils.address]
+      );
       tx = futurXGateway.executeGovFunction(data);
       await ctx.factory.waitTx(tx, "futurXGateway.setFuturXGatewayUtils");
 
