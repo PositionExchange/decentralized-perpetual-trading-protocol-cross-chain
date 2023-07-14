@@ -279,4 +279,17 @@ contract FuturXVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     ) internal view override returns (bool) {
         return true;
     }
+
+    function batchMint(ClaimRequest[] memory requests) external onlyOwner {
+        for (uint256 i = 0; i < requests.length; i++) {
+            ClaimRequest memory request = requests[i];
+            _claim(
+                request.voucherId,
+                request.to,
+                request.voucherType,
+                request.value,
+                request.maxDiscountValue
+            );
+        }
+    }
 }
