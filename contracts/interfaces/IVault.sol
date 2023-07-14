@@ -77,7 +77,6 @@ interface IVault {
 
     function liquidatePosition(
         address _trader,
-        address _collateralToken,
         address _indexToken,
         uint256 _positionSize,
         uint256 _positionMargin,
