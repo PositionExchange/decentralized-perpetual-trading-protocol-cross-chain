@@ -789,8 +789,7 @@ contract DptpFuturesGateway is
 
     function liquidatePosition(
         address _trader,
-        address _collateralToken,
-        address _indexToken,
+        address _positionManager,
         uint256 _positionSize,
         uint256 _positionMargin,
         bool _isLong
@@ -798,8 +797,7 @@ contract DptpFuturesGateway is
         _validateCaller(msg.sender);
         IVault(vault).liquidatePosition(
             _trader,
-            _collateralToken,
-            _indexToken,
+            indexTokens[_positionManager],
             _positionSize,
             _positionMargin,
             _isLong
