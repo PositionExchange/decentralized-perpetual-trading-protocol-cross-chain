@@ -406,42 +406,42 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // TODO: refactor later using _decreasePosition function
     function liquidatePosition(
         address _trader,
-        address _collateralToken,
         address _indexToken,
         uint256 _positionSize,
         uint256 _positionMargin,
         bool _isLong
     ) external override onlyFuturXGateway(msg.sender) nonReentrant {
-        _updateCumulativeBorrowingRate(_collateralToken, _indexToken);
+        bytes32 key = getPositionInfoKey(_trader, _indexToken, _isLong);
+        address collateralToken = positionInfo[key].collateralToken;
+
+        _updateCumulativeBorrowingRate(collateralToken, _indexToken);
 
         uint256 borrowingFee = _getBorrowingFee(
             _trader,
-            _collateralToken,
+            collateralToken,
             _indexToken,
             _isLong
         );
 
-        bytes32 key = getPositionInfoKey(_trader, _indexToken, _isLong);
-
         uint256 positionAmountUsd = tokenToUsdMin(
-            _collateralToken,
+            collateralToken,
             _positionMargin
         );
         if (borrowingFee >= positionAmountUsd) {
             borrowingFee = positionAmountUsd;
         }
-        _increaseFeeReserves(_collateralToken, borrowingFee);
+        _increaseFeeReserves(collateralToken, borrowingFee);
         _decreaseReservedAmount(
-            _collateralToken,
+            collateralToken,
             positionInfo[key].reservedAmount
         );
         _decreasePoolAmount(
-            _collateralToken,
-            usdToTokenMin(_collateralToken, borrowingFee)
+            collateralToken,
+            usdToTokenMin(collateralToken, borrowingFee)
         );
 
         if (_isLong) {
-            _decreaseGuaranteedUsd(_collateralToken, _positionSize);
+            _decreaseGuaranteedUsd(collateralToken, _positionSize);
         } else {
             _decreaseGlobalShortSize(_indexToken, _positionSize);
         }
