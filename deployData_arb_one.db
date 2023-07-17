@@ -21,6 +21,7 @@
 {"address":"yes","key":"0x7Ec6c0Ad876Da50885230Da3d95B93Ac68322BE3:verified","_id":"I4HEtC3xWscn9UvS"}
 {"address":"yes","key":"0x4d6ed7A0E1d3C56b9FC76716F5e8C996ad82F0A0:verified","_id":"K9VRllR23XQDCpVx"}
 {"address":"yes","key":"0x65d5CCAc8Ab7C5FfEAe4799C7ffDf02258Fe7e7e:verified","_id":"KrLfTqyVdWTjSqYf"}
+{"address":"yes","key":"0xfe4fBBA9B2c5258e94bED5447330Eb360FF084BB:verified","_id":"Kx0dbnUmePY8BJgU"}
 {"address":"0xcC8eE31D3d62f69fE1289589E82fFb1bE35eE37D","key":"DptpFuturesGateway","_id":"L33WAbPKFjjr0LEK"}
 {"address":"yes","key":"0xB3887b1913Eda61E4c013f1CDc68dAa516Aa30B7:verified","_id":"NF2PTm66okZ4lcbQ"}
 {"address":"0x5b60f8F49Fb949bb123ec4F2a33f939bCCa03020","key":"vestedPLP","_id":"OwV6E3pZzEQn7eYW"}
@@ -56,4 +57,5 @@
 {"address":"yes","key":"0xb703D013192454d875DcEA7e9E832a7369d2a8ED:verified","_id":"yydBabJaC42z7lAm"}
 {"address":"0x5203e019b96A556A8b7eECBBd00964Cf4Bdef87f","key":"StakedPlpTracker","_id":"zGtY3PwgSTLgzZem"}
 {"address":"0x39a6159BCF298BD078f18D648d43219E8257aE3F","key":"GatewayUtils","_id":"zluxqgot1HQeV4aL"}
-{"address":"yes","key":"0xfe4fBBA9B2c5258e94bED5447330Eb360FF084BB:verified","_id":"Kx0dbnUmePY8BJgU"}
+{"address":"yes","key":"0xdd020d75AB74f092d760457f706e8BB695d6f325:verified","_id":"TtzyyPotfJ5LGrXK"}
+{"address":"0x5744a912Ed20eABE5b0D15727682e44e43aEeb9d","key":"DptpFuturesGatewayGovernance","_id":"9gfxJzz2yVLtTVpq"}
