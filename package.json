@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/technixo/smart-contract/futures-trading-protocol-cross-chain"
+    "url": "https://github.com/PositionExchange/decentralized-perpetual-trading-protocol-cross-chain"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
