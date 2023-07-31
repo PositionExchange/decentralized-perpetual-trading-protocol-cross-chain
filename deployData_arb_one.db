@@ -9,7 +9,7 @@
 {"address":"0xdA20D4EcE7017d0Bd2635963bbEe6246D31bbc4E","key":"ReferralRewardTracker","_id":"8CdEqRGYOFF6Bg8G"}
 {"address":"0x42b27401756C9424c4044F4CAe912f8CDAFf6089","key":"BonusPosiTracker","_id":"8HgcTDdl63Mw7uPW"}
 {"address":"0xA0B332Fef8fa7860148C95130714495b6DabDA9F","key":"RewardRouter","_id":"8TlXIeD7SD8Q35uw"}
-{"address":"0x6640B1adBBF21eFCeA8f78E02e2240D779BBeDaD","key":"DptpFuturesGatewayGovernance","_id":"9gfxJzz2yVLtTVpq"}
+{"address":"0xd8b6a406b0e3948E43D11Cc9ea2f3D517dDC9413","key":"DptpFuturesGatewayGovernance","_id":"9gfxJzz2yVLtTVpq"}
 {"address":"0xf03d7B22052AcaF78D25Fb32096AF91E1D0029A8","key":"TPSLGateway","_id":"AHPshP2wGwRImwBC"}
 {"address":"0xa9c2525094D0e62941567F52399A79C7BFc2432C","key":"FeePosiDistributor","_id":"CIrkdpWz1lWWPHD2"}
 {"address":"0x3387f300f0596954cff9B90c6879e4D4A403E562","key":"BnPOSI","_id":"CK9mhSDNv7NUnVpA"}
@@ -29,6 +29,7 @@
 {"address":"0x97fdA4b9Fbe0efe839EfD2B104E494e3C95CCc44","key":"POSI","_id":"RA10Fn9BlU7hXfB0"}
 {"address":"0xD3D11916F91D0B46D5f9fC4Aacc06598cd7fba38","key":"BonusPosiDistributor","_id":"RJKoD77i4IJF51Jj"}
 {"address":"yes","key":"0xa632E89C762670AfAd26c74e23d3dCcc535a8021:verified","_id":"TABtF96bBFrsaXVW"}
+{"address":"yes","key":"0xdd020d75AB74f092d760457f706e8BB695d6f325:verified","_id":"TtzyyPotfJ5LGrXK"}
 {"address":"0x82aF49447D8a07e3bd95BD0d56f35241523fBab1","key":"WETH","_id":"UeL3ptJVXKCWnoMU"}
 {"address":"yes","key":"0xa5C9c857115668342Ceb1c74d9f57029544c9304:verified","_id":"VDaNPOPVyBmPwqS7"}
 {"address":"0x4502A1B16b2575F89e45567Aa2496aBae1f15371","key":"FuturXGatewayStorage","_id":"XLX2hS81rWmwtC15"}
@@ -57,5 +58,4 @@
 {"address":"yes","key":"0xb703D013192454d875DcEA7e9E832a7369d2a8ED:verified","_id":"yydBabJaC42z7lAm"}
 {"address":"0x5203e019b96A556A8b7eECBBd00964Cf4Bdef87f","key":"StakedPlpTracker","_id":"zGtY3PwgSTLgzZem"}
 {"address":"0x39a6159BCF298BD078f18D648d43219E8257aE3F","key":"GatewayUtils","_id":"zluxqgot1HQeV4aL"}
-{"address":"yes","key":"0xdd020d75AB74f092d760457f706e8BB695d6f325:verified","_id":"TtzyyPotfJ5LGrXK"}
-{"address":"0x5744a912Ed20eABE5b0D15727682e44e43aEeb9d","key":"DptpFuturesGatewayGovernance","_id":"9gfxJzz2yVLtTVpq"}
+{"address":"yes","key":"0x60e56E527F676310F4aEf1c5C771Efed9A3c18C8:verified","_id":"ZRK4cfZaBI1DBw8Z"}

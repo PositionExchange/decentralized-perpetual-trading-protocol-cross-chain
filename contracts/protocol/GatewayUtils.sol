@@ -258,6 +258,24 @@ contract GatewayUtils is
         return true;
     }
 
+    function validateDecreasePositionWithoutSourceChain(
+        address _account,
+        address[] memory _path,
+        address _indexToken,
+        uint256 _sizeDeltaToken,
+        bool _isLong
+    ) external view returns(bool) {
+//        _validate(
+//            _path.length == 1 || _path.length == 2,
+//            Errors.FGWU_INVALID_PATH_LENGTH
+//        );
+//        validateCollateral(_account, collateralToken, _indexToken, _isLong);
+//        validateSize(_indexToken, _sizeDeltaToken, true);
+//        validateTokens(collateralToken, _indexToken, _isLong);
+//
+//        return true;
+    }
+
     function validateUsdWithdrawal(
         address[] memory _path,
         uint256 _amountOutUsd
