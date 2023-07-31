@@ -7,9 +7,10 @@
 {"address":"yes","key":"0x84cf7f2288Ee122DdDD3cdd05C849D5AC02A8976:verified","_id":"1hXlg233FIpCcq5a"}
 {"address":"yes","key":"0x4C2a2F5937a25b2F6Ac5EfA3c213ffC385343716:verified","_id":"23hGEffIRdNM1tkL"}
 {"address":"yes","key":"0x3d822bad1DFDEd73641cE7d941F88a8Aad2a581d:verified","_id":"2BWNThP50RgIcR6G"}
-{"address":"0x4E3C025DdB9F527e7519B6aC36E9f3a4d894d750","key":"DptpFuturesGatewayGovernance","_id":"2EAqtZN4g6dz5Zx9"}
+{"address":"0x45aF7a9Af668762c18b1555e8107921F142EAD23","key":"DptpFuturesGatewayGovernance","_id":"2EAqtZN4g6dz5Zx9"}
 {"address":"yes","key":"0xB647c774BE6513CC3cFD95aD405876d67DbF0c1c:verified","_id":"2NOfICigrYIwS0r4"}
 {"address":"yes","key":"0x9490A8DEe3450cc8afCD9C77B341faFC88409813:verified","_id":"2VwHozluaO3CXIqn"}
+{"address":"yes","key":"0x85e7fE91761a137Bf51f65211b623Ff2D2Ee792E:verified","_id":"2cJ6YVn7JWe2RKsN"}
 {"address":"yes","key":"0x3A663F6fa5f055171e27E8E48274b015079a96ca:verified","_id":"2wRtNhd0xguk6vz0"}
 {"address":"yes","key":"0xfe2B97E5A4E08478f621A44d620b9Ea27eA959F4:verified","_id":"31r0uQHzjJGsWvwA"}
 {"address":"yes","key":"0x31f9B7d60573523069a8A76973a5E10926575f53:verified","_id":"38s1rfPxy8KPwMWD"}
@@ -100,6 +101,7 @@
 {"address":"yes","key":"0x771dFc4A01CD70fb2b406Cd6e4cFfE61eaf6c90E:verified","_id":"LszlAGtZvfd1BWXP"}
 {"address":"0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C","key":"DAI","_id":"MSsUTIYqGUkJGx9p"}
 {"address":"yes","key":"0xFEaC55bc5A85c83c43e1D2175f7A3B7524CF9946:verified","_id":"Mll21lpVu1RWcg2D"}
+{"address":"yes","key":"0x5918c1C85d30CfE9ddA8cbfF28f74385a6878953:verified","_id":"Mpgm9z5hvKmMNtIR"}
 {"address":"yes","key":"0xb2E788B0bd315b79a5584330Fe677eb4eE16dFbe:verified","_id":"NZQAeW26tDFwSI2c"}
 {"address":"yes","key":"0xC09142f5Db0aB2D1bcB8f7E54a916FEB6A04396A:verified","_id":"NdxMKoYFpwWG6fxD"}
 {"address":"yes","key":"0xFB76a34cFCa103865cA395E6354DB07c53448eeF:verified","_id":"OCvfH5oVyRAHKZov"}
@@ -289,6 +291,4 @@
 {"address":"yes","key":"0x357181c8b3A94ec0059d301aC7f4dDA28f79A586:verified","_id":"zRzBJsRe2ydOwXRG"}
 {"address":"yes","key":"0x538386FD966eFe0BD03A30Af552d26f59876eF28:verified","_id":"zXX5GTUjfro4iiQk"}
 {"address":"yes","key":"0x9ECCfa925822705AD78F70399476f396e282B37b:verified","_id":"zoNXF9UaVZHi8eIG"}
-{"address":"yes","key":"0x85e7fE91761a137Bf51f65211b623Ff2D2Ee792E:verified","_id":"2cJ6YVn7JWe2RKsN"}
-{"address":"0x45aF7a9Af668762c18b1555e8107921F142EAD23","key":"DptpFuturesGatewayGovernance","_id":"2EAqtZN4g6dz5Zx9"}
-{"address":"yes","key":"0x5918c1C85d30CfE9ddA8cbfF28f74385a6878953:verified","_id":"Mpgm9z5hvKmMNtIR"}
+{"address":"yes","key":"0xD309469F6E453a1E5A6aB00A75fD2E70A3758e38:verified","_id":"QRhuSbqpc0qIGEFw"}

@@ -8,6 +8,7 @@ import "../interfaces/IFuturXGatewayStorage.sol";
 import "../interfaces/IVault.sol";
 
 import {Errors} from "./libraries/helpers/Errors.sol";
+import "../interfaces/IFuturXGateway.sol";
 
 contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
     using SafeMathUpgradeable for uint256;
@@ -107,6 +108,14 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         request = increasePositionRequests[_key];
     }
 
+    function getIncreasePositionRequestAndManager(
+        bytes32 _key
+    ) public view returns (IncreasePositionRequest memory request, address positionManager) {
+        request = increasePositionRequests[_key];
+        positionManager = IFuturXGateway(futurXGateway).coreManagers(request.indexToken);
+    }
+
+
     function getDeleteIncreasePositionRequest(
         bytes32 _key
     ) public onlyHandler returns (IncreasePositionRequest memory request) {
@@ -171,6 +180,13 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         bytes32 _key
     ) public view returns (DecreasePositionRequest memory request) {
         request = decreasePositionRequests[_key];
+    }
+
+    function getDecreasePositionRequestAndManager(
+        bytes32 _key
+    ) public view returns (DecreasePositionRequest memory request, address positionManager) {
+        request = decreasePositionRequests[_key];
+        positionManager = IFuturXGateway(futurXGateway).coreManagers(request.indexToken);
     }
 
     function getDeleteDecreasePositionRequest(
