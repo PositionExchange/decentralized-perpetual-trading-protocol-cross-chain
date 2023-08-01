@@ -2,56 +2,195 @@
 pragma solidity ^0.8.9;
 
 interface IFullyDptpFuturesGateway {
+    function coreManagers(address) external view returns (address);
 
-    function coreManagers( address  ) external view returns (address ) ;
-    function createAddCollateralRequest( address[] memory _path,address _indexToken,uint256 _amountInToken,bool _isLong ) external payable  ;
-    function createCancelOrderRequest( bytes32 _key,uint256 _orderIdx,bool _isReduce ) external payable  ;
-    function createDecreaseOrderRequest( address[] memory _path,address _indexToken,uint256 _pip,uint256 _sizeDeltaToken,bool _isLong ) external payable returns (bytes32 ) ;
-    function createDecreasePositionRequest( address[] memory _path,address _indexToken,uint256 _sizeDeltaToken,bool _isLong ) external payable returns (bytes32 ) ;
-    function createIncreaseOrderRequest( address[] memory _path,address _indexToken,uint256 _amountInUsd,uint256 _pip,uint256 _sizeDeltaToken,uint16 _leverage,bool _isLong,uint256 _voucherId ) external payable returns (bytes32 ) ;
-    function createIncreasePositionRequest( address[] memory _path,address _indexToken,uint256 _amountInUsd,uint256 _sizeDeltaToken,uint16 _leverage,bool _isLong,uint256 _voucherId ) external payable returns (bytes32 ) ;
-    function createRemoveCollateralRequest( address[] memory _path,address _indexToken,uint256 _amountOutUsd,bool _isLong ) external   ;
-    function executeAddCollateral( bytes32 _key ) external   ;
-    function executeCancelIncreaseOrder( bytes32 _key,bool _isReduce,uint256 _amountOutUsd,uint256 _sizeDeltaToken,uint256 _entryPrice,bool _isLong ) external   ;
-    function executeClaimFund( address _manager,address _account,bool _isLong,uint256 _amountOutUsd ) external   ;
-    function executeDecreasePosition( bytes32 _key,uint256 _amountOutAfterFeesUsd,uint256 _feeUsd,uint256 _entryPrice,uint256 _sizeDeltaToken,bool _isLong,bool _isExecutedFully ) external   ;
-    function executeGovFunction( bytes memory _data ) external   ;
-    function executeIncreasePosition( bytes32 _key,uint256 _entryPrice,uint256 _sizeDeltaInToken,bool _isLong,bool _isExecutedFully,uint16 _leverage ) external   ;
-    function executeRemoveCollateral( bytes32 _key,uint256 _amountOutUsd ) external   ;
-    function executionFee(  ) external view returns (uint256 ) ;
-    function futurXVoucher(  ) external view returns (address ) ;
-    function futuresAdapter(  ) external view returns (address ) ;
-    function gatewayStorage(  ) external view returns (address ) ;
-    function gatewayUtils(  ) external view returns (address ) ;
-    function getPositionKey( address _account,address _indexToken,bool _isLong ) external pure returns (bytes32 ) ;
-    function indexTokens( address  ) external view returns (address ) ;
-    function initialize( uint256 _pcsId,address _pscCrossChainGateway,address _futuresAdapter,address _vault,address _weth,address _gatewayUtils,address _gatewayStorage,uint256 _executionFee ) external   ;
-    function isPaused(  ) external view returns (bool ) ;
-    function latestExecutedCollateral( bytes32  ) external view returns (address ) ;
-    function latestIncreasePendingCollateral( bytes32  ) external view returns (address ) ;
-    function liquidatePosition( address _trader,address _collateralToken,address _indexToken,uint256 _positionSize,uint256 _positionMargin,bool _isLong ) external   ;
-    function maxGlobalLongSizes( address  ) external view returns (uint256 ) ;
-    function maxGlobalShortSizes( address  ) external view returns (uint256 ) ;
-    function maxTimeDelay(  ) external view returns (uint256 ) ;
-    function onERC721Received( address ,address ,uint256 ,bytes memory  ) external  returns (bytes4 ) ;
-    function owner(  ) external view returns (address ) ;
-    function paused(  ) external view returns (bool ) ;
-    function pcsId(  ) external view returns (uint256 ) ;
-    function positionKeepers( address  ) external view returns (bool ) ;
-    function pscCrossChainGateway(  ) external view returns (address ) ;
-    function referralRewardTracker(  ) external view returns (address ) ;
-    function refund( bytes32 _key,uint8 _method ) external payable  ;
-    function renounceOwnership(  ) external   ;
-    function setGovernanceLogic( address _newGovernanceLogic ) external   ;
-    function shortsTracker(  ) external view returns (address ) ;
-    function transferOwnership( address newOwner ) external   ;
-    function vault(  ) external view returns (address ) ;
-    function weth(  ) external view returns (address ) ;
-    function withdraw( address _recipient ) external   ;
+    function createAddCollateralRequest(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountInToken,
+        bool _isLong
+    ) external payable;
+
+    function createCancelOrderRequest(
+        bytes32 _key,
+        uint256 _orderIdx,
+        bool _isReduce
+    ) external payable;
+
+    function createDecreaseOrderRequest(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _pip,
+        uint256 _sizeDeltaToken,
+        bool _isLong
+    ) external payable returns (bytes32);
+
+    function createDecreasePositionRequest(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _sizeDeltaToken,
+        bool _isLong
+    ) external payable returns (bytes32);
+
+    function createIncreaseOrderRequest(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _pip,
+        uint256 _sizeDeltaToken,
+        uint16 _leverage,
+        bool _isLong,
+        uint256 _voucherId
+    ) external payable returns (bytes32);
+
+    function createIncreasePositionRequest(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountInUsd,
+        uint256 _sizeDeltaToken,
+        uint16 _leverage,
+        bool _isLong,
+        uint256 _voucherId
+    ) external payable returns (bytes32);
+
+    function createRemoveCollateralRequest(
+        address[] memory _path,
+        address _indexToken,
+        uint256 _amountOutUsd,
+        bool _isLong
+    ) external;
+
+    function executeAddCollateral(bytes32 _key) external;
+
+    function executeCancelIncreaseOrder(
+        bytes32 _key,
+        bool _isReduce,
+        uint256 _amountOutUsd,
+        uint256 _sizeDeltaToken,
+        uint256 _entryPrice,
+        bool _isLong
+    ) external;
+
+    function executeClaimFund(
+        address _manager,
+        address _account,
+        bool _isLong,
+        uint256 _amountOutUsd
+    ) external;
+
+    function executeDecreasePosition(
+        bytes32 _key,
+        uint256 _amountOutAfterFeesUsd,
+        uint256 _feeUsd,
+        uint256 _entryPrice,
+        uint256 _sizeDeltaToken,
+        bool _isLong,
+        bool _isExecutedFully
+    ) external;
+
+    function executeGovFunction(bytes memory _data) external;
+
+    function executeIncreasePosition(
+        bytes32 _key,
+        uint256 _entryPrice,
+        uint256 _sizeDeltaInToken,
+        bool _isLong,
+        bool _isExecutedFully,
+        uint16 _leverage
+    ) external;
+
+    function executeRemoveCollateral(
+        bytes32 _key,
+        uint256 _amountOutUsd
+    ) external;
+
+    function executionFee() external view returns (uint256);
+
+    function futurXVoucher() external view returns (address);
+
+    function futuresAdapter() external view returns (address);
+
+    function gatewayStorage() external view returns (address);
+
+    function gatewayUtils() external view returns (address);
+
+    function getPositionKey(
+        address _account,
+        address _indexToken,
+        bool _isLong
+    ) external pure returns (bytes32);
+
+    function indexTokens(address) external view returns (address);
+
+    function initialize(
+        uint256 _pcsId,
+        address _pscCrossChainGateway,
+        address _futuresAdapter,
+        address _vault,
+        address _weth,
+        address _gatewayUtils,
+        address _gatewayStorage,
+        uint256 _executionFee
+    ) external;
+
+    function isPaused() external view returns (bool);
+
+    function latestExecutedCollateral(bytes32) external view returns (address);
+
+    function latestIncreasePendingCollateral(
+        bytes32
+    ) external view returns (address);
+
+    function liquidatePosition(
+        address _trader,
+        address _collateralToken,
+        address _indexToken,
+        uint256 _positionSize,
+        uint256 _positionMargin,
+        bool _isLong
+    ) external;
+
+    function maxGlobalLongSizes(address) external view returns (uint256);
+
+    function maxGlobalShortSizes(address) external view returns (uint256);
+
+    function maxTimeDelay() external view returns (uint256);
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) external returns (bytes4);
+
+    function owner() external view returns (address);
+
+    function paused() external view returns (bool);
+
+    function pcsId() external view returns (uint256);
+
+    function positionKeepers(address) external view returns (bool);
+
+    function pscCrossChainGateway() external view returns (address);
+
+    function referralRewardTracker() external view returns (address);
+
+    function refund(bytes32 _key, uint8 _method) external payable;
+
+    function renounceOwnership() external;
+
+    function setGovernanceLogic(address _newGovernanceLogic) external;
+
+    function shortsTracker() external view returns (address);
+
+    function transferOwnership(address newOwner) external;
+
+    function vault() external view returns (address);
+
+    function weth() external view returns (address);
+
+    function withdraw(address _recipient) external;
 }
-
-
-
 
 // THIS FILE WAS AUTOGENERATED FROM THE FOLLOWING ABI JSON:
 /*

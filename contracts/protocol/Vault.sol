@@ -7,7 +7,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts/utils/StorageSlot.sol";
 
-
 import "./libraries/TokenConfiguration.sol";
 import "./libraries/VaultInfo.sol";
 import "./libraries/PositionInfo.sol";
@@ -85,7 +84,7 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // positionInfo tracks all open positions entry borrowing rates
     mapping(bytes32 => PositionInfo.Data) public positionInfo;
 
-//    mapping(address => uint256) public debtAmount;
+    //    mapping(address => uint256) public debtAmount;
     mapping(address => uint256) public debtAmountUsd;
 
     // guaranteedUsd tracks the amount of USD that is "guaranteed" by opened leverage positions
@@ -118,7 +117,10 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     modifier onlyGovOrOwner() {
-        _validate(msg.sender == getGov() || msg.sender == owner(), "V: not gov");
+        _validate(
+            msg.sender == getGov() || msg.sender == owner(),
+            "V: not gov"
+        );
         _;
     }
 
@@ -608,11 +610,15 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         whitelistCaller[caller] = val;
     }
 
-    function setIsSwapEnabled(bool _isSwapEnabled) external override onlyGovOrOwner {
+    function setIsSwapEnabled(
+        bool _isSwapEnabled
+    ) external override onlyGovOrOwner {
         isSwapEnabled = _isSwapEnabled;
     }
 
-    function setMaxGasPrice(uint256 _maxGasPrice) external override onlyGovOrOwner {
+    function setMaxGasPrice(
+        uint256 _maxGasPrice
+    ) external override onlyGovOrOwner {
         maxGasPrice = _maxGasPrice;
     }
 
@@ -664,7 +670,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return amount;
     }
 
-    function setInManagerMode(bool _inManagerMode) external override onlyGovOrOwner {
+    function setInManagerMode(
+        bool _inManagerMode
+    ) external override onlyGovOrOwner {
         inManagerMode = _inManagerMode;
     }
 
@@ -690,7 +698,6 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         stableBorrowingRateFactor = _stableBorrowingRateFactor;
     }
 
-
     function setFuturXGateway(address _address) external onlyOwner {
         futurXGateway = _address;
     }
@@ -703,11 +710,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         }
     }
 
-
     function setGov(address gov) external onlyOwner {
         StorageSlot.getAddressSlot(bytes32("gov.futurX")).value = gov;
     }
-
 
     /** END OWNER FUNCTIONS **/
 
