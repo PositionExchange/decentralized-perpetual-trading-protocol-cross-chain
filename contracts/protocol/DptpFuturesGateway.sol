@@ -560,6 +560,42 @@ contract DptpFuturesGateway is
         );
     }
 
+    function executeDecreasePositionWithoutSource(
+        uint256 _amountOutAfterFeesUsd,
+        uint256 _feeUsd,
+        uint256 _entryPrice,
+        uint256 _sizeDeltaToken,
+        bool _isLong,
+        bool _isExecutedFully,
+        address _account,
+        bytes memory _pathAndIndexToken
+    ) external nonReentrant {
+        _validateCaller(msg.sender);
+
+        _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.mul(PRICE_DECIMALS);
+        _feeUsd = _feeUsd.mul(PRICE_DECIMALS);
+
+        (address[] memory _path, address _indexToken) = abi.decode(
+            _pathAndIndexToken,
+            (address[], address)
+        );
+        bool _withdrawETH = _path[_path.length - 1] == weth;
+
+
+
+        _executeDecreasePosition(
+            _account,
+            _path,
+            _indexToken,
+            _amountOutAfterFeesUsd,
+            _feeUsd,
+            _entryPrice,
+            _sizeDeltaToken,
+            _isLong,
+            _withdrawETH
+        );
+    }
+
     function _executeDecreasePosition(
         address _account,
         address[] memory _path,

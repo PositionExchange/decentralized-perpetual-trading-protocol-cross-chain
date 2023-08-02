@@ -16,6 +16,7 @@ contract CrosscallMethod {
         UNSET_TP_AND_SL,
         UNSET_TP_OR_SL,
         OPEN_MARKET_BY_QUOTE,
-        EXECUTE_STORE_POSITION
+        EXECUTE_STORE_POSITION,
+        CLOSE_POSITION_WITHOUT_SOURCE
     }
 }

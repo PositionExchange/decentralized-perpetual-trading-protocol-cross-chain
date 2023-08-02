@@ -267,7 +267,7 @@ contract GatewayUtils is
         uint256 _sizeDeltaToken,
         bool _isLong,
         address _collateralToken
-    ) external view returns (bool) {
+    ) public view returns (bool) {
         _validate(
             _path.length == 1 || _path.length == 2,
             Errors.FGWU_INVALID_PATH_LENGTH
@@ -614,8 +614,9 @@ contract GatewayUtils is
         }
 
         if (
-            (decreasePositionRequest.account != user || positionManager == address(0x0) && isReduce) ||
-            (increasePositionRequest.account != user && !isReduce) || positionManager == address(0x0)
+            (decreasePositionRequest.account != user && isReduce) ||
+            (increasePositionRequest.account != user && !isReduce) ||
+            positionManager == address(0x0)
         ) {
             return (abi.encode(""), false);
         }
@@ -633,8 +634,8 @@ contract GatewayUtils is
 
         dataRelay = abi.encode(
             txId,
-            block.timestamp,
-            user,
+            block.timestamp - 3,
+            futurXGateway,
             IFuturXGateway(futurXGateway).pcsId(),
             IFuturXGateway(futurXGateway).pscCrossChainGateway(),
             uint8(CrosscallMethod.Method.CANCEL_LIMIT),
@@ -644,6 +645,64 @@ contract GatewayUtils is
         return (dataRelay, true);
 
     }
+
+    function validateAndPackClosePosition(
+        address user,
+        address[] memory path,
+        address indexToken,
+        uint256 sizeDeltaToken,
+        bool isLong,
+        address collateralToken,
+        bool withdrawETH
+    ) public view returns(bytes memory dataRelay, bool isValidated) {
+
+        address positionManager = IFuturXGateway(futurXGateway).coreManagers(
+            indexToken
+        );
+
+        validateDecreasePositionWithoutSourceChain(
+            user,
+            path,
+            indexToken,
+            sizeDeltaToken,
+            isLong,
+            collateralToken
+        );
+
+        bytes memory pathAndIndexToken = abi.encode(path, indexToken);
+
+        bytes memory _functionCallData = abi.encode(
+            positionManager,
+            sizeDeltaToken,
+            user,
+            pathAndIndexToken
+        );
+
+        bytes32 txId = keccak256(
+            abi.encodePacked(
+                block.timestamp,
+                IFuturXGateway(futurXGateway).pcsId(),
+                user,
+                IFuturXGateway(futurXGateway).pscCrossChainGateway()
+            )
+        );
+
+        dataRelay = abi.encode(
+            txId,
+            block.timestamp - 3,
+            futurXGateway,
+            IFuturXGateway(futurXGateway).pcsId(),
+            IFuturXGateway(futurXGateway).pscCrossChainGateway(),
+            uint8(CrosscallMethod.Method.CLOSE_POSITION_WITHOUT_SOURCE),
+            _functionCallData
+        );
+
+        return (dataRelay, true);
+
+
+    }
+
+
 
     function _getSwapFee(
         address[] memory _path,
