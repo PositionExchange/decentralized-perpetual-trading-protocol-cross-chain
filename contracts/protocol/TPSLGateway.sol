@@ -195,6 +195,9 @@ contract TPSLGateway is ReentrancyGuardUpgradeable, CrosscallMethod {
     }
 
     function _validateCaller(address _account) private {
-        require(futurXGateway.positionKeepers(_account), Errors.TPSL_CALLER_NOT_WHITELISTED);
+        require(
+            futurXGateway.positionKeepers(_account),
+            Errors.TPSL_CALLER_NOT_WHITELISTED
+        );
     }
 }

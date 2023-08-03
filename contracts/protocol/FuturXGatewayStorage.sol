@@ -110,11 +110,19 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function getIncreasePositionRequestAndManager(
         bytes32 _key
-    ) public view returns (IncreasePositionRequest memory request, address positionManager) {
+    )
+        public
+        view
+        returns (
+            IncreasePositionRequest memory request,
+            address positionManager
+        )
+    {
         request = increasePositionRequests[_key];
-        positionManager = IFuturXGateway(futurXGateway).coreManagers(request.indexToken);
+        positionManager = IFuturXGateway(futurXGateway).coreManagers(
+            request.indexToken
+        );
     }
-
 
     function getDeleteIncreasePositionRequest(
         bytes32 _key
@@ -152,8 +160,12 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
                 request.path[0],
                 amountAdjust
             );
-            uint256 feeExecute = request.feeUsd.mul(amountAdjust).div(request.amountInToken);
-            increasePositionRequests[_key].feeUsd = request.feeUsd.sub(feeExecute);
+            uint256 feeExecute = request.feeUsd.mul(amountAdjust).div(
+                request.amountInToken
+            );
+            increasePositionRequests[_key].feeUsd = request.feeUsd.sub(
+                feeExecute
+            );
             request.feeUsd = feeExecute;
             increasePositionRequests[_key].amountInToken = request
                 .amountInToken
@@ -184,9 +196,18 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
 
     function getDecreasePositionRequestAndManager(
         bytes32 _key
-    ) public view returns (DecreasePositionRequest memory request, address positionManager) {
+    )
+        public
+        view
+        returns (
+            DecreasePositionRequest memory request,
+            address positionManager
+        )
+    {
         request = decreasePositionRequests[_key];
-        positionManager = IFuturXGateway(futurXGateway).coreManagers(request.indexToken);
+        positionManager = IFuturXGateway(futurXGateway).coreManagers(
+            request.indexToken
+        );
     }
 
     function getDeleteDecreasePositionRequest(

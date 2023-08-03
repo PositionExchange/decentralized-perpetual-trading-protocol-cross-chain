@@ -136,4 +136,24 @@ interface IFuturXGatewayStorage {
     function updatePendingCollateral(
         UpPendingCollateralParam memory param
     ) external returns (bytes32);
+
+    function getIncreasePositionRequestAndManager(
+        bytes32 _key
+    )
+        external
+        view
+        returns (
+            IncreasePositionRequest memory request,
+            address positionManager
+        );
+
+    function getDecreasePositionRequestAndManager(
+        bytes32 _key
+    )
+        external
+        view
+        returns (
+            DecreasePositionRequest memory request,
+            address positionManager
+        );
 }

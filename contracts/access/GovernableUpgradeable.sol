@@ -6,7 +6,6 @@ contract GovernableUpgradeable {
 
     event GovChanged(address indexed oldGov, address indexed newGov);
 
-
     function __Governable_init() internal {
         gov = msg.sender;
     }

@@ -179,10 +179,10 @@ contract FuturesAdapter is
             "Transaction already exists"
         );
 
-//        require(
-//            decodedEventData.timestamp <= block.timestamp,
-//            "Event timestamp is in the future"
-//        );
+        //        require(
+        //            decodedEventData.timestamp <= block.timestamp,
+        //            "Event timestamp is in the future"
+        //        );
         //        require(timestamp + timeHorizon > block.timestamp, "Event is too old");
         replayPrevention[decodedEventData.txId] = decodedEventData.timestamp;
 
@@ -227,7 +227,10 @@ contract FuturesAdapter is
         gnosisSafe = _newAddress;
     }
 
-    function updateRelayerStatus(address _relayer, bool _status) external onlyOwner {
+    function updateRelayerStatus(
+        address _relayer,
+        bool _status
+    ) external onlyOwner {
         whitelistRelayers[_relayer] = _status;
     }
 

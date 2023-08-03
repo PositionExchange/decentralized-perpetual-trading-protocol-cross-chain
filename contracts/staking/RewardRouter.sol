@@ -188,7 +188,6 @@ contract RewardRouter is
         return plpAmount;
     }
 
-
     /// @notice stake _token, mint plp, then auto stake to the pool
     /// @param plpAmount the amount of PLP to stake
     function stakePlp(
@@ -307,9 +306,7 @@ contract RewardRouter is
 
     /// @notice unstakePlp
     /// @param _plpAmount plp amount
-    function unstakePlp(
-        uint256 _plpAmount
-    ) external nonReentrant {
+    function unstakePlp(uint256 _plpAmount) external nonReentrant {
         require(_plpAmount > 0, "RewardRouter: invalid _plpAmount");
 
         address account = msg.sender;
@@ -583,7 +580,11 @@ contract RewardRouter is
 
         uint256 esPosiBalance = IERC20Upgradeable(esPosi).balanceOf(_sender);
         if (esPosiBalance > 0) {
-            IERC20Upgradeable(esPosi).transferFrom(_sender, receiver, esPosiBalance);
+            IERC20Upgradeable(esPosi).transferFrom(
+                _sender,
+                receiver,
+                esPosiBalance
+            );
         }
 
         uint256 plpAmount = IRewardTracker(feePlpTracker).depositBalances(
@@ -835,5 +836,4 @@ contract RewardRouter is
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
-
 }

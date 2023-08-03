@@ -102,6 +102,7 @@ contract DptpFuturesGateway is
         uint256 swapFee,
         uint256 timestamp
     );
+
     function initialize(
         uint256 _pcsId,
         address _pscCrossChainGateway,
@@ -125,6 +126,7 @@ contract DptpFuturesGateway is
         gatewayStorage = _gatewayStorage;
         executionFee = _executionFee;
     }
+
     event CollateralAddedExecuted(
         address account,
         address token,
@@ -183,8 +185,6 @@ contract DptpFuturesGateway is
         uint256 positionFeeUsd;
         uint256 voucherId;
     }
-
-
 
     function isPaused() external view override returns (bool) {
         return paused();
@@ -560,6 +560,42 @@ contract DptpFuturesGateway is
         );
     }
 
+    function executeDecreasePositionWithoutSource(
+        uint256 _amountOutAfterFeesUsd,
+        uint256 _feeUsd,
+        uint256 _entryPrice,
+        uint256 _sizeDeltaToken,
+        bool _isLong,
+        bool _isExecutedFully,
+        address _account,
+        bytes memory _pathAndIndexToken
+    ) external nonReentrant {
+        _validateCaller(msg.sender);
+
+        _amountOutAfterFeesUsd = _amountOutAfterFeesUsd.mul(PRICE_DECIMALS);
+        _feeUsd = _feeUsd.mul(PRICE_DECIMALS);
+
+        (address[] memory _path, address _indexToken) = abi.decode(
+            _pathAndIndexToken,
+            (address[], address)
+        );
+        bool _withdrawETH = _path[_path.length - 1] == weth;
+
+
+
+        _executeDecreasePosition(
+            _account,
+            _path,
+            _indexToken,
+            _amountOutAfterFeesUsd,
+            _feeUsd,
+            _entryPrice,
+            _sizeDeltaToken,
+            _isLong,
+            _withdrawETH
+        );
+    }
+
     function _executeDecreasePosition(
         address _account,
         address[] memory _path,
@@ -739,9 +775,16 @@ contract DptpFuturesGateway is
 
         if (_sizeDeltaToken == 0) {
             if (request.hasCollateralInETH) {
-                _transferOutETH(request.amountInToken, payable(request.account));
+                _transferOutETH(
+                    request.amountInToken,
+                    payable(request.account)
+                );
             } else {
-                _transferOut(request.path[0], request.amountInToken, request.account);
+                _transferOut(
+                    request.path[0],
+                    request.amountInToken,
+                    request.account
+                );
             }
             if (request.voucherId > 0) {
                 _refundVoucher(request.voucherId, request.account);
@@ -1079,7 +1122,10 @@ contract DptpFuturesGateway is
 
             bool hasCollateralInETH = request.path[0] == weth;
             if (hasCollateralInETH) {
-                _transferOutETH(request.amountInToken, payable(request.account));
+                _transferOutETH(
+                    request.amountInToken,
+                    payable(request.account)
+                );
             } else {
                 _transferOut(
                     request.path[0],
@@ -1098,7 +1144,10 @@ contract DptpFuturesGateway is
 
             bool hasCollateralInETH = request.path[0] == weth;
             if (hasCollateralInETH) {
-                _transferOutETH(request.amountInToken, payable(request.account));
+                _transferOutETH(
+                    request.amountInToken,
+                    payable(request.account)
+                );
             } else {
                 _transferOut(
                     request.path[0],
@@ -1184,7 +1233,6 @@ contract DptpFuturesGateway is
     function _createIncreasePosition(
         CreateIncreasePositionParam memory param
     ) internal returns (bytes32) {
-
         bool hasCollateralInETH;
         {
             hasCollateralInETH = param.path[0] == weth;
@@ -1383,7 +1431,11 @@ contract DptpFuturesGateway is
 
     function _getIncreasePositionRequest(
         bytes32 _key
-    ) internal view returns (IFuturXGatewayStorage.IncreasePositionRequest memory) {
+    )
+        internal
+        view
+        returns (IFuturXGatewayStorage.IncreasePositionRequest memory)
+    {
         return
             IFuturXGatewayStorage(gatewayStorage).getIncreasePositionRequest(
                 _key
@@ -1419,7 +1471,11 @@ contract DptpFuturesGateway is
 
     function _getDecreasePositionRequest(
         bytes32 _key
-    ) internal view returns (IFuturXGatewayStorage.DecreasePositionRequest memory) {
+    )
+        internal
+        view
+        returns (IFuturXGatewayStorage.DecreasePositionRequest memory)
+    {
         return
             IFuturXGatewayStorage(gatewayStorage).getDecreasePositionRequest(
                 _key
@@ -1521,7 +1577,7 @@ contract DptpFuturesGateway is
     ) internal {
         if (_amountOut > 0) {
             IWETH(weth).withdraw(_amountOut);
-            (bool sent,) = _account.call{value: _amountOut}("");
+            (bool sent, ) = _account.call{value: _amountOut}("");
             require(sent, Errors.FGW_SEND_ETH_FAILED);
         }
     }

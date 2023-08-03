@@ -8,10 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/IUniswapV2Router.sol";
 
-
-contract BBB is OwnableUpgradeable
-{
-
+contract BBB is OwnableUpgradeable {
     IUniswapV2Router02 public swapRouter;
     IERC20 public posi;
     address public deadAddress = 0x000000000000000000000000000000000000dEaD;
@@ -33,18 +30,15 @@ contract BBB is OwnableUpgradeable
         _;
     }
 
-
     function initialize(
         IERC20 _posiToken,
-        IUniswapV2Router02  _swapRouter
+        IUniswapV2Router02 _swapRouter
     ) public initializer {
         __Ownable_init();
         duration = 3600 * 24 * 7;
         posi = _posiToken;
         swapRouter = _swapRouter;
     }
-
-
 
     function deposit() external payable onlyOperator {
         _bbb(amountEthRemaining);
@@ -57,9 +51,7 @@ contract BBB is OwnableUpgradeable
         lastTimeBBB = block.timestamp;
     }
 
-
     function bbb() public {
-
         require(block.timestamp >= startEpoch, "not started");
         require(block.timestamp <= endEpoch, "ended");
 
@@ -70,21 +62,21 @@ contract BBB is OwnableUpgradeable
         amountEthRemaining -= amountToBBB;
     }
 
-
-    function availableBBB() public view returns(uint256){
+    function availableBBB() public view returns (uint256) {
         uint256 timeSinceLastBBB = block.timestamp - lastTimeBBB;
         uint256 amountToBBB = timeSinceLastBBB * amountETHPerBlock;
         return amountToBBB;
     }
 
     function _bbb(uint256 amount) internal {
-
         if (amount == 0) return;
 
-         uint256[] memory amounts = swapRouter.swapExactETHForTokens{value : amount}(0, _getTokenToPosiRoute(), deadAddress, block.timestamp);
+        uint256[] memory amounts = swapRouter.swapExactETHForTokens{
+            value: amount
+        }(0, _getTokenToPosiRoute(), deadAddress, block.timestamp);
         totalPosiBurned += amounts[amounts.length - 1];
 
-         emit PosiBurned(amounts[amounts.length - 1]);
+        emit PosiBurned(amounts[amounts.length - 1]);
     }
 
     function _getTokenToPosiRoute()
@@ -97,18 +89,16 @@ contract BBB is OwnableUpgradeable
         paths[1] = address(posi);
     }
 
-    function setDuration(uint256 _duration) external onlyOwner{
+    function setDuration(uint256 _duration) external onlyOwner {
         duration = _duration;
     }
 
-    function setSwapRouter(IUniswapV2Router02 _swapRouter) external onlyOwner{
+    function setSwapRouter(IUniswapV2Router02 _swapRouter) external onlyOwner {
         swapRouter = _swapRouter;
     }
 
     // write function set operator
-    function setOperator(address _operator) external onlyOwner{
+    function setOperator(address _operator) external onlyOwner {
         operator = _operator;
     }
-
-
 }

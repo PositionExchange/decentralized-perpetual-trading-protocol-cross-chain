@@ -12,11 +12,7 @@ import "../interfaces/IGatewayUtils.sol";
 import "./DptpFuturesGateway.sol";
 import "../interfaces/IFullyDptpFuturesGateway.sol";
 
-contract FuturXGatewayPreData is
-    OwnableUpgradeable,
-    CrosscallMethod
-{
-
+contract FuturXGatewayPreData is OwnableUpgradeable, CrosscallMethod {
     using SafeMathUpgradeable for uint256;
     using SafeCastUpgradeable for uint256;
 
@@ -26,15 +22,12 @@ contract FuturXGatewayPreData is
         LOWER
     }
 
-
     uint256 constant PRICE_DECIMALS = 10 ** 12;
 
-    IGatewayUtils  public gatewayUtils;
-    IVault  public vault;
+    IGatewayUtils public gatewayUtils;
+    IVault public vault;
     IFuturXGatewayStorage public futurXGatewayStorage;
     IFullyDptpFuturesGateway public futurXGateway;
-
-
 
     struct CreateIncreasePositionPre {
         address positionManager;
@@ -104,7 +97,6 @@ contract FuturXGatewayPreData is
         futurXGatewayStorage = IFuturXGatewayStorage(futurXGatewayStorage);
     }
 
-
     function createIncreasePositionRequest(
         address[] memory _path,
         address _indexToken,
@@ -114,21 +106,22 @@ contract FuturXGatewayPreData is
         bool _isLong,
         uint256 _voucherId,
         address _user
-    ) public view returns (CreateIncreasePositionPre memory params, Method method) {
-
-        params = CreateIncreasePositionPre(
-        {
-            positionManager:  _indexTokenToManager(_indexToken),
+    )
+        public
+        view
+        returns (CreateIncreasePositionPre memory params, Method method)
+    {
+        params = CreateIncreasePositionPre({
+            positionManager: _indexTokenToManager(_indexToken),
             isLong: _isLong,
             sizeDeltaToken: _sizeDeltaToken,
-            leverage:  _leverage,
+            leverage: _leverage,
             amountInUsd: _amountInUsd,
             pip: 0,
             user: _user
         });
         method = Method.OPEN_MARKET;
     }
-
 
     function createIncreaseOrderRequest(
         address[] memory _path,
@@ -140,13 +133,17 @@ contract FuturXGatewayPreData is
         bool _isLong,
         uint256 _voucherId,
         address _user
-    ) external view returns (CreateIncreasePositionPre memory params, Method method) {
+    )
+        external
+        view
+        returns (CreateIncreasePositionPre memory params, Method method)
+    {
         {
             address[] memory path = _path;
             params = CreateIncreasePositionPre({
                 positionManager: _indexTokenToManager(_indexToken),
-                isLong:  _isLong,
-                sizeDeltaToken:  _sizeDeltaToken,
+                isLong: _isLong,
+                sizeDeltaToken: _sizeDeltaToken,
                 leverage: _leverage,
                 amountInUsd: _amountInUsd,
                 pip: _pip,
@@ -160,15 +157,18 @@ contract FuturXGatewayPreData is
         address _indexToken,
         uint256 _sizeDeltaToken,
         address _user
-    ) external view returns (CreateDecreasePositionPre memory params, Method method) {
-
+    )
+        external
+        view
+        returns (CreateDecreasePositionPre memory params, Method method)
+    {
         params = CreateDecreasePositionPre({
             positionManager: _indexTokenToManager(_indexToken),
             sizeDeltaToken: _sizeDeltaToken,
             pip: 0,
             user: _user
         });
-        method =  Method.CLOSE_POSITION;
+        method = Method.CLOSE_POSITION;
     }
 
     function createDecreaseOrderRequest(
@@ -176,35 +176,36 @@ contract FuturXGatewayPreData is
         uint256 _pip,
         uint256 _sizeDeltaToken,
         address _user
-    ) external view returns (CreateDecreasePositionPre memory params, Method method) {
-
+    )
+        external
+        view
+        returns (CreateDecreasePositionPre memory params, Method method)
+    {
         params = CreateDecreasePositionPre({
             positionManager: _indexTokenToManager(_indexToken),
             sizeDeltaToken: _sizeDeltaToken,
-            pip : _pip,
-            user : _user
+            pip: _pip,
+            user: _user
         });
-        method =  Method.CLOSE_LIMIT_POSITION;
-
+        method = Method.CLOSE_LIMIT_POSITION;
     }
-
 
     function createCancelOrderRequest(
         bytes32 _key,
         uint256 _orderIdx,
         bool _isReduce
-    ) public view returns(CreateCancelOrderPre memory param, Method method){
+    ) public view returns (CreateCancelOrderPre memory param, Method method) {
         address user;
         address indexToken;
 
         if (_isReduce) {
             IFuturXGatewayStorage.DecreasePositionRequest
-            memory request = _getDecreasePositionRequest(_key);
+                memory request = _getDecreasePositionRequest(_key);
             user = request.account;
             indexToken = request.indexToken;
         } else {
             IFuturXGatewayStorage.IncreasePositionRequest
-            memory request = _getIncreasePositionRequest(_key);
+                memory request = _getIncreasePositionRequest(_key);
             user = request.account;
             indexToken = request.indexToken;
         }
@@ -212,20 +213,22 @@ contract FuturXGatewayPreData is
         param = CreateCancelOrderPre({
             positionManager: _indexTokenToManager(indexToken),
             orderIdx: _orderIdx,
-            isReduce : _isReduce,
-            user : user
+            isReduce: _isReduce,
+            user: user
         });
-        method =  Method.CANCEL_LIMIT;
-
+        method = Method.CANCEL_LIMIT;
     }
-
 
     function createAddCollateralRequest(
         address[] memory _path,
         address _indexToken,
         uint256 _amountInToken,
         address _user
-    ) external view returns (CreateAddCollateralPre memory params, Method method) {
+    )
+        external
+        view
+        returns (CreateAddCollateralPre memory params, Method method)
+    {
         address paidToken = _path[0];
         address collateralToken = _path[_path.length - 1];
 
@@ -243,28 +246,28 @@ contract FuturXGatewayPreData is
         params = CreateAddCollateralPre({
             positionManager: _indexTokenToManager(_indexToken),
             amountInUsd: amountInUsd.div(PRICE_DECIMALS),
-            user : _user
+            user: _user
         });
-        method =  Method.ADD_MARGIN;
-
+        method = Method.ADD_MARGIN;
     }
-
-
 
     function createRemoveCollateralRequest(
         address[] memory _path,
         address _indexToken,
         uint256 _amountOutUsd,
         address _user
-    ) external view  returns(CreateRemoveCollateralPre memory params, Method method) {
+    )
+        external
+        view
+        returns (CreateRemoveCollateralPre memory params, Method method)
+    {
         address collateralToken = _path[0];
 
         uint256 amountOutUsdFormatted = _amountOutUsd.mul(PRICE_DECIMALS);
 
-
         params = CreateRemoveCollateralPre({
             positionManager: _indexTokenToManager(_indexToken),
-            amountOutUsd:  _amountOutUsd,
+            amountOutUsd: _amountOutUsd,
             user: _user
         });
         method = Method.REMOVE_MARGIN;
@@ -278,26 +281,21 @@ contract FuturXGatewayPreData is
         address _user
     ) external view returns (SetTPSLPre memory params, Method method) {
         params = SetTPSLPre({
-            positionManager : _indexTokenToManager(_indexToken),
-            user : _user,
+            positionManager: _indexTokenToManager(_indexToken),
+            user: _user,
             higherPip: _higherPip,
-            lowerPip :_lowerPip,
-            option :_option
+            lowerPip: _lowerPip,
+            option: _option
         });
         method = Method.SET_TPSL;
-
     }
 
     function unsetTPAndSL(
         address _indexToken,
         address _user
     ) external view returns (UnsetTPAndSLPre memory params, Method method) {
-        params = UnsetTPAndSLPre(
-            _indexTokenToManager(_indexToken),
-            _user
-        );
+        params = UnsetTPAndSLPre(_indexTokenToManager(_indexToken), _user);
         method = Method.UNSET_TP_AND_SL;
-
     }
 
     function unsetTPOrSL(
@@ -305,26 +303,20 @@ contract FuturXGatewayPreData is
         bool _isHigherPrice,
         address _user
     ) external view returns (UnsetTPOrSLPre memory params, Method method) {
-
-        params = UnsetTPOrSLPre(
-        {
-            positionManager : _indexTokenToManager(_indexToken),
-            user : _user,
-            isHigher :_isHigherPrice
+        params = UnsetTPOrSLPre({
+            positionManager: _indexTokenToManager(_indexToken),
+            user: _user,
+            isHigher: _isHigherPrice
         });
 
         method = Method.UNSET_TP_OR_SL;
-
     }
-
 
     function _indexTokenToManager(
         address _indexToken
     ) internal view returns (address) {
         return futurXGateway.coreManagers(_indexToken);
     }
-
-
 
     function _collectFees(
         address _user,
@@ -338,20 +330,20 @@ contract FuturXGatewayPreData is
     ) internal view returns (uint256 positionFeeUsd, uint256 totalFeeUsd) {
         {
             uint256 swapFeeUsd;
-            (positionFeeUsd, swapFeeUsd, totalFeeUsd) = gatewayUtils.calculateMarginFees(
-                _user,
-                _path,
-                _indexToken,
-                _isLong,
-                _amountInToken,
-                _amountInUsd,
-                _leverage,
-                _isLimitOrder
-            );
+            (positionFeeUsd, swapFeeUsd, totalFeeUsd) = gatewayUtils
+                .calculateMarginFees(
+                    _user,
+                    _path,
+                    _indexToken,
+                    _isLong,
+                    _amountInToken,
+                    _amountInUsd,
+                    _leverage,
+                    _isLimitOrder
+                );
         }
         return (positionFeeUsd, totalFeeUsd);
     }
-
 
     function _usdToTokenMin(
         address _token,
@@ -359,7 +351,6 @@ contract FuturXGatewayPreData is
     ) private view returns (uint256) {
         return vault.usdToTokenMin(_token, _usdAmount);
     }
-
 
     function _tokenToUsdMin(
         address _token,
@@ -375,25 +366,29 @@ contract FuturXGatewayPreData is
         return vault.adjustDecimalToToken(_token, _tokenAmount);
     }
 
-
     function _getIncreasePositionRequest(
         bytes32 _key
-    ) internal view returns (IFuturXGatewayStorage.IncreasePositionRequest memory) {
-        return futurXGatewayStorage.getIncreasePositionRequest(
-            _key
-        );
+    )
+        internal
+        view
+        returns (IFuturXGatewayStorage.IncreasePositionRequest memory)
+    {
+        return futurXGatewayStorage.getIncreasePositionRequest(_key);
     }
 
     function _getDecreasePositionRequest(
         bytes32 _key
-    ) internal  view returns (IFuturXGatewayStorage.DecreasePositionRequest memory) {
-        return futurXGatewayStorage.getDecreasePositionRequest(
-            _key
-        );
+    )
+        internal
+        view
+        returns (IFuturXGatewayStorage.DecreasePositionRequest memory)
+    {
+        return futurXGatewayStorage.getDecreasePositionRequest(_key);
     }
 
-
-    function setFuturXGatewayStorage(IFuturXGatewayStorage _futurXGatewayStorage) external onlyOwner {
+    function setFuturXGatewayStorage(
+        IFuturXGatewayStorage _futurXGatewayStorage
+    ) external onlyOwner {
         futurXGatewayStorage = _futurXGatewayStorage;
     }
 
@@ -405,14 +400,9 @@ contract FuturXGatewayPreData is
         gatewayUtils = _gatewayUtils;
     }
 
-    function setFuturXGateway(IFullyDptpFuturesGateway _futurXGateway) external onlyOwner {
+    function setFuturXGateway(
+        IFullyDptpFuturesGateway _futurXGateway
+    ) external onlyOwner {
         futurXGateway = _futurXGateway;
     }
-
-
-
-
-
-
-
 }

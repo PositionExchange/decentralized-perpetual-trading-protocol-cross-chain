@@ -22,6 +22,8 @@ import "../interfaces/IFuturXVoucher.sol";
 import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
 import "./libraries/TokenConfiguration.sol";
+import "./common/CrosscallMethod.sol";
+
 
 contract GatewayUtils is
     IGatewayUtils,
@@ -263,17 +265,18 @@ contract GatewayUtils is
         address[] memory _path,
         address _indexToken,
         uint256 _sizeDeltaToken,
-        bool _isLong
-    ) external view returns(bool) {
-//        _validate(
-//            _path.length == 1 || _path.length == 2,
-//            Errors.FGWU_INVALID_PATH_LENGTH
-//        );
-//        validateCollateral(_account, collateralToken, _indexToken, _isLong);
-//        validateSize(_indexToken, _sizeDeltaToken, true);
-//        validateTokens(collateralToken, _indexToken, _isLong);
-//
-//        return true;
+        bool _isLong,
+        address _collateralToken
+    ) public view returns (bool) {
+        _validate(
+            _path.length == 1 || _path.length == 2,
+            Errors.FGWU_INVALID_PATH_LENGTH
+        );
+        validateCollateral(_account, _collateralToken, _indexToken, _isLong);
+        validateSize(_indexToken, _sizeDeltaToken, true);
+        validateTokens(_collateralToken, _indexToken, _isLong);
+
+        return true;
     }
 
     function validateUsdWithdrawal(
@@ -588,6 +591,118 @@ contract GatewayUtils is
     function setVault(address _vault) external onlyOwner {
         vault = _vault;
     }
+
+    function validateAndPackDataCancelOrder(
+        address user,
+        bytes32 requestKey,
+        uint256 orderIdx,
+        bool isReduce
+    ) public view returns (bytes memory dataRelay, bool isValidated) {
+        IFuturXGatewayStorage.IncreasePositionRequest memory increasePositionRequest;
+        IFuturXGatewayStorage.DecreasePositionRequest memory decreasePositionRequest;
+        address positionManager;
+
+        if (isReduce) {
+            (decreasePositionRequest, positionManager) = IFuturXGatewayStorage(
+                gatewayStorage
+            ).getDecreasePositionRequestAndManager(requestKey);
+
+        } else {
+            (increasePositionRequest, positionManager) = IFuturXGatewayStorage(
+                gatewayStorage
+            ).getIncreasePositionRequestAndManager(requestKey);
+        }
+
+        if (
+            (decreasePositionRequest.account != user && isReduce) ||
+            (increasePositionRequest.account != user && !isReduce) ||
+            positionManager == address(0x0)
+        ) {
+            return (abi.encode(""), false);
+        }
+
+        bytes memory _functionCallData = abi.encode(requestKey, positionManager, orderIdx, isReduce, user);
+
+        bytes32 txId = keccak256(
+            abi.encodePacked(
+                block.timestamp,
+                IFuturXGateway(futurXGateway).pcsId(),
+                user,
+                IFuturXGateway(futurXGateway).pscCrossChainGateway()
+            )
+        );
+
+        dataRelay = abi.encode(
+            txId,
+            block.timestamp - 10,
+            futurXGateway,
+            IFuturXGateway(futurXGateway).pcsId(),
+            IFuturXGateway(futurXGateway).pscCrossChainGateway(),
+            uint8(CrosscallMethod.Method.CANCEL_LIMIT),
+            _functionCallData
+        );
+
+        return (dataRelay, true);
+
+    }
+
+    function validateAndPackClosePosition(
+        address user,
+        address[] memory path,
+        address indexToken,
+        uint256 sizeDeltaToken,
+        bool isLong,
+        address collateralToken,
+        bool withdrawETH
+    ) public view returns(bytes memory dataRelay, bool isValidated) {
+
+        address positionManager = IFuturXGateway(futurXGateway).coreManagers(
+            indexToken
+        );
+
+        validateDecreasePositionWithoutSourceChain(
+            user,
+            path,
+            indexToken,
+            sizeDeltaToken,
+            isLong,
+            collateralToken
+        );
+
+        bytes memory pathAndIndexToken = abi.encode(path, indexToken);
+
+        bytes memory _functionCallData = abi.encode(
+            positionManager,
+            sizeDeltaToken,
+            user,
+            pathAndIndexToken
+        );
+
+        bytes32 txId = keccak256(
+            abi.encodePacked(
+                block.timestamp,
+                IFuturXGateway(futurXGateway).pcsId(),
+                user,
+                IFuturXGateway(futurXGateway).pscCrossChainGateway()
+            )
+        );
+
+        dataRelay = abi.encode(
+            txId,
+            block.timestamp - 10,
+            futurXGateway,
+            IFuturXGateway(futurXGateway).pcsId(),
+            IFuturXGateway(futurXGateway).pscCrossChainGateway(),
+            uint8(CrosscallMethod.Method.CLOSE_POSITION_WITHOUT_SOURCE),
+            _functionCallData
+        );
+
+        return (dataRelay, true);
+
+
+    }
+
+
 
     function _getSwapFee(
         address[] memory _path,
