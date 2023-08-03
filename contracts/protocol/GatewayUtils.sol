@@ -634,7 +634,7 @@ contract GatewayUtils is
 
         dataRelay = abi.encode(
             txId,
-            block.timestamp - 3,
+            block.timestamp - 10,
             futurXGateway,
             IFuturXGateway(futurXGateway).pcsId(),
             IFuturXGateway(futurXGateway).pscCrossChainGateway(),
@@ -689,7 +689,7 @@ contract GatewayUtils is
 
         dataRelay = abi.encode(
             txId,
-            block.timestamp - 3,
+            block.timestamp - 10,
             futurXGateway,
             IFuturXGateway(futurXGateway).pcsId(),
             IFuturXGateway(futurXGateway).pscCrossChainGateway(),
