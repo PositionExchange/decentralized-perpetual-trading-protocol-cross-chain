@@ -1683,12 +1683,13 @@ contract DptpFuturesGateway is
         uint8 _op
     ) private {
         IFuturXGatewayStorage.UpPendingCollateralParam
-            memory params = IFuturXGatewayStorage.UpPendingCollateralParam(
-                _account,
-                _indexToken,
-                _collateralToken,
-                _op
-            );
+            memory params = IFuturXGatewayStorage.UpPendingCollateralParam({
+                account: _account,
+                indexToken: _indexToken,
+                collateralToken:_collateralToken,
+                op: _op
+
+            });
         IFuturXGatewayStorage(gatewayStorage).updatePendingCollateral(params);
     }
 

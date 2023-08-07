@@ -60,7 +60,7 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
         UpPendingCollateralParam memory param
     ) public onlyHandler returns (bytes32) {
         bytes32 key = _getPendingCollateralKey(param.account, param.indexToken);
-        PendingCollateral storage data = pendingCollaterals[key];
+        PendingCollateral memory data = pendingCollaterals[key];
         // Operation = 1 means increase count
         if (param.op == 1) {
             if (data.count > 0) {
@@ -377,6 +377,6 @@ contract FuturXGatewayStorage is IFuturXGatewayStorage, OwnableUpgradeable {
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[49] private __gap;
-    mapping(bytes32 => PendingCollateral) pendingCollaterals;
+    mapping(bytes32 => PendingCollateral) public pendingCollaterals;
     mapping(address => bool) public isHandler;
 }
