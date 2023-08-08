@@ -272,6 +272,12 @@ contract GatewayUtils is
             _path.length == 1 || _path.length == 2,
             Errors.FGWU_INVALID_PATH_LENGTH
         );
+
+        if (_path.length == 2){
+            require(_path[0] != _path[1], Errors.V_DUPLICATE_TOKENS);
+        }
+
+        address collateralToken = _path[0];
         validateCollateral(_account, _collateralToken, _indexToken, _isLong);
         validateSize(_indexToken, _sizeDeltaToken, true);
         validateTokens(_collateralToken, _indexToken, _isLong);
