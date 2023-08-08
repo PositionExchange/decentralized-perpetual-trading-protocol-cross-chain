@@ -33,7 +33,7 @@ export const stageConfig: StageConfig<AvailableStageConfig,any> = {
         DAI.forChain(421613),
         USDT.forChain(421613),
         USDC.forChain(421613),
-        WETH.forChain(421613),
+        // WETH.forChain(421613),
         BTC.forChain(421613),
         LINK.forChain(421613),
       ],

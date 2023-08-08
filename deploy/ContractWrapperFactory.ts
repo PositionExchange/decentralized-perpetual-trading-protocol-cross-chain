@@ -394,6 +394,15 @@ export class ContractWrapperFactory {
         return contract;
     }
 
+    async createUpgradeableToken(symbol: string, name: string, decimals: number) {
+        const initialAmount = ethersE.utils.parseEther("1000000");
+        await this._deployUpgradeableMockTokenContract('MockTokenNotAllowTransfer', [
+            initialAmount, `Mock ${name}`, symbol, decimals
+        ], {
+            contractId: symbol
+        })
+    }
+
     async createMockToken(symbol: string, name: string, decimals: number): Promise<MockToken> {
         const initialAmount = ethersE.utils.parseEther("1000000");
         const contract = await this.deployNonUpgradeableContract<MockToken>('MockToken', [
@@ -557,6 +566,30 @@ export class ContractWrapperFactory {
             return instance;
         }
 
+    }
+
+    async _deployUpgradeableMockTokenContract(contractName: string, args: any, options: {
+        contractId?: string
+    } = {}) {
+        if (options.contractId == null) {
+            await this._deployOrUpgradeContract(contractName, args);
+        } else {
+            const opts: UpgradeProxyOptions = {
+                unsafeAllow: ['delegatecall']
+            }
+            const mockToken = await this.hre.ethers.getContractFactory(contractName);
+            const instance = await this.hre.upgrades.deployProxy(
+                mockToken,
+                args,
+                opts
+            );
+            console.log(`wait for deploy ${contractName}`);
+            await instance.deployed();
+            const address = instance.address.toString();
+            console.log(`Address ${args[1]}: ${address}`);
+            await this.db.saveAddressByKey(contractName, address);
+            await this.verifyProxy(address);
+        }
     }
 
     async _deployNonUpgradeableContract(contractName: string, args: any[]) {

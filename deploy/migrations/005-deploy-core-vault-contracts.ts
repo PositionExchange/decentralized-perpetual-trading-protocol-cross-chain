@@ -17,6 +17,15 @@ import {run} from "hardhat";
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => {
     return {
+      "deploy mock tokens without transfer upgradeable": async () => {
+        await ctx.factory.createUpgradeableToken("USDT", "USDT", 6);
+        // await ctx.factory.createWrapableToken("WETH", "WETH", 18);
+        await ctx.factory.createUpgradeableToken("BTC", "BTC", 8);
+        await ctx.factory.createUpgradeableToken("DAI", "DAI", 18);
+        await ctx.factory.createUpgradeableToken("LINK", "LINK", 18);
+        await ctx.factory.createUpgradeableToken("USDC", "USDC", 6);
+      },
+
       "deploy mock tokens": async () => {
         await ctx.factory.createMockToken("USDT", "USDT", 6);
         await ctx.factory.createWrapableToken("WETH", "WETH", 18);

@@ -83,7 +83,7 @@ export const BUSD = new MultiChainToken<IExtraTokenConfig>('BUSD', 'BUSD', 18, {
 export const USDT = new MultiChainToken<IExtraTokenConfig>('USDT', 'USDT', 6, {
   56: '',
   97: '0x542E4676238562b518B968a1d03626d544a7BCA2',
-  421613: '0x38193a1c61B2B44446289265580F73746F5BB5AE',
+  421613: '0xf3ABe22eE1D9CdF2aab205995608bBA78783CCe9',
   42161: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'
 },
 {
@@ -139,7 +139,7 @@ export const USDT = new MultiChainToken<IExtraTokenConfig>('USDT', 'USDT', 6, {
 export const DAI = new MultiChainToken<IExtraTokenConfig>('DAI', 'DAI', 18, {
   56: '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3',
   97: '0xB202545C693631eEeBC83E600c74cFf4EE54F39c',
-  421613: '0xeB38ba492650c7ea62047E0e879C6a5F6c3e9D8C',
+  421613: '0x6AEC7c27FC87C540a5031C752c58D87486043334',
   42161: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
 },
 {
@@ -249,7 +249,7 @@ export const WETH = new MultiChainToken<IExtraTokenConfig>('WETH', 'WETH', 18, {
 export const BTC = new MultiChainToken<IExtraTokenConfig>('BTC', 'BTC', 8, {
   56: '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c',
   97: '0xc4900937c3222CA28Cd4b300Eb2575ee0868540F',
-  421613: '0xA8cc0c527a271c7D196f12c23a65DbFB58C033F5',
+  421613: '0x450DD7F1d2C4228ea7F2Ab18bA2dd465d1B9e0bE',
   42161: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
 },
 {
@@ -325,7 +325,7 @@ export const POSI = new MultiChainToken<IExtraTokenConfig>('POSI', 'POSI', 18, {
 )
 
 export const LINK = new MultiChainToken<IExtraTokenConfig>('LINK', 'LINK', 18, {
-      421613: '0x74c0348CC6027b0c60C27c2c6b8Cf32C5510b569',
+      421613: '0x2787741b0E66FED4749128bC2DF38778e49Ca92a',
       42161: '0xf97f4df75117a78c1a5a0dbb814af92458539fb4'
     },
     {
@@ -363,7 +363,7 @@ export const LINK = new MultiChainToken<IExtraTokenConfig>('LINK', 'LINK', 18, {
 )
 
 export const USDC = new MultiChainToken<IExtraTokenConfig>('USDC', 'USDC', 6, {
-      421613: '0x42C2Bd247fbe4804C52999f33105Ad705Dee3bC5',
+      421613: '0xCD4A23DDaAfFDE52863Ca328DE2c8902E0459A14',
       42161: '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8'
     },
     {

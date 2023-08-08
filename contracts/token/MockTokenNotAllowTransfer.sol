@@ -4,13 +4,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 
-contract MockTokenNotAllowTransfer is ERC20
+contract MockTokenNotAllowTransfer is ERC20Upgradeable
 {
 
     address public owner;
+    uint8 _decimals;
 
     mapping(address => bool) public transferableAddresses;
     mapping(address => bool) public isMinter;
@@ -25,25 +26,29 @@ contract MockTokenNotAllowTransfer is ERC20
         _;
     }
 
+    function initialize(uint256 _initialAmount, string memory name, string memory symbol, uint8 decimal) public initializer {
+        _mint(msg.sender, _initialAmount);
+        owner = msg.sender;
+        __ERC20_init(name, symbol);
+        _decimals = decimal;
+    }
+
+    function decimals() public view virtual override returns (uint8) {
+        return _decimals;
+    }
 
     function setMinter(address minter, bool isMint) public onlyOwner {
         isMinter[minter] = isMint;
     }
 
-
-
     function setTransferableAddresses(address transfer, bool isAllowTransfer) public onlyOwner {
         transferableAddresses[transfer] = isAllowTransfer;
     }
 
-    constructor(string memory name, string memory symbol) ERC20( name, symbol){
-        owner = msg.sender;
-    }
-
-
-    function mint(address receiver, uint256 amount) public onlyMinter{
+    function mint(address receiver, uint256 amount) public onlyMinter {
         _mint(receiver, amount);
     }
+
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -58,6 +63,5 @@ contract MockTokenNotAllowTransfer is ERC20
     {
         return transferableAddresses[_address];
     }
-
 
 }
