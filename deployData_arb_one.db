@@ -34,6 +34,7 @@
 {"address":"yes","key":"0xa5C9c857115668342Ceb1c74d9f57029544c9304:verified","_id":"VDaNPOPVyBmPwqS7"}
 {"address":"0x4502A1B16b2575F89e45567Aa2496aBae1f15371","key":"FuturXGatewayStorage","_id":"XLX2hS81rWmwtC15"}
 {"address":"0x4CebAc4857bd3ED527BfA30eD1b35690fe28C833","key":"VaultUtils","_id":"Z0qUMEMZZ1eHP4bC"}
+{"address":"yes","key":"0x60e56E527F676310F4aEf1c5C771Efed9A3c18C8:verified","_id":"ZRK4cfZaBI1DBw8Z"}
 {"address":"yes","key":"0x3AB499C1A8ae8E17D0F5A22365Ca0580D256eF84:verified","_id":"a13rJErB1e9GMxCd"}
 {"address":"0x8C4759b1C422209566Ce785d510fE3C9185f6C6b","key":"VaultUtilsSplit","_id":"aAMqEQ3PV2CYCara"}
 {"address":"yes","key":"0x7dCFbf18CE90d5261582DDc5b6749399d7a80642:verified","_id":"bh2Ht9g1zqPU26br"}
@@ -58,4 +59,4 @@
 {"address":"yes","key":"0xb703D013192454d875DcEA7e9E832a7369d2a8ED:verified","_id":"yydBabJaC42z7lAm"}
 {"address":"0x5203e019b96A556A8b7eECBBd00964Cf4Bdef87f","key":"StakedPlpTracker","_id":"zGtY3PwgSTLgzZem"}
 {"address":"0x39a6159BCF298BD078f18D648d43219E8257aE3F","key":"GatewayUtils","_id":"zluxqgot1HQeV4aL"}
-{"address":"yes","key":"0x60e56E527F676310F4aEf1c5C771Efed9A3c18C8:verified","_id":"ZRK4cfZaBI1DBw8Z"}
+{"address":"yes","key":"0xD5511e54D47a4BEAcAFC0B1d0e1B778f2B844Fa5:verified","_id":"JQJAfKSLdlWueJCD"}
