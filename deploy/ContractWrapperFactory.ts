@@ -485,6 +485,13 @@ export class ContractWrapperFactory {
         ])
     }
 
+    async createVaultUtils() {
+        const vault = await this.getDeployedContract<Vault>('Vault')
+        const vaultUtils = await this.deployNonUpgradeableContract<VaultUtils>('VaultUtils', [])
+
+        return vaultUtils
+    }
+
     async createVault(vaultUtilsAddress: string, vaultPriceFeedAddress: string, usdpAddress: string) {
         await this._deployOrUpgradeContract("Vault", [
             vaultUtilsAddress,

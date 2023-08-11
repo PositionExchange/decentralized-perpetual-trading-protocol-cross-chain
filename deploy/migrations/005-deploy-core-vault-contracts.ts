@@ -49,6 +49,17 @@ const migrations: MigrationDefinition = {
           return;
         }
       },
+
+      "deploy vault utils": async () => {
+        const vaultUtils = await ctx.factory.createVaultUtils();
+        const vault = await ctx.factory.getDeployedContract<Vault>('Vault')
+        await ctx.factory.waitTx(
+            vaultUtils.initialize(vault.address),
+            "vaultUtils.initialize",
+            true
+        );
+      },
+
       "deploy core vault & config": async () => {
         const { usdp, plp, vaultUtils, vaultPriceFeed, vault, plpManager } =
           await ctx.factory.createCoreVaultContracts();

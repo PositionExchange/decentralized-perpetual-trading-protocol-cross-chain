@@ -1,5 +1,7 @@
 pragma solidity ^0.8.9;
 
+import {Errors} from "./helpers/Errors.sol";
+
 library PositionInfo {
     struct Data {
         uint256 reservedAmount;
@@ -39,6 +41,6 @@ library PositionInfo {
             _self.collateralToken = _token;
             return;
         }
-        require(_self.collateralToken == _token);
+        require(_self.collateralToken == _token, Errors.FGWU_INVALID_POSITION_COLLATERAL);
     }
 }
