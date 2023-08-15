@@ -372,6 +372,18 @@ contract DptpFuturesGateway is
             );
     }
 
+    function applyFeesRebatesVoucher(uint256 voucherId ) external {
+
+        address user = msg.sender;
+
+    }
+
+    function revokeFeesRebatesVoucher(uint256 voucherId ) external {
+
+        address user = msg.sender;
+
+    }
+
     function createDecreaseOrderRequest(
         address[] memory _path,
         address _indexToken,
