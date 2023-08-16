@@ -16,7 +16,7 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 
     mapping(uint256 => VoucherInfo) public voucherInfo;
 
-    address public futurXGateway;
+    address public applyStrategy;
 
 
 
@@ -47,16 +47,13 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     event VoucherBurned(address owner, uint256 voucherId);
 
 
-
-
     function initialize(
-        address _futurXGateway
+        address _applyStrategy
     ) public initializer {
         __Ownable_init();
         __ERC721_init("FuturX Fee Rebate Voucher", "FFRV");
-        futurXGateway = _futurXGateway;
+        applyStrategy = _applyStrategy;
     }
-
 
 
     function mint(
@@ -64,7 +61,7 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         uint256 value,
         uint256 duration,
         uint256 discountPercent
-    ) external onlyHandler returns(uint256) {
+    ) external onlyHandler returns (uint256) {
 
         uint256 _voucherId = voucherId++;
 
@@ -107,7 +104,6 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     }
 
 
-
     function tokenIdsByOwner(
         address owner
     ) external view returns (uint256[] memory) {
@@ -147,7 +143,7 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
             return;
         }
         require(
-            from == futurXGateway || to == futurXGateway,
+            from == applyStrategy || to == applyStrategy,
             "Transfer is not allow"
         );
     }
@@ -160,12 +156,11 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     }
 
 
-
     function setHandler(address handler, bool status) external onlyOwner {
         handlers[handler] = status;
     }
 
-    function setFururXGateway(address _futurXGateway) external onlyOwner {
-        futurXGateway = _futurXGateway;
+    function setApplyStrategy(address _applyStrategy) external onlyOwner {
+        applyStrategy = _applyStrategy;
     }
 }

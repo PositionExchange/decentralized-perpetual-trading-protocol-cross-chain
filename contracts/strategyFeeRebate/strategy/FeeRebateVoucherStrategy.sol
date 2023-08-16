@@ -8,7 +8,10 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721EnumerableUpgradeable.sol";
+
+import {NumberHelper} from "../../protocol/libraries/helpers/NumberHelper.sol";
 import "../interfaces/IFeeRebateVoucher.sol";
+import "../interfaces/IFeeRebateStrategy.sol";
 import "../FeeRebateVoucher.sol";
 
 contract FeeRebateVoucherStrategy is OwnableUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
@@ -16,11 +19,11 @@ contract FeeRebateVoucherStrategy is OwnableUpgradeable, PausableUpgradeable, Re
 
     mapping(address => bool) public handlers;
 
-    mapping(address => uint256) public uerVoucherApplying;
+    mapping(address => uint256) public userVoucherApplying;
 
     IFeeRebateVoucher  public voucherFeeRebateToken;
 
-    address public futurXGateway;
+    address public applyStrategy;
 
 
     modifier onlyHandler() {
@@ -31,28 +34,69 @@ contract FeeRebateVoucherStrategy is OwnableUpgradeable, PausableUpgradeable, Re
 
 
     function initialize(
-        address _futurXGateway
+        address _applyStrategy
     ) public initializer {
         __Ownable_init();
         __Pausable_init();
         __ReentrancyGuard_init();
-        futurXGateway = _futurXGateway;
-        handlers[_futurXGateway] = true;
+        applyStrategy = _applyStrategy;
+        handlers[_applyStrategy] = true;
         handlers[msg.sender] = true;
     }
 
 
+    function applyVoucher(uint256 voucherId, address user) external onlyHandler {
 
-    function calculateFeeRebate(uint256 voucherId, uint256 amount) public view returns (uint256 feeRebate, FeeRebateVoucher.VoucherInfo memory voucher) {
+        revokeVoucherApplying(user);
+        require(!voucherFeeRebateToken.isExpired(voucherId), "Voucher is expired");
+        voucherFeeRebateToken.safeTransferFrom(user, applyStrategy, voucherId);
+        userVoucherApplying[user] = voucherId;
+    }
+
+    function revokeVoucherApplying(address user) public onlyHandler {
+
+        uint256 _oldVoucherId = userVoucherApplying[user];
+
+        if (_oldVoucherId > 0) {
+            bool _isExpired = voucherFeeRebateToken.isExpired(_oldVoucherId);
+
+            if (_isExpired) {
+                voucherFeeRebateToken.burnVoucher(_oldVoucherId);
+
+            } else {
+                voucherFeeRebateToken.safeTransferFrom(applyStrategy, user, _oldVoucherId);
+            }
+            userVoucherApplying[user] = 0;
+        }
+    }
+
+
+    function usingStrategy(address user, uint256 amount) external onlyHandler returns (uint256){
+
+        uint256 voucherId = userVoucherApplying[user];
+
+        if (voucherId == 0) {
+            return 0;
+        }
 
         (
-            voucher.id,
-            voucher.owner,
-            voucher.value,
-            voucher.remainValue,
-            voucher.expiredTime,
-            voucher.discountPercent
-        ) = voucherFeeRebateToken.voucherInfo(voucherId);
+        uint256 feeRebate,
+        FeeRebateVoucher.VoucherInfo memory voucher
+        ) = _calculateFeeRebateAndVoucherInfo(voucherId, amount);
+
+        if (voucher.expiredTime < block.timestamp || feeRebate == voucher.remainValue) {
+            voucherFeeRebateToken.burnVoucher(voucherId);
+            userVoucherApplying[user] = 0;
+        }
+        if (feeRebate < voucher.remainValue) {
+            voucherFeeRebateToken.updateVoucher(voucherId, voucher.remainValue - feeRebate);
+        }
+        return feeRebate;
+    }
+
+    function calculateFeeRebate(address user, uint256 amount) external view returns (uint256){
+        uint256 feeRebate;
+        FeeRebateVoucher.VoucherInfo memory voucher = getVoucherInfo(user);
 
         if (voucher.expiredTime >= block.timestamp) {
             feeRebate = (amount * voucher.discountPercent) / 10000;
@@ -61,59 +105,22 @@ contract FeeRebateVoucherStrategy is OwnableUpgradeable, PausableUpgradeable, Re
             }
         }
 
-        return (feeRebate, voucher);
-    }
-
-
-    function applyVoucher(uint256 voucherId, address user) external onlyHandler {
-
-        revokeVoucherApplying(user);
-        require(!voucherFeeRebateToken.isExpired(voucherId), "Voucher is expired");
-        voucherFeeRebateToken.safeTransferFrom(user, futurXGateway, voucherId);
-        uerVoucherApplying[user] = voucherId;
-    }
-
-    function revokeVoucherApplying(address user) public onlyHandler {
-
-        uint256 _oldVoucherId = uerVoucherApplying[user];
-
-        if (_oldVoucherId > 0) {
-            bool _isExpired = voucherFeeRebateToken.isExpired(_oldVoucherId);
-
-            if (_isExpired) {
-                voucherFeeRebateToken.burnVoucher(_oldVoucherId);
-
-            }else {
-                voucherFeeRebateToken.safeTransferFrom(futurXGateway, user, _oldVoucherId);
-            }
-            uerVoucherApplying[user] = 0;
-        }
-    }
-
-
-    function usingVoucher(address user, uint256 amount) external onlyHandler returns (uint256){
-
-        uint256 voucherId = uerVoucherApplying[user];
-
-        if (voucherId == 0) {
-            return 0;
-        }
-
-        (
-            uint256 feeRebate,
-            FeeRebateVoucher.VoucherInfo memory voucher
-        ) = calculateFeeRebate(voucherId, amount);
-
-        if (voucher.expiredTime < block.timestamp || feeRebate == voucher.remainValue) {
-            voucherFeeRebateToken.burnVoucher(voucherId);
-            uerVoucherApplying[user] = 0;
-        }
-        if (feeRebate < voucher.remainValue) {
-            voucherFeeRebateToken.updateVoucher(voucherId, voucher.remainValue - feeRebate);
-        }
         return feeRebate;
     }
 
+    function getVoucherInfo(address user) public view returns (FeeRebateVoucher.VoucherInfo memory voucher){
+
+        (
+        voucher.id,
+        voucher.owner,
+        voucher.value,
+        voucher.remainValue,
+        voucher.expiredTime,
+        voucher.discountPercent
+        ) = voucherFeeRebateToken.voucherInfo(userVoucherApplying[user]);
+
+        return voucher;
+    }
 
     function setHandler(address handler, bool status) external onlyOwner {
         handlers[handler] = status;
@@ -121,6 +128,28 @@ contract FeeRebateVoucherStrategy is OwnableUpgradeable, PausableUpgradeable, Re
 
     function setVoucherFeeRebateToken(IFeeRebateVoucher _voucherFeeRebateToken) external onlyOwner {
         voucherFeeRebateToken = _voucherFeeRebateToken;
+    }
+
+    /// PRIVATE FUNCTION
+    function _calculateFeeRebateAndVoucherInfo(uint256 voucherId, uint256 amount)
+    internal view returns (uint256 feeRebate, FeeRebateVoucher.VoucherInfo memory voucher) {
+        (
+        voucher.id,
+        voucher.owner,
+        voucher.value,
+        voucher.remainValue,
+        voucher.expiredTime,
+        voucher.discountPercent
+        ) = voucherFeeRebateToken.voucherInfo(voucherId);
+
+        if (voucher.expiredTime >= block.timestamp) {
+            feeRebate = (amount * voucher.discountPercent) / NumberHelper.BASIC_POINT_FEE;
+            if (feeRebate > voucher.remainValue) {
+                feeRebate = voucher.remainValue;
+            }
+        }
+
+        return (feeRebate, voucher);
     }
 
 

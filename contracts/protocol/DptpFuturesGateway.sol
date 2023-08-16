@@ -22,6 +22,7 @@ import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
 import "../interfaces/IFuturXGateway.sol";
 import "../referrals/interfaces/IReferralRewardTracker.sol";
+import {IFeeStrategy} from "../strategyFeeRebate/interfaces/IFeeStrategy.sol";
 
 import "./modules/DptpFuturesGatewayStorage.sol";
 import "./common/CrosscallMethod.sol";
@@ -373,15 +374,11 @@ contract DptpFuturesGateway is
     }
 
     function applyFeesRebatesVoucher(uint256 voucherId ) external {
-
-        address user = msg.sender;
-
+        IFeeStrategy(feeStrategy).applyVoucher(voucherId, msg.sender);
     }
 
     function revokeFeesRebatesVoucher(uint256 voucherId ) external {
-
-        address user = msg.sender;
-
+        IFeeStrategy(feeStrategy).revokeVoucherApplying(msg.sender);
     }
 
     function createDecreaseOrderRequest(
@@ -892,7 +889,7 @@ contract DptpFuturesGateway is
         uint256 swapFeeToken = paidToken == collateralToken
             ? 0
             : IGatewayUtils(gatewayUtils).getSwapFee(_path, _amountInToken);
-
+        swapFeeToken = swapFeeToken - _usingStrategy(msg.sender, swapFeeToken);
         (, bytes32 requestKey) = _storeUpdateCollateralRequest(
             _path,
             _indexToken,
@@ -1170,6 +1167,10 @@ contract DptpFuturesGateway is
         }
     }
 
+    function _usingStrategy(address user, uint256 amount) internal returns (uint256){
+        return IFeeStrategy(feeStrategy).usingStrategy(user, amount);
+    }
+
     function _increasePosition(
         address _account,
         address _collateralToken,
@@ -1412,6 +1413,9 @@ contract DptpFuturesGateway is
                     _leverage,
                     _isLimitOrder
                 );
+            positionFeeUsd = positionFeeUsd - _usingStrategy(_account, positionFeeUsd);
+            swapFeeUsd = swapFeeUsd - _usingStrategy(_account, swapFeeUsd);
+            totalFeeUsd = swapFeeUsd + positionFeeUsd;
             emit CollectFees(
                 _amountInToken,
                 positionFeeUsd,
