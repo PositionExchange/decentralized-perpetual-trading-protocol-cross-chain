@@ -12,6 +12,17 @@ import { ARB_RELAYERS } from "../config_production";
 
 const migrations: MigrationDefinition = {
   getTasks: (ctx: MigrationContext) => ({
+
+
+    "force import DptpFuturesGateway": async () => {
+      const dptpFuturesGateway = await ctx.db.findAddressByKey("DptpFuturesGateway");
+      const factory = await ctx.hre.ethers.getContractFactory("DptpFuturesGateway");
+      if (dptpFuturesGateway) {
+        await ctx.hre.upgrades.forceImport(dptpFuturesGateway, factory);
+        return;
+      }
+    },
+
     "deploy dptp futures gateway": async () => {
       const chainId = ctx.hre.network.config.chainId || 0;
       // TODO: Update pscCrossChainGateway by config mapping
@@ -47,6 +58,11 @@ const migrations: MigrationDefinition = {
         executionFee: 0,
       });
 
+      // Create governance logic
+      await ctx.factory.createFuturXGatewayGovernanceLogic();
+    },
+
+    "deploy DptpFuturesGatewayGovernance": async () => {
       // Create governance logic
       await ctx.factory.createFuturXGatewayGovernanceLogic();
     },

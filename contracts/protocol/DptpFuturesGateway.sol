@@ -1818,9 +1818,9 @@ contract DptpFuturesGateway is
     //        _pause();
     //    }
     //
-    //    function unpause() external onlyOwner {
-    //        _unpause();
-    //    }
+    function unpause() external onlyOwner {
+        _unpause();
+    }
 
     function _validate(bool _condition, string memory _errorCode) private pure {
         require(_condition, _errorCode);
