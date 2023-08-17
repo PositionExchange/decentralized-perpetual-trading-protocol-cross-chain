@@ -8,18 +8,13 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 
 contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
-
-
     mapping(address => bool) public handlers;
 
     uint256 public voucherId;
 
     mapping(uint256 => VoucherInfo) public voucherInfo;
 
-    address public feeStrategy;
-
-
-
+    address public futurXGateway;
 
     modifier onlyHandler() {
         require(handlers[msg.sender], "!handler");
@@ -35,7 +30,6 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         uint256 discountPercent;
     }
 
-
     event VoucherClaimed(
         address owner,
         uint256 value,
@@ -46,16 +40,12 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 
     event VoucherBurned(address owner, uint256 voucherId);
 
-
-    function initialize(
-        address _feeStrategy
-    ) public initializer {
+    function initialize(address _futurXGateway) public initializer {
         __Ownable_init();
         __ERC721_init("FuturX Fee Rebate Voucher", "FFRV");
-        feeStrategy = _feeStrategy;
+        futurXGateway = _futurXGateway;
         voucherId = 1000000;
     }
-
 
     function mint(
         address to,
@@ -63,9 +53,7 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         uint256 duration,
         uint256 discountPercent
     ) external onlyHandler returns (uint256) {
-
         uint256 _voucherId = voucherId++;
-
 
         _mint(to, _voucherId);
         voucherInfo[_voucherId] = VoucherInfo({
@@ -85,9 +73,7 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
             voucherId
         );
         return (_voucherId);
-
     }
-
 
     function burnVoucher(uint256 voucherId) public onlyHandler {
         require(_isApprovedOrOwner(_msgSender(), voucherId), "!Burn");
@@ -95,15 +81,16 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         emit VoucherBurned(voucherInfo[voucherId].owner, voucherId);
     }
 
-    function updateVoucher(uint256 voucherId, uint256 remainValue) public onlyHandler {
+    function updateVoucher(
+        uint256 voucherId,
+        uint256 remainValue
+    ) public onlyHandler {
         voucherInfo[voucherId].remainValue = remainValue;
     }
-
 
     function isExpired(uint256 voucherId) public view returns (bool) {
         return voucherInfo[voucherId].expiredTime < block.timestamp;
     }
-
 
     function tokenIdsByOwner(
         address owner
@@ -144,7 +131,7 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
             return;
         }
         require(
-            from == feeStrategy || to == feeStrategy,
+            from == futurXGateway || to == futurXGateway,
             "Transfer is not allow"
         );
     }
@@ -156,12 +143,18 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         return true;
     }
 
-
     function setHandler(address handler, bool status) external onlyOwner {
         handlers[handler] = status;
     }
 
-    function setFeeStrategy(address _feeStrategy) external onlyOwner {
-        feeStrategy = _feeStrategy;
+    function setFuturXGateway(address _futurXGateway) external onlyOwner {
+        futurXGateway = _futurXGateway;
     }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[46] private __gap;
 }

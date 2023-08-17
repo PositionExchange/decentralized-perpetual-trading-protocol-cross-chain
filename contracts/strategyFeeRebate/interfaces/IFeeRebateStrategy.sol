@@ -6,7 +6,13 @@ interface IFeeRebateStrategy {
 
     function revokeVoucherApplying(address user) external;
 
-    function calculateFeeRebate(address user, uint256 amount) external view returns (uint256);
+    function calculateFeeRebate(
+        address user,
+        uint256 amount
+    ) external view returns (uint256);
 
-    function usingStrategy(address user, uint256 amount) external returns (uint256);
+    function usingStrategy(
+        address user,
+        uint256 amount
+    ) external returns (uint256);
 }

@@ -379,11 +379,11 @@ contract DptpFuturesGateway is
             );
     }
 
-    function applyFeesRebatesVoucher(uint256 voucherId ) external {
+    function applyFeesRebatesVoucher(uint256 voucherId) external {
         IFeeStrategy(feeStrategy).applyVoucher(voucherId, msg.sender);
     }
 
-    function revokeFeesRebatesVoucher(uint256 voucherId ) external {
+    function revokeFeesRebatesVoucher(uint256 voucherId) external {
         IFeeStrategy(feeStrategy).revokeVoucherApplying(msg.sender);
     }
 
@@ -595,8 +595,6 @@ contract DptpFuturesGateway is
             (address[], address)
         );
         bool _withdrawETH = _path[_path.length - 1] == weth;
-
-
 
         _executeDecreasePosition(
             _account,
@@ -868,8 +866,8 @@ contract DptpFuturesGateway is
         uint256 _amountInToken,
         bool _isLong
     ) external payable nonReentrant whenNotPaused {
-//        address paidToken = _path[0];
-//        address collateralToken = _path[_path.length - 1];
+        //        address paidToken = _path[0];
+        //        address collateralToken = _path[_path.length - 1];
 
         _validateUpdateCollateral(
             msg.sender,
@@ -898,7 +896,10 @@ contract DptpFuturesGateway is
         uint256 swapFeeDiscount = _usingStrategy(msg.sender, swapFeeToken);
         swapFeeToken = swapFeeToken - swapFeeDiscount;
         if (hasCollateralInETH && swapFeeDiscount > 0) {
-            _transferOutETH(_usdToTokenMin(weth, swapFeeToken - swapFeeDiscount), payable(msg.sender));
+            _transferOutETH(
+                _usdToTokenMin(weth, swapFeeToken - swapFeeDiscount),
+                payable(msg.sender)
+            );
         }
         (, bytes32 requestKey) = _storeUpdateCollateralRequest(
             _path,
@@ -908,7 +909,10 @@ contract DptpFuturesGateway is
             swapFeeToken
         );
 
-        uint256 swapFeeUsd = _tokenToUsdMin(_path[_path.length - 1], swapFeeToken);
+        uint256 swapFeeUsd = _tokenToUsdMin(
+            _path[_path.length - 1],
+            swapFeeToken
+        );
         uint256 amountInUsd = _tokenToUsdMin(_path[0], _amountInToken).sub(
             swapFeeUsd
         );
@@ -1177,7 +1181,10 @@ contract DptpFuturesGateway is
         }
     }
 
-    function _usingStrategy(address user, uint256 amount) internal returns (uint256){
+    function _usingStrategy(
+        address user,
+        uint256 amount
+    ) internal returns (uint256) {
         return IFeeStrategy(feeStrategy).usingStrategy(user, amount);
     }
 
@@ -1420,13 +1427,21 @@ contract DptpFuturesGateway is
                     _amountInUsd,
                     _leverage,
                     _isLimitOrder
-            );
+                );
             uint256 totalFeeUsdWithoutDiscount = totalFeeUsd;
-            positionFeeUsd = positionFeeUsd - _usingStrategy(_account, positionFeeUsd);
+            positionFeeUsd =
+                positionFeeUsd -
+                _usingStrategy(_account, positionFeeUsd);
             swapFeeUsd = swapFeeUsd - _usingStrategy(_account, swapFeeUsd);
             totalFeeUsd = swapFeeUsd + positionFeeUsd;
             if (_path[0] == weth && totalFeeUsdWithoutDiscount > totalFeeUsd) {
-                _transferOutETH(_usdToTokenMin(weth, totalFeeUsdWithoutDiscount - totalFeeUsd), payable(_account));
+                _transferOutETH(
+                    _usdToTokenMin(
+                        weth,
+                        totalFeeUsdWithoutDiscount - totalFeeUsd
+                    ),
+                    payable(_account)
+                );
             }
             emit CollectFees(
                 _amountInToken,
@@ -1714,9 +1729,8 @@ contract DptpFuturesGateway is
             memory params = IFuturXGatewayStorage.UpPendingCollateralParam({
                 account: _account,
                 indexToken: _indexToken,
-                collateralToken:_collateralToken,
+                collateralToken: _collateralToken,
                 op: _op
-
             });
         IFuturXGatewayStorage(gatewayStorage).updatePendingCollateral(params);
     }

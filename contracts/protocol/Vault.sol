@@ -227,7 +227,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
                 _indexToken,
                 _isLong
             );
-            borrowingFee = borrowingFee - _usingStrategy(_account, borrowingFee);
+            borrowingFee =
+                borrowingFee -
+                _usingStrategy(_account, borrowingFee);
             _increaseDebtAmount(_account, borrowingFee);
             _updatePositionEntryBorrowingRate(key, _collateralToken);
         }
@@ -718,8 +720,8 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         StorageSlot.getAddressSlot(bytes32("gov.futurX")).value = gov;
     }
 
-    function setFeeStrategy(address gov) external onlyOwner {
-        StorageSlot.getAddressSlot(bytes32("apply.fee.futurX")).value = gov;
+    function setFeeStrategy(address applyFeeStrategy) external onlyOwner {
+        StorageSlot.getAddressSlot(bytes32("fee.strategy.futurX")).value = applyFeeStrategy;
     }
 
     /** END OWNER FUNCTIONS **/
@@ -1622,7 +1624,10 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return tokenConfigurations[_token].isWhitelisted;
     }
 
-    function _usingStrategy(address user, uint256 amount) internal returns (uint256){
+    function _usingStrategy(
+        address user,
+        uint256 amount
+    ) internal returns (uint256) {
         return IFeeStrategy(getFeeStrategy()).usingStrategy(user, amount);
     }
 
@@ -1659,5 +1664,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function getFeeStrategy() public view returns (address) {
         return StorageSlot.getAddressSlot(bytes32("fee.strategy.futurX")).value;
+    }
+
+    function test() public view returns (bool) {
+        return true;
     }
 }

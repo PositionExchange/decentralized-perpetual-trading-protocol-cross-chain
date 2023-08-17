@@ -24,7 +24,6 @@ import {Errors} from "./libraries/helpers/Errors.sol";
 import "./libraries/TokenConfiguration.sol";
 import "./common/CrosscallMethod.sol";
 
-
 contract GatewayUtils is
     IGatewayUtils,
     PausableUpgradeable,
@@ -273,7 +272,7 @@ contract GatewayUtils is
             Errors.FGWU_INVALID_PATH_LENGTH
         );
 
-        if (_path.length == 2){
+        if (_path.length == 2) {
             require(_path[0] != _path[1], Errors.V_DUPLICATE_TOKENS);
         }
 
@@ -604,15 +603,16 @@ contract GatewayUtils is
         uint256 orderIdx,
         bool isReduce
     ) public view returns (bytes memory dataRelay, bool isValidated) {
-        IFuturXGatewayStorage.IncreasePositionRequest memory increasePositionRequest;
-        IFuturXGatewayStorage.DecreasePositionRequest memory decreasePositionRequest;
+        IFuturXGatewayStorage.IncreasePositionRequest
+            memory increasePositionRequest;
+        IFuturXGatewayStorage.DecreasePositionRequest
+            memory decreasePositionRequest;
         address positionManager;
 
         if (isReduce) {
             (decreasePositionRequest, positionManager) = IFuturXGatewayStorage(
                 gatewayStorage
             ).getDecreasePositionRequestAndManager(requestKey);
-
         } else {
             (increasePositionRequest, positionManager) = IFuturXGatewayStorage(
                 gatewayStorage
@@ -627,7 +627,13 @@ contract GatewayUtils is
             return (abi.encode(""), false);
         }
 
-        bytes memory _functionCallData = abi.encode(requestKey, positionManager, orderIdx, isReduce, user);
+        bytes memory _functionCallData = abi.encode(
+            requestKey,
+            positionManager,
+            orderIdx,
+            isReduce,
+            user
+        );
 
         bytes32 txId = keccak256(
             abi.encodePacked(
@@ -649,7 +655,6 @@ contract GatewayUtils is
         );
 
         return (dataRelay, true);
-
     }
 
     function validateAndPackClosePosition(
@@ -660,8 +665,7 @@ contract GatewayUtils is
         bool isLong,
         address collateralToken,
         bool withdrawETH
-    ) public view returns(bytes memory dataRelay, bool isValidated) {
-
+    ) public view returns (bytes memory dataRelay, bool isValidated) {
         address positionManager = IFuturXGateway(futurXGateway).coreManagers(
             indexToken
         );
@@ -704,11 +708,7 @@ contract GatewayUtils is
         );
 
         return (dataRelay, true);
-
-
     }
-
-
 
     function _getSwapFee(
         address[] memory _path,

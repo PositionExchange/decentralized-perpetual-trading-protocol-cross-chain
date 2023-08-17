@@ -18,6 +18,8 @@ const migrations: MigrationDefinition = {
             await ctx.factory.createFeeRebateVoucherStrategy(argsFeeRebateVoucher);
 
         },
+        // "upgrade vault" -> setFeeStrategy
+        // "upgrade governance storage"
     }),
 };
 
