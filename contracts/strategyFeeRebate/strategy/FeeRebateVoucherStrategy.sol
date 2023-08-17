@@ -23,7 +23,7 @@ contract FeeRebateVoucherStrategy is OwnableUpgradeable, PausableUpgradeable, Re
 
     IFeeRebateVoucher  public voucherFeeRebateToken;
 
-    address public applyStrategy;
+    address public feeStrategy;
 
 
     modifier onlyHandler() {
@@ -34,13 +34,13 @@ contract FeeRebateVoucherStrategy is OwnableUpgradeable, PausableUpgradeable, Re
 
 
     function initialize(
-        address _applyStrategy
+        address _feeStrategy
     ) public initializer {
         __Ownable_init();
         __Pausable_init();
         __ReentrancyGuard_init();
-        applyStrategy = _applyStrategy;
-        handlers[_applyStrategy] = true;
+        feeStrategy = _feeStrategy;
+        handlers[_feeStrategy] = true;
         handlers[msg.sender] = true;
     }
 
@@ -49,7 +49,7 @@ contract FeeRebateVoucherStrategy is OwnableUpgradeable, PausableUpgradeable, Re
 
         revokeVoucherApplying(user);
         require(!voucherFeeRebateToken.isExpired(voucherId), "Voucher is expired");
-        voucherFeeRebateToken.safeTransferFrom(user, applyStrategy, voucherId);
+        voucherFeeRebateToken.safeTransferFrom(user, feeStrategy, voucherId);
         userVoucherApplying[user] = voucherId;
     }
 
@@ -64,7 +64,7 @@ contract FeeRebateVoucherStrategy is OwnableUpgradeable, PausableUpgradeable, Re
                 voucherFeeRebateToken.burnVoucher(_oldVoucherId);
 
             } else {
-                voucherFeeRebateToken.safeTransferFrom(applyStrategy, user, _oldVoucherId);
+                voucherFeeRebateToken.safeTransferFrom(feeStrategy, user, _oldVoucherId);
             }
             userVoucherApplying[user] = 0;
         }

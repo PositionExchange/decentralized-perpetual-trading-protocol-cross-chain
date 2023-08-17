@@ -12,11 +12,11 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 
     mapping(address => bool) public handlers;
 
-    uint256 public voucherId = 1000000;
+    uint256 public voucherId;
 
     mapping(uint256 => VoucherInfo) public voucherInfo;
 
-    address public applyStrategy;
+    address public feeStrategy;
 
 
 
@@ -48,11 +48,12 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
 
 
     function initialize(
-        address _applyStrategy
+        address _feeStrategy
     ) public initializer {
         __Ownable_init();
         __ERC721_init("FuturX Fee Rebate Voucher", "FFRV");
-        applyStrategy = _applyStrategy;
+        feeStrategy = _feeStrategy;
+        voucherId = 1000000;
     }
 
 
@@ -143,7 +144,7 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
             return;
         }
         require(
-            from == applyStrategy || to == applyStrategy,
+            from == feeStrategy || to == feeStrategy,
             "Transfer is not allow"
         );
     }
@@ -160,7 +161,7 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
         handlers[handler] = status;
     }
 
-    function setApplyStrategy(address _applyStrategy) external onlyOwner {
-        applyStrategy = _applyStrategy;
+    function setFeeStrategy(address _feeStrategy) external onlyOwner {
+        feeStrategy = _feeStrategy;
     }
 }
