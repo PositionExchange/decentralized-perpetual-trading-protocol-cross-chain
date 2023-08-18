@@ -721,7 +721,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     }
 
     function setFeeStrategy(address applyFeeStrategy) external onlyOwner {
-        StorageSlot.getAddressSlot(bytes32("fee.strategy.futurX")).value = applyFeeStrategy;
+        StorageSlot
+            .getAddressSlot(bytes32("fee.strategy.futurX"))
+            .value = applyFeeStrategy;
     }
 
     /** END OWNER FUNCTIONS **/

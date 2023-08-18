@@ -17,7 +17,7 @@ contract FeeRebateVoucher is ERC721EnumerableUpgradeable, OwnableUpgradeable {
     address public futurXGateway;
 
     modifier onlyHandler() {
-        require(handlers[msg.sender], "!handler");
+        require(handlers[msg.sender], "!handler Voucher");
         _;
     }
 

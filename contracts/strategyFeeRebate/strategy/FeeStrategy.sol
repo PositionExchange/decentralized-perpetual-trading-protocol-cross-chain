@@ -15,6 +15,13 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
     // 2 using HoldingToFeeRebate
     IFeeStrategy.TypeStrategy public override activeType;
 
+    mapping(address => bool) public handlers;
+
+    modifier onlyHandler() {
+        require(handlers[msg.sender], "!handler FeeStrategy");
+        _;
+    }
+
     function initialize(
         IFeeStrategy.TypeStrategy _activeType
     ) public initializer {
@@ -35,10 +42,14 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
         mappingTypeToStrategy[_type] = _strategy;
     }
 
+    function setHandler(address _handler, bool status) external onlyOwner {
+        handlers[_handler] = status;
+    }
+
     function usingStrategy(
         address user,
         uint256 amount
-    ) external returns (uint256) {
+    ) external onlyHandler returns (uint256) {
         if (activeType == IFeeStrategy.TypeStrategy.None) return 0;
         return
             IFeeRebateStrategy(mappingTypeToStrategy[activeType]).usingStrategy(

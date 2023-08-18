@@ -8,18 +8,19 @@ const migrations: MigrationDefinition = {
                 1
             ];
             await ctx.factory.createFeeStrategy(argsFeeStrategy);
-            const feeStrategy = await ctx.db.findAddressByKey("FeeStrategy");
+            const dptpGateway = await ctx.db.findAddressByKey("DptpFuturesGateway");
             // Deploy FeeRebateVoucher
-            const argsFeeRebateVoucher = [
-                feeStrategy
+            const argsDptpGateway = [
+                dptpGateway
             ];
 
-            await ctx.factory.createFeeRebateVoucher(argsFeeRebateVoucher);
-            await ctx.factory.createFeeRebateVoucherStrategy(argsFeeRebateVoucher);
-
+            await ctx.factory.createFeeRebateVoucher(argsDptpGateway);
+            await ctx.factory.createFeeRebateVoucherStrategy(argsDptpGateway);
+            // set handler for FeeRebateVoucher -> FeeRebateVoucherStrategy
+            // set handler for FeeRebateVoucherStrategy -> FeeStrategy
+            // set handler for FeeStrategy -> Vault, DptpFuturesGateway
+            // setVoucherFeeRebateToken in contract FeeRebateVoucherStrategy
         },
-        // "upgrade vault" -> setFeeStrategy
-        // "upgrade governance storage"
     }),
 };
 

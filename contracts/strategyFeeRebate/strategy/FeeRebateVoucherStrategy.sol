@@ -28,7 +28,7 @@ contract FeeRebateVoucherStrategy is
     address public futurXGateway;
 
     modifier onlyHandler() {
-        require(handlers[msg.sender], "!handler");
+        require(handlers[msg.sender], "!handler VoucherStrategy");
         _;
     }
 
@@ -112,7 +112,7 @@ contract FeeRebateVoucherStrategy is
         FeeRebateVoucher.VoucherInfo memory voucher = getVoucherInfo(user);
 
         if (voucher.expiredTime >= block.timestamp) {
-            feeRebate = (amount * voucher.discountPercent) / 10000;
+            feeRebate = (amount * voucher.discountPercent) / NumberHelper.BASIC_POINT_FEE;
             if (feeRebate > voucher.remainValue) {
                 feeRebate = voucher.remainValue;
             }
@@ -174,6 +174,10 @@ contract FeeRebateVoucherStrategy is
         }
 
         return (feeRebate, voucher);
+    }
+
+    function setFuturXGateway(address _futurXGateway) public {
+        futurXGateway = _futurXGateway;
     }
 
     /**
