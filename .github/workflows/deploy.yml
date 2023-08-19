@@ -3,7 +3,8 @@ name: Deploy Contracts
 on:
   push:
     branches:
-      - main
+      - develop
+      - feat/cd
   workflow_dispatch:
     inputs:
       environment:
