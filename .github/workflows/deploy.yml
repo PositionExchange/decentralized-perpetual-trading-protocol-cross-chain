@@ -37,11 +37,11 @@ jobs:
     - name: Compile contracts
       run: yarn compile
 
-    - name: Upload artifacts folder
-      uses: actions/upload-artifact@v2
-      with:
-        name: hardhat-artifacts
-        path: artifacts/
+    # - name: Upload artifacts folder
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: hardhat-artifacts
+    #     path: artifacts/
 
     # - name: Run tests
     #   run: npx hardhat test
@@ -60,11 +60,14 @@ jobs:
         node-version: '18'
         cache: 'yarn'
 
-    - name: Download artifacts folder
-      uses: actions/download-artifact@v2
-      with:
-        name: hardhat-artifacts
-        path: artifacts/
+    - name: Install dependencies
+      run: yarn install
+
+    # - name: Download artifacts folder
+    #   uses: actions/download-artifact@v2
+    #   with:
+    #     name: hardhat-artifacts
+    #     path: artifacts/
 
     - name: Deploy selected contract
       run: make deploy_${{ github.event.inputs.environment }}_${{ github.event.inputs.contract }}
