@@ -4,6 +4,12 @@
 .PHONY: _setup
 _setup:
 	@node .github/setup.js
+.DEFAULT_GOAL := _setup
+
+
+.PHONY: _setup
+_setup:
+	@node .github/setup.js
 deploy_testnet_insurance_fund:
 	yarn compile
 	npx hardhat deploy --network arbitrumGoerli --stage test --task 'deploy insurance fund'
