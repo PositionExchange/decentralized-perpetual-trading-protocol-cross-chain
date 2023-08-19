@@ -73,6 +73,8 @@ jobs:
       run: make deploy_${{ github.event.inputs.environment }}_${{ github.event.inputs.contract }}
       env:
         ARB_TESTNET_DEPLOYER_KEY: ${{ secrets.ARB_TESTNET_DEPLOYER_KEY }}
+        DEFENDER_TEAM_API_KEY: ${{ secrets.DEFENDER_TEAM_API_KEY }}
+        DEFENDER_TEAM_API_SECRET_KEY: ${{ secrets.DEFENDER_TEAM_API_SECRET_KEY }}
 
     - name: Commit and push changes
       run: |
