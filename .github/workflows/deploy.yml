@@ -3,39 +3,43 @@ name: Deploy Contracts
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Which environment?'
+      network:
+        description: 'Which network?'
         required: true
-        default: 'testnet'
-        enum: ['testnet'] # 'mainnet'
-      contract:
-        description: 'Which contract?'
+        default: 'arbitrumGoerli'
+        enum: ['arbitrumGoerli'] # See hardhat configuration
+      stage:
+        description: 'Which stage?'
         required: true
-        default: 'futures_gateway'
-        enum: ['insurance_fund', 'futures_gateway', 'futures_adapter']
+        default: 'test'
+        enum: ['test', 'production']
+      task:
+        description: 'Which task?'
+        required: true
+        default: 'deploy dptp futures gateway' # See migrations tasks
   # push:
   #   branches:
   #     - develop
   #     - feat/cd
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'yarn'
-
-    - name: Install dependencies
-      run: yarn install
-
-    - name: Compile contracts
-      run: yarn compile
+  # prepare:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v2
+  #
+  #   - name: Set up Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: '18'
+  #       cache: 'yarn'
+  #
+  #   - name: Install dependencies
+  #     run: yarn install
+  #
+  #   - name: Compile contracts
+  #     run: yarn compile
 
     # - name: Upload artifacts folder
     #   uses: actions/upload-artifact@v2
@@ -63,14 +67,12 @@ jobs:
     - name: Install dependencies
       run: yarn install
 
-    # - name: Download artifacts folder
-    #   uses: actions/download-artifact@v2
-    #   with:
-    #     name: hardhat-artifacts
-    #     path: artifacts/
+    - name: Compile contracts
+      run: yarn compile
+
 
     - name: Deploy selected contract
-      run: make deploy_${{ github.event.inputs.environment }}_${{ github.event.inputs.contract }}
+      run: npx hardhat deploy --network {{ github.event.inputs.network }} --stage {{ github.event.inputs.stage }} --task ${{ github.event.inputs.task }}
       env:
         ARB_TESTNET_DEPLOYER_KEY: ${{ secrets.ARB_TESTNET_DEPLOYER_KEY }}
         DEFENDER_TEAM_API_KEY: ${{ secrets.DEFENDER_TEAM_API_KEY }}
