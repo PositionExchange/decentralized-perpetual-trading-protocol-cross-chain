@@ -71,7 +71,7 @@ jobs:
 
 
     - name: Deploy selected contract
-      run: npx hardhat deploy --network ${{ github.event.inputs.network }} --stage ${{ github.event.inputs.stage }} --task ${{ github.event.inputs.task }}
+      run: npx hardhat deploy --network ${{ github.event.inputs.network }} --stage ${{ github.event.inputs.stage }} --task "${{ github.event.inputs.task }}"
       env:
         ARB_TESTNET_DEPLOYER_KEY: ${{ secrets.ARB_TESTNET_DEPLOYER_KEY }}
         DEFENDER_TEAM_API_KEY: ${{ secrets.DEFENDER_TEAM_API_KEY }}
