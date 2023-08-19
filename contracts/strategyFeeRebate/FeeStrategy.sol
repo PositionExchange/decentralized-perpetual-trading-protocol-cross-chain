@@ -17,6 +17,8 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
 
     mapping(address => bool) public handlers;
 
+    event FeeRebated(address user, uint256 feeRebated, IFeeStrategy.TypeStrategy typeStrategy);
+
     modifier onlyHandler() {
         require(handlers[msg.sender], "!handler FeeStrategy");
         _;
@@ -50,12 +52,16 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
         address user,
         uint256 amount
     ) external onlyHandler returns (uint256) {
-        if (activeType == IFeeStrategy.TypeStrategy.None) return 0;
-        return
-            IFeeRebateStrategy(mappingTypeToStrategy[activeType]).usingStrategy(
+        IFeeStrategy.TypeStrategy _activeType = activeType;
+        if (_activeType == IFeeStrategy.TypeStrategy.None) return 0;
+
+        uint256 feeRebate = IFeeRebateStrategy(mappingTypeToStrategy[_activeType]).usingStrategy(
                 user,
                 amount
             );
+
+        emit FeeRebate(user, feeRebate, _activeType);
+        return feeRebate;
     }
 
     function applyVoucher(uint256 voucherId, address user) external {
