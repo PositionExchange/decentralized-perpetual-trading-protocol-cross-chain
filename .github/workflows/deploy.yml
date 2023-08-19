@@ -13,10 +13,10 @@ on:
         required: true
         default: 'futures_gateway'
         enum: ['insurance_fund', 'futures_gateway', 'futures_adapter']
-  push:
-    branches:
-      - develop
-      - feat/cd
+  # push:
+  #   branches:
+  #     - develop
+  #     - feat/cd
 
 jobs:
   prepare:
@@ -30,19 +30,27 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Cache Node.js modules
+    - name: Cache node_modules and yarn cache
       uses: actions/cache@v3
       with:
-        path: ~/.npm  # npm cache files are stored in `~/.npm` by default
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        paths:
+          - node_modules
+          - ~/.cache/yarn
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
-          ${{ runner.os }}-node-
+          ${{ runner.os }}-yarn-
 
     - name: Install dependencies
       run: yarn install
 
     - name: Compile contracts
       run: yarn compile
+
+    - name: Upload artifacts folder
+      uses: actions/upload-artifact@v2
+      with:
+        name: hardhat-artifacts
+        path: artifacts/
 
     # - name: Run tests
     #   run: npx hardhat test
@@ -54,6 +62,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Download artifacts folder
+      uses: actions/download-artifact@v2
+      with:
+        name: hardhat-artifacts
+        path: artifacts/
 
     - name: Deploy selected contract
       run: make deploy_${{ github.event.inputs.environment }}_${{ github.event.inputs.contract }}
