@@ -1,10 +1,6 @@
 name: Deploy Contracts
 
 on:
-  # push:
-  #   branches:
-  #     - develop
-  #     - feat/cd
   workflow_dispatch:
     inputs:
       environment:
@@ -17,6 +13,10 @@ on:
         required: true
         default: 'futures_gateway'
         enum: ['insurance_fund', 'futures_gateway', 'futures_adapter']
+  push:
+    branches:
+      - develop
+      - feat/cd
 
 jobs:
   prepare:
