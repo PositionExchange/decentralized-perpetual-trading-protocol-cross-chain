@@ -36,6 +36,19 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
     }
 });
 
+const dummyPk = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+
+for (const pk of [
+    BSC_TESTNET_DEPLOYER_KEY,
+    BSC_MAINNET_DEPLOYER_KEY,
+    ARB_TESTNET_DEPLOYER_KEY,
+    ARB_MAINNET_DEPLOYER_KEY,
+]) {
+    if (!pk) {
+        console.warn(`Note: Missing private key, using dummy pk instead. Note that this will fail if you try to deploy`);
+    }
+}
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -55,23 +68,23 @@ module.exports = {
         bscTestnet: {
             url: "https://data-seed-prebsc-1-s2.binance.org:8545",
             chainId: 97,
-            accounts: [BSC_TESTNET_DEPLOYER_KEY],
+            accounts: [BSC_TESTNET_DEPLOYER_KEY || dummyPk],
         },
         bsc: {
             url: "https://bsc-dataseed.binance.org/",
             chainId: 56,
-            accounts: [BSC_MAINNET_DEPLOYER_KEY],
+            accounts: [BSC_MAINNET_DEPLOYER_KEY || dummyPk],
         },
         arbitrumGoerli: {
             url: "https://arbitrum-goerli.blockpi.network/v1/rpc/public",
             chainId: 421613,
-            accounts: [ARB_TESTNET_DEPLOYER_KEY],
+            accounts: [ARB_TESTNET_DEPLOYER_KEY || dummyPk],
         },
         arbitrumOne: {
             url: "https://arbitrum-one.publicnode.com",
             chainId: 42161,
             gasPrice: 100000000,
-            accounts: [ARB_MAINNET_DEPLOYER_KEY],
+            accounts: [ARB_MAINNET_DEPLOYER_KEY || dummyPk],
         },
     },
 

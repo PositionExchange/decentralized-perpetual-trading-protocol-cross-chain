@@ -190,6 +190,10 @@ contract DptpFuturesGateway is
         return paused();
     }
 
+    function mock() external view returns (bool) {
+        return false;
+    }
+
     function createIncreasePositionRequest(
         address[] memory _path,
         address _indexToken,

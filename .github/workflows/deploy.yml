@@ -1,0 +1,70 @@
+name: Deploy Contracts
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Which environment?'
+        required: true
+        default: 'testnet'
+        enum: ['testnet'] # 'mainnet'
+      contract:
+        description: 'Which contract?'
+        required: true
+        default: 'futures_gateway'
+        enum: ['insurance_fund', 'futures_gateway', 'futures_adapter']
+  push:
+    branches:
+      - develop
+      - feat/cd
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Cache Node.js modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm  # npm cache files are stored in `~/.npm` by default
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: yarn install
+
+    - name: Compile contracts
+      run: yarn compile
+
+    # - name: Run tests
+    #   run: npx hardhat test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy selected contract
+      run: make ${{ github.event.inputs.environment }}_${{ github.event.inputs.contract }}
+      env:
+        ARB_TESTNET_DEPLOYER_KEY: ${{ secrets.ARB_TESTNET_DEPLOYER_KEY }}
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Update files after deployment" || echo "No changes to commit"
+        git push
+
