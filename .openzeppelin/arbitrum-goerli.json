@@ -108730,7 +108730,7 @@
             "label": "mappingTypeToStrategy",
             "offset": 0,
             "slot": "101",
-            "type": "t_mapping(t_enum(TypeStrategy)10949,t_address)",
+            "type": "t_mapping(t_enum(TypeStrategy)48667,t_address)",
             "contract": "FeeStrategy",
             "src": "contracts/strategyFeeRebate/strategy/FeeStrategy.sol:10"
           },
@@ -108738,7 +108738,7 @@
             "label": "activeType",
             "offset": 0,
             "slot": "102",
-            "type": "t_enum(TypeStrategy)10949",
+            "type": "t_enum(TypeStrategy)48667",
             "contract": "FeeStrategy",
             "src": "contracts/strategyFeeRebate/strategy/FeeStrategy.sol:16"
           },
@@ -108780,7 +108780,7 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_enum(TypeStrategy)10949": {
+          "t_enum(TypeStrategy)48667": {
             "label": "enum IFeeStrategy.TypeStrategy",
             "members": [
               "None",
@@ -108793,7 +108793,7 @@
             "label": "mapping(address => bool)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_enum(TypeStrategy)10949,t_address)": {
+          "t_mapping(t_enum(TypeStrategy)48667,t_address)": {
             "label": "mapping(enum IFeeStrategy.TypeStrategy => address)",
             "numberOfBytes": "32"
           },
@@ -108979,7 +108979,7 @@
             "label": "voucherInfo",
             "offset": 0,
             "slot": "253",
-            "type": "t_mapping(t_uint256,t_struct(VoucherInfo)10505_storage)",
+            "type": "t_mapping(t_uint256,t_struct(VoucherInfo)48231_storage)",
             "contract": "FeeRebateVoucher",
             "src": "contracts/strategyFeeRebate/FeeRebateVoucher.sol:15"
           },
@@ -109049,7 +109049,7 @@
             "label": "mapping(uint256 => address)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(VoucherInfo)10505_storage)": {
+          "t_mapping(t_uint256,t_struct(VoucherInfo)48231_storage)": {
             "label": "mapping(uint256 => struct FeeRebateVoucher.VoucherInfo)",
             "numberOfBytes": "32"
           },
@@ -109061,7 +109061,7 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(VoucherInfo)10505_storage": {
+          "t_struct(VoucherInfo)48231_storage": {
             "label": "struct FeeRebateVoucher.VoucherInfo",
             "members": [
               {
@@ -109213,7 +109213,7 @@
             "label": "voucherFeeRebateToken",
             "offset": 0,
             "slot": "203",
-            "type": "t_contract(IFeeRebateVoucher)48661",
+            "type": "t_contract(IFeeRebateVoucher)4147",
             "contract": "FeeRebateVoucherStrategy",
             "src": "contracts/strategyFeeRebate/strategy/FeeRebateVoucherStrategy.sol:26"
           },
@@ -109255,7 +109255,300 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(IFeeRebateVoucher)48661": {
+          "t_contract(IFeeRebateVoucher)4147": {
+            "label": "contract IFeeRebateVoucher",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "bc2f102d839b79a98734941465a2527862af72545add5933c60adde1db0c5ba3": {
+      "address": "0xa632D838Aa4Ebc47359931C71Ce02b8aF06E919E",
+      "txHash": "0xf492416e5723b49b451607346ff764ad0b844f3d54166dc3e675a109ad7a77d5",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "mappingTypeToStrategy",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_enum(TypeStrategy)48924,t_address)",
+            "contract": "FeeStrategy",
+            "src": "contracts/strategyFeeRebate/FeeStrategy.sol:10"
+          },
+          {
+            "label": "activeType",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_enum(TypeStrategy)48924",
+            "contract": "FeeStrategy",
+            "src": "contracts/strategyFeeRebate/FeeStrategy.sol:16"
+          },
+          {
+            "label": "handlers",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "FeeStrategy",
+            "src": "contracts/strategyFeeRebate/FeeStrategy.sol:18"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_array(t_uint256)46_storage",
+            "contract": "FeeStrategy",
+            "src": "contracts/strategyFeeRebate/FeeStrategy.sol:110"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)46_storage": {
+            "label": "uint256[46]",
+            "numberOfBytes": "1472"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_enum(TypeStrategy)48924": {
+            "label": "enum IFeeStrategy.TypeStrategy",
+            "members": [
+              "None",
+              "FeeRebateVoucherStrategy",
+              "HoldingToFeeRebate"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_enum(TypeStrategy)48924,t_address)": {
+            "label": "mapping(enum IFeeStrategy.TypeStrategy => address)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "c292cdbfda0c241ab112d9d5ae9cc4c6adc40b1dc72e28302defe4249cccad30": {
+      "address": "0x7614AF3c8275615a90740A8ED60548B180c050E8",
+      "txHash": "0x35fc45784f9c7781baa51a321ee09d43b392f97b6141704ab8b45c582002ff38",
+      "layout": {
+        "solcVersion": "0.8.9",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:88"
+          },
+          {
+            "label": "handlers",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "FeeRebateVoucherStrategy",
+            "src": "contracts/strategyFeeRebate/strategy/FeeRebateVoucherStrategy.sol:22"
+          },
+          {
+            "label": "userVoucherApplying",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "FeeRebateVoucherStrategy",
+            "src": "contracts/strategyFeeRebate/strategy/FeeRebateVoucherStrategy.sol:24"
+          },
+          {
+            "label": "voucherFeeRebateToken",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_contract(IFeeRebateVoucher)48918",
+            "contract": "FeeRebateVoucherStrategy",
+            "src": "contracts/strategyFeeRebate/strategy/FeeRebateVoucherStrategy.sol:26"
+          },
+          {
+            "label": "futurXGateway",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_address",
+            "contract": "FeeRebateVoucherStrategy",
+            "src": "contracts/strategyFeeRebate/strategy/FeeRebateVoucherStrategy.sol:28"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_array(t_uint256)46_storage",
+            "contract": "FeeRebateVoucherStrategy",
+            "src": "contracts/strategyFeeRebate/strategy/FeeRebateVoucherStrategy.sol:190"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)46_storage": {
+            "label": "uint256[46]",
+            "numberOfBytes": "1472"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IFeeRebateVoucher)48918": {
             "label": "contract IFeeRebateVoucher",
             "numberOfBytes": "20"
           },

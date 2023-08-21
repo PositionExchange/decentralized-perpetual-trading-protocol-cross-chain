@@ -3,8 +3,8 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import ".././interfaces/IFeeRebateStrategy.sol";
-import ".././interfaces/IFeeStrategy.sol";
+import "./interfaces/IFeeRebateStrategy.sol";
+import "./interfaces/IFeeStrategy.sol";
 
 contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
     mapping(IFeeStrategy.TypeStrategy => address)
@@ -17,7 +17,15 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
 
     mapping(address => bool) public handlers;
 
-    event FeeRebated(address user, uint256 feeRebated, IFeeStrategy.TypeStrategy typeStrategy);
+    event FeeRebated(
+        address user,
+        uint256 feeRebated,
+        IFeeStrategy.TypeStrategy typeStrategy
+    );
+
+    event VoucherRevoked(address user);
+
+    event VoucherApplied(address user, uint256 voucherId);
 
     modifier onlyHandler() {
         require(handlers[msg.sender], "!handler FeeStrategy");
@@ -55,12 +63,11 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
         IFeeStrategy.TypeStrategy _activeType = activeType;
         if (_activeType == IFeeStrategy.TypeStrategy.None) return 0;
 
-        uint256 feeRebate = IFeeRebateStrategy(mappingTypeToStrategy[_activeType]).usingStrategy(
-                user,
-                amount
-            );
+        uint256 feeRebate = IFeeRebateStrategy(
+            mappingTypeToStrategy[_activeType]
+        ).usingStrategy(user, amount);
 
-        emit FeeRebate(user, feeRebate, _activeType);
+        emit FeeRebated(user, feeRebate, _activeType);
         return feeRebate;
     }
 
@@ -73,6 +80,7 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
             voucherId,
             user
         );
+        emit VoucherApplied(user, voucherId);
     }
 
     function revokeVoucherApplying(address user) external {
@@ -82,6 +90,7 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
         );
         IFeeRebateStrategy(mappingTypeToStrategy[activeType])
             .revokeVoucherApplying(user);
+        emit VoucherRevoked(user);
     }
 
     function calculateFeeRebate(

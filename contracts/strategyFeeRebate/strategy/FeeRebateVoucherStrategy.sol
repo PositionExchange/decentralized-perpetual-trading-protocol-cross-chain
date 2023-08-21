@@ -112,7 +112,9 @@ contract FeeRebateVoucherStrategy is
         FeeRebateVoucher.VoucherInfo memory voucher = getVoucherInfo(user);
 
         if (voucher.expiredTime >= block.timestamp) {
-            feeRebate = (amount * voucher.discountPercent) / NumberHelper.BASIC_POINT_FEE;
+            feeRebate =
+                (amount * voucher.discountPercent) /
+                NumberHelper.BASIC_POINT_FEE;
             if (feeRebate > voucher.remainValue) {
                 feeRebate = voucher.remainValue;
             }
