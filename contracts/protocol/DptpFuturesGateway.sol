@@ -383,14 +383,6 @@ contract DptpFuturesGateway is
             );
     }
 
-    function applyFeesRebatesVoucher(uint256 voucherId) external {
-        IFeeStrategy(feeStrategy).applyVoucher(voucherId, msg.sender);
-    }
-
-    function revokeFeesRebatesVoucher(uint256 voucherId) external {
-        IFeeStrategy(feeStrategy).revokeVoucherApplying(msg.sender);
-    }
-
     function createDecreaseOrderRequest(
         address[] memory _path,
         address _indexToken,

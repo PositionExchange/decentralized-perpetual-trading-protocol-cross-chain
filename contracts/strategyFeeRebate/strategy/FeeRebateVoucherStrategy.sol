@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721Enume
 
 import {NumberHelper} from "../../protocol/libraries/helpers/NumberHelper.sol";
 import "../interfaces/IFeeRebateVoucher.sol";
-import "../interfaces/IFeeRebateStrategy.sol";
+import "../interfaces/IFeeRebateVoucherStrategy.sol";
 import "../FeeRebateVoucher.sol";
 
 contract FeeRebateVoucherStrategy is

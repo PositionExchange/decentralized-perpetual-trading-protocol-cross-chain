@@ -12,11 +12,6 @@ interface IFeeStrategy {
 
     function revokeVoucherApplying(address user) external;
 
-    function calculateFeeRebate(
-        address user,
-        uint256 amount
-    ) external view returns (uint256);
-
     function usingStrategy(
         address user,
         uint256 amount
@@ -25,6 +20,13 @@ interface IFeeStrategy {
     function setActiveType(TypeStrategy _activeType) external;
 
     function setStrategy(TypeStrategy _type, address _strategy) external;
+
+    function calculateFeeRebate(
+        address user,
+        uint256 amount
+    ) external view returns (uint256);
+
+    function currentApplying(address user) external view returns (uint256);
 
     function mappingTypeToStrategy(
         TypeStrategy typeStrategy

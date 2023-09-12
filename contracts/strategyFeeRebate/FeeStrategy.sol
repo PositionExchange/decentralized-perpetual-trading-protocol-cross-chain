@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import "./interfaces/IFeeRebateStrategy.sol";
+import "./interfaces/IFeeRebateVoucherStrategy.sol";
 import "./interfaces/IFeeStrategy.sol";
 
 contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
@@ -63,9 +63,11 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
         IFeeStrategy.TypeStrategy _activeType = activeType;
         if (_activeType == IFeeStrategy.TypeStrategy.None) return 0;
 
-        uint256 feeRebate = IFeeRebateStrategy(
+        uint256 feeRebate = IFeeRebateVoucherStrategy(
             mappingTypeToStrategy[_activeType]
         ).usingStrategy(user, amount);
+
+        if(feeRebate == 0) return 0;
 
         emit FeeRebated(user, feeRebate, _activeType);
         return feeRebate;
@@ -76,10 +78,8 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
             activeType == IFeeStrategy.TypeStrategy.FeeRebateVoucherStrategy,
             "FeeStrategy: required FeeRebateVoucherStrategy"
         );
-        IFeeRebateStrategy(mappingTypeToStrategy[activeType]).applyVoucher(
-            voucherId,
-            user
-        );
+        IFeeRebateVoucherStrategy(mappingTypeToStrategy[activeType])
+            .applyVoucher(voucherId, user);
         emit VoucherApplied(user, voucherId);
     }
 
@@ -88,7 +88,7 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
             activeType == IFeeStrategy.TypeStrategy.FeeRebateVoucherStrategy,
             "FeeStrategy: required FeeRebateVoucherStrategy"
         );
-        IFeeRebateStrategy(mappingTypeToStrategy[activeType])
+        IFeeRebateVoucherStrategy(mappingTypeToStrategy[activeType])
             .revokeVoucherApplying(user);
         emit VoucherRevoked(user);
     }
@@ -98,8 +98,14 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
         uint256 amount
     ) external view returns (uint256) {
         return
-            IFeeRebateStrategy(mappingTypeToStrategy[activeType])
+            IFeeRebateVoucherStrategy(mappingTypeToStrategy[activeType])
                 .calculateFeeRebate(user, amount);
+    }
+
+    function currentApplying(address user) external view returns (uint256) {
+        return
+            IFeeRebateVoucherStrategy(mappingTypeToStrategy[activeType])
+                .userVoucherApplying(user);
     }
 
     /**

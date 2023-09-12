@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-interface IFeeRebateStrategy {
+interface IFeeRebateVoucherStrategy {
     function applyVoucher(uint256 voucherId, address user) external;
 
     function revokeVoucherApplying(address user) external;
@@ -15,4 +15,6 @@ interface IFeeRebateStrategy {
         address user,
         uint256 amount
     ) external returns (uint256);
+
+    function userVoucherApplying(address user) external view returns (uint256);
 }
