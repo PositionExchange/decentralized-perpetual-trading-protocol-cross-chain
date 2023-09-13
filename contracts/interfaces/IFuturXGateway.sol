@@ -32,4 +32,6 @@ interface IFuturXGateway {
         bool _isLong,
         bool _isExecutedFully
     ) external;
+
+    function feeStrategy() external view returns (address);
 }

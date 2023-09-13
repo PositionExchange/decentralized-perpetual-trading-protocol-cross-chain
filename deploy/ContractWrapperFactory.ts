@@ -525,6 +525,18 @@ export class ContractWrapperFactory {
         await this._deployOrUpgradeContract("FuturXGatewayPreData", ags)
     }
 
+    async createFeeStrategy(ags :any[]){
+        await this._deployOrUpgradeContract("FeeStrategy", ags)
+    }
+
+    async createFeeRebateVoucher(ags :any[]){
+        await this._deployOrUpgradeContract("FeeRebateVoucher", ags)
+    }
+
+    async createFeeRebateVoucherStrategy(ags :any[]){
+        await this._deployOrUpgradeContract("FeeRebateVoucherStrategy", ags)
+    }
+
     async createRewardRouter(contractArgs?: any[]) {
         console.log("createRewardRouter");
 

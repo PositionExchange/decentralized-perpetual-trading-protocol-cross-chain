@@ -16,6 +16,7 @@ import "../interfaces/IVault.sol";
 import "../token/interface/IUSDP.sol";
 import "../interfaces/IVaultUtils.sol";
 import "../interfaces/IVaultPriceFeed.sol";
+import {IFeeStrategy} from "../strategyFeeRebate/interfaces/IFeeStrategy.sol";
 
 contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMathUpgradeable for uint256;
@@ -226,6 +227,9 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
                 _indexToken,
                 _isLong
             );
+            borrowingFee =
+                borrowingFee -
+                _usingStrategy(_account, borrowingFee);
             _increaseDebtAmount(_account, borrowingFee);
             _updatePositionEntryBorrowingRate(key, _collateralToken);
         }
@@ -338,6 +342,8 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
             _indexToken,
             _isLong
         );
+        _feeUsd = _feeUsd - _usingStrategy(_trader, _feeUsd + borrowingFee);
+        borrowingFee = borrowingFee - _usingStrategy(_trader, borrowingFee);
         emit CollectFees(_feeUsd, borrowingFee, _feeUsd.add(borrowingFee));
 
         bytes32 key = getPositionInfoKey(_trader, _indexToken, _isLong);
@@ -712,6 +718,12 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function setGov(address gov) external onlyOwner {
         StorageSlot.getAddressSlot(bytes32("gov.futurX")).value = gov;
+    }
+
+    function setFeeStrategy(address applyFeeStrategy) external onlyOwner {
+        StorageSlot
+            .getAddressSlot(bytes32("fee.strategy.futurX"))
+            .value = applyFeeStrategy;
     }
 
     /** END OWNER FUNCTIONS **/
@@ -1614,6 +1626,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
         return tokenConfigurations[_token].isWhitelisted;
     }
 
+    function _usingStrategy(
+        address user,
+        uint256 amount
+    ) internal returns (uint256) {
+        return IFeeStrategy(getFeeStrategy()).usingStrategy(user, amount);
+    }
+
     function _increaseGlobalShortSize(
         address _token,
         uint256 _amount
@@ -1643,5 +1662,13 @@ contract Vault is IVault, OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
     function getGov() public view returns (address) {
         return StorageSlot.getAddressSlot(bytes32("gov.futurX")).value;
+    }
+
+    function getFeeStrategy() public view returns (address) {
+        return StorageSlot.getAddressSlot(bytes32("fee.strategy.futurX")).value;
+    }
+
+    function test() public view returns (bool) {
+        return true;
     }
 }
