@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "./interfaces/IFeeRebateVoucherStrategy.sol";
 import "./interfaces/IFeeStrategy.sol";
+import "./FeeRebateVoucher.sol";
 
 contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
     mapping(IFeeStrategy.TypeStrategy => address)
@@ -67,7 +68,7 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
             mappingTypeToStrategy[_activeType]
         ).usingStrategy(user, amount);
 
-        if(feeRebate == 0) return 0;
+        if (feeRebate == 0) return 0;
 
         emit FeeRebated(user, feeRebate, _activeType);
         return feeRebate;
@@ -102,10 +103,16 @@ contract FeeStrategy is IFeeStrategy, OwnableUpgradeable {
                 .calculateFeeRebate(user, amount);
     }
 
-    function currentApplying(address user) external view returns (uint256) {
-        return
-            IFeeRebateVoucherStrategy(mappingTypeToStrategy[activeType])
-                .userVoucherApplying(user);
+    function currentApplying(
+        address user
+    ) external view returns (FeeRebateVoucher.VoucherInfo memory info) {
+
+        info = IFeeRebateVoucherStrategy(mappingTypeToStrategy[activeType])
+                .getVoucherInfo(user);
+
+//        return
+//            IFeeRebateVoucherStrategy(mappingTypeToStrategy[activeType])
+//                .getVoucherInfo(user);
     }
 
     /**

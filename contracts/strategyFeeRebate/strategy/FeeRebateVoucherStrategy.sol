@@ -17,7 +17,8 @@ import "../FeeRebateVoucher.sol";
 contract FeeRebateVoucherStrategy is
     OwnableUpgradeable,
     PausableUpgradeable,
-    ReentrancyGuardUpgradeable
+    ReentrancyGuardUpgradeable,
+    IFeeRebateVoucherStrategy
 {
     mapping(address => bool) public handlers;
 

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
+import "../FeeRebateVoucher.sol";
+
 interface IFeeStrategy {
     enum TypeStrategy {
         None,
@@ -26,7 +28,9 @@ interface IFeeStrategy {
         uint256 amount
     ) external view returns (uint256);
 
-    function currentApplying(address user) external view returns (uint256);
+    function currentApplying(
+        address user
+    ) external view returns (FeeRebateVoucher.VoucherInfo memory voucher);
 
     function mappingTypeToStrategy(
         TypeStrategy typeStrategy

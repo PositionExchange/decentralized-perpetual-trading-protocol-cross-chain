@@ -25,6 +25,7 @@ const migrations: MigrationDefinition = {
 
             await ctx.factory.createFeeRebateVoucher(argsDptpGateway);
             await ctx.factory.createFeeRebateVoucherStrategy(argsDptpGateway);
+
             // set handler for FeeRebateVoucher -> FeeRebateVoucherStrategy
             // set handler for FeeRebateVoucherStrategy -> FeeStrategy
             // set handler for FeeStrategy -> Vault, DptpFuturesGateway
