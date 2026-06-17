@@ -92,6 +92,10 @@ contract DptpFuturesGatewayGovernance is
         return paused();
     }
 
+    function setFeeStrategy(address _feeStrategy) external onlyOwner {
+        feeStrategy = _feeStrategy;
+    }
+
     function executeDecreasePosition(
         bytes32 _key,
         uint256 _amountOutAfterFeesUsd,

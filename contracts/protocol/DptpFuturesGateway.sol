@@ -22,6 +22,7 @@ import "../token/interface/IWETH.sol";
 import {Errors} from "./libraries/helpers/Errors.sol";
 import "../interfaces/IFuturXGateway.sol";
 import "../referrals/interfaces/IReferralRewardTracker.sol";
+import {IFeeStrategy} from "../strategyFeeRebate/interfaces/IFeeStrategy.sol";
 
 import "./modules/DptpFuturesGatewayStorage.sol";
 import "./common/CrosscallMethod.sol";
@@ -223,6 +224,9 @@ contract DptpFuturesGateway is
             1
         );
 
+        // convert ETH to WETH
+        _transferInETH();
+
         if (_voucherId > 0) {
             _applyVoucher(_voucherId);
             uint256 discountAmount = IGatewayUtils(gatewayUtils)
@@ -295,6 +299,9 @@ contract DptpFuturesGateway is
             _path[_path.length - 1],
             1
         );
+
+        // convert ETH to WETH
+        _transferInETH();
 
         if (_voucherId > 0) {
             _applyVoucher(_voucherId);
@@ -585,8 +592,6 @@ contract DptpFuturesGateway is
         );
         bool _withdrawETH = _path[_path.length - 1] == weth;
 
-
-
         _executeDecreasePosition(
             _account,
             _path,
@@ -857,17 +862,17 @@ contract DptpFuturesGateway is
         uint256 _amountInToken,
         bool _isLong
     ) external payable nonReentrant whenNotPaused {
-        address paidToken = _path[0];
-        address collateralToken = _path[_path.length - 1];
+        //        address paidToken = _path[0];
+        //        address collateralToken = _path[_path.length - 1];
 
         _validateUpdateCollateral(
             msg.sender,
-            collateralToken,
+            _path[_path.length - 1],
             _indexToken,
             _isLong
         );
 
-        _amountInToken = _adjustDecimalToToken(paidToken, _amountInToken);
+        _amountInToken = _adjustDecimalToToken(_path[0], _amountInToken);
 
         bool hasCollateralInETH = _path[0] == weth;
         if (hasCollateralInETH) {
@@ -876,15 +881,22 @@ contract DptpFuturesGateway is
                 Errors.FGW_INVALID_MSG_VALUE_02
             );
         } else {
-            _transferIn(paidToken, _amountInToken);
+            _transferIn(_path[0], _amountInToken);
         }
         // convert ETH to WETH
         _transferInETH();
 
-        uint256 swapFeeToken = paidToken == collateralToken
+        uint256 swapFeeToken = _path[0] == _path[_path.length - 1]
             ? 0
             : IGatewayUtils(gatewayUtils).getSwapFee(_path, _amountInToken);
-
+        uint256 swapFeeDiscount = _usingStrategy(msg.sender, swapFeeToken);
+        swapFeeToken = swapFeeToken - swapFeeDiscount;
+        if (hasCollateralInETH && swapFeeDiscount > 0) {
+            _transferOutETH(
+                _usdToTokenMin(weth, swapFeeToken - swapFeeDiscount),
+                payable(msg.sender)
+            );
+        }
         (, bytes32 requestKey) = _storeUpdateCollateralRequest(
             _path,
             _indexToken,
@@ -893,8 +905,11 @@ contract DptpFuturesGateway is
             swapFeeToken
         );
 
-        uint256 swapFeeUsd = _tokenToUsdMin(collateralToken, swapFeeToken);
-        uint256 amountInUsd = _tokenToUsdMin(paidToken, _amountInToken).sub(
+        uint256 swapFeeUsd = _tokenToUsdMin(
+            _path[_path.length - 1],
+            swapFeeToken
+        );
+        uint256 amountInUsd = _tokenToUsdMin(_path[0], _amountInToken).sub(
             swapFeeUsd
         );
 
@@ -913,7 +928,7 @@ contract DptpFuturesGateway is
         emit CollateralAddCreated(
             requestKey,
             msg.sender,
-            paidToken,
+            _path[0],
             _amountInToken,
             amountInUsd,
             swapFeeUsd
@@ -1162,6 +1177,13 @@ contract DptpFuturesGateway is
         }
     }
 
+    function _usingStrategy(
+        address user,
+        uint256 amount
+    ) internal returns (uint256) {
+        return IFeeStrategy(feeStrategy).usingStrategy(user, amount);
+    }
+
     function _increasePosition(
         address _account,
         address _collateralToken,
@@ -1248,8 +1270,6 @@ contract DptpFuturesGateway is
             } else {
                 _transferIn(param.path[0], param.amountInAfterFeeToken);
             }
-            // convert ETH to WETH
-            _transferInETH();
         }
 
         param.hasCollateralInETH = hasCollateralInETH;
@@ -1404,6 +1424,21 @@ contract DptpFuturesGateway is
                     _leverage,
                     _isLimitOrder
                 );
+            uint256 totalFeeUsdWithoutDiscount = totalFeeUsd;
+            positionFeeUsd =
+                positionFeeUsd -
+                _usingStrategy(_account, positionFeeUsd);
+            swapFeeUsd = swapFeeUsd - _usingStrategy(_account, swapFeeUsd);
+            totalFeeUsd = swapFeeUsd + positionFeeUsd;
+            if (_path[0] == weth && totalFeeUsdWithoutDiscount > totalFeeUsd) {
+                _transferOutETH(
+                    _usdToTokenMin(
+                        weth,
+                        totalFeeUsdWithoutDiscount - totalFeeUsd
+                    ),
+                    payable(_account)
+                );
+            }
             emit CollectFees(
                 _amountInToken,
                 positionFeeUsd,
@@ -1690,9 +1725,8 @@ contract DptpFuturesGateway is
             memory params = IFuturXGatewayStorage.UpPendingCollateralParam({
                 account: _account,
                 indexToken: _indexToken,
-                collateralToken:_collateralToken,
+                collateralToken: _collateralToken,
                 op: _op
-
             });
         IFuturXGatewayStorage(gatewayStorage).updatePendingCollateral(params);
     }
@@ -1794,9 +1828,9 @@ contract DptpFuturesGateway is
     //        _pause();
     //    }
     //
-    //    function unpause() external onlyOwner {
-    //        _unpause();
-    //    }
+    function unpause() external onlyOwner {
+        _unpause();
+    }
 
     function _validate(bool _condition, string memory _errorCode) private pure {
         require(_condition, _errorCode);

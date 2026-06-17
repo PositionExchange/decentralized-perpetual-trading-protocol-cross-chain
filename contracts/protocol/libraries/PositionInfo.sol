@@ -41,6 +41,9 @@ library PositionInfo {
             _self.collateralToken = _token;
             return;
         }
-        require(_self.collateralToken == _token, Errors.FGWU_INVALID_POSITION_COLLATERAL);
+        require(
+            _self.collateralToken == _token,
+            Errors.FGWU_INVALID_POSITION_COLLATERAL
+        );
     }
 }

@@ -19,6 +19,7 @@
 {"address":"yes","key":"0x1bd83Ce2FB20Fe89eD7194Be20C4E284F3220F32:verified","_id":"GlGz5ofeQdOdCwFG"}
 {"address":"yes","key":"0x9C6C58BE18E2A21144aE709c94b63BFE6F2301Af:verified","_id":"Hp5nN7zHt2G5GxI8"}
 {"address":"yes","key":"0x7Ec6c0Ad876Da50885230Da3d95B93Ac68322BE3:verified","_id":"I4HEtC3xWscn9UvS"}
+{"address":"yes","key":"0xD5511e54D47a4BEAcAFC0B1d0e1B778f2B844Fa5:verified","_id":"JQJAfKSLdlWueJCD"}
 {"address":"yes","key":"0x4d6ed7A0E1d3C56b9FC76716F5e8C996ad82F0A0:verified","_id":"K9VRllR23XQDCpVx"}
 {"address":"yes","key":"0x65d5CCAc8Ab7C5FfEAe4799C7ffDf02258Fe7e7e:verified","_id":"KrLfTqyVdWTjSqYf"}
 {"address":"yes","key":"0xfe4fBBA9B2c5258e94bED5447330Eb360FF084BB:verified","_id":"Kx0dbnUmePY8BJgU"}
@@ -59,4 +60,4 @@
 {"address":"yes","key":"0xb703D013192454d875DcEA7e9E832a7369d2a8ED:verified","_id":"yydBabJaC42z7lAm"}
 {"address":"0x5203e019b96A556A8b7eECBBd00964Cf4Bdef87f","key":"StakedPlpTracker","_id":"zGtY3PwgSTLgzZem"}
 {"address":"0x39a6159BCF298BD078f18D648d43219E8257aE3F","key":"GatewayUtils","_id":"zluxqgot1HQeV4aL"}
-{"address":"yes","key":"0xD5511e54D47a4BEAcAFC0B1d0e1B778f2B844Fa5:verified","_id":"JQJAfKSLdlWueJCD"}
+{"address":"0x15D6ACb3B6Fca33d63860Ed08EF8c0bf3006Dbe9","key":"DptpFuturesGatewayGovernance","_id":"9gfxJzz2yVLtTVpq"}
